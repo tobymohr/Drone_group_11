@@ -1,13 +1,50 @@
 package javacvdemo;
 
-import java.awt.event.KeyEvent;
+import static org.bytedeco.javacpp.helper.opencv_core.CV_RGB;
+import static org.bytedeco.javacpp.opencv_core.CV_WHOLE_SEQ;
+import static org.bytedeco.javacpp.opencv_core.cvClearMemStorage;
+import static org.bytedeco.javacpp.opencv_core.cvCloneImage;
+import static org.bytedeco.javacpp.opencv_core.cvCopy;
+import static org.bytedeco.javacpp.opencv_core.cvCreateImage;
+import static org.bytedeco.javacpp.opencv_core.cvCreateMemStorage;
+import static org.bytedeco.javacpp.opencv_core.cvCreateSeq;
+import static org.bytedeco.javacpp.opencv_core.cvCvtSeqToArray;
+import static org.bytedeco.javacpp.opencv_core.cvGetSeqElem;
+import static org.bytedeco.javacpp.opencv_core.cvPoint;
+import static org.bytedeco.javacpp.opencv_core.cvRect;
+import static org.bytedeco.javacpp.opencv_core.cvSeqPush;
+import static org.bytedeco.javacpp.opencv_core.cvSetImageCOI;
+import static org.bytedeco.javacpp.opencv_core.cvSetImageROI;
+import static org.bytedeco.javacpp.opencv_core.cvSize;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_AA;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_CHAIN_APPROX_SIMPLE;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_POLY_APPROX_DP;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_RETR_LIST;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_THRESH_BINARY;
+import static org.bytedeco.javacpp.opencv_imgproc.cvApproxPoly;
+import static org.bytedeco.javacpp.opencv_imgproc.cvCanny;
+import static org.bytedeco.javacpp.opencv_imgproc.cvCheckContourConvexity;
+import static org.bytedeco.javacpp.opencv_imgproc.cvContourArea;
+import static org.bytedeco.javacpp.opencv_imgproc.cvContourPerimeter;
+import static org.bytedeco.javacpp.opencv_imgproc.cvDilate;
+import static org.bytedeco.javacpp.opencv_imgproc.cvFindContours;
+import static org.bytedeco.javacpp.opencv_imgproc.cvPolyLine;
+import static org.bytedeco.javacpp.opencv_imgproc.cvPyrDown;
+import static org.bytedeco.javacpp.opencv_imgproc.cvPyrUp;
+import static org.bytedeco.javacpp.opencv_imgproc.cvThreshold;
 
-import org.bytedeco.javacpp.*;
-import org.bytedeco.javacv.*;
-
-import static org.bytedeco.javacpp.opencv_core.*;
-import static org.bytedeco.javacpp.opencv_imgproc.*;
-import static org.bytedeco.javacpp.opencv_imgcodecs.*;
+import org.bytedeco.javacpp.IntPointer;
+import org.bytedeco.javacpp.Loader;
+import org.bytedeco.javacpp.opencv_core.CvContour;
+import org.bytedeco.javacpp.opencv_core.CvMemStorage;
+import org.bytedeco.javacpp.opencv_core.CvPoint;
+import org.bytedeco.javacpp.opencv_core.CvSeq;
+import org.bytedeco.javacpp.opencv_core.CvSize;
+import org.bytedeco.javacpp.opencv_core.CvSlice;
+import org.bytedeco.javacpp.opencv_core.IplImage;
+import org.bytedeco.javacv.CanvasFrame;
+import org.bytedeco.javacv.OpenCVFrameConverter;
+import org.bytedeco.javacv.OpenCVFrameGrabber;
 
 /**
  * I was unable to find the OpenCV squares.c translated into JavaCV, so this

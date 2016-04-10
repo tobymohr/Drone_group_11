@@ -1,57 +1,28 @@
 package picture;
 
-import static org.bytedeco.javacpp.opencv_core.cvCreateImage;
-import static org.bytedeco.javacpp.opencv_core.cvSize;
-import static org.bytedeco.javacpp.opencv_imgproc.CV_BGR2GRAY;
-import static org.bytedeco.javacpp.opencv_imgproc.cvCvtColor;
-import static org.bytedeco.javacpp.opencv_core.*;
-
-import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
 
-import org.bytedeco.javacpp.opencv_core.CvSize;
 import org.bytedeco.javacpp.opencv_core.IplImage;
-import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameGrabber;
 
-import com.google.zxing.BinaryBitmap;
-import com.google.zxing.ChecksumException;
-import com.google.zxing.FormatException;
-import com.google.zxing.LuminanceSource;
-import com.google.zxing.NotFoundException;
-import com.google.zxing.Result;
-import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
-import com.google.zxing.common.HybridBinarizer;
-import com.google.zxing.qrcode.QRCodeReader;
-
 import app.DroneCommunicator;
 import app.DroneInterface;
 import de.yadrone.base.ARDrone;
 import de.yadrone.base.IARDrone;
-import de.yadrone.base.command.CommandManager;
-import de.yadrone.base.command.LEDAnimation;
-import de.yadrone.base.command.VideoBitRateMode;
-import de.yadrone.base.command.VideoChannel;
 import de.yadrone.base.exception.ARDroneException;
 import de.yadrone.base.exception.IExceptionListener;
-import de.yadrone.base.navdata.Altitude;
-import de.yadrone.base.navdata.AltitudeListener;
 import de.yadrone.base.video.ImageListener;
-import de.yadrone.base.video.VideoManager;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -60,8 +31,6 @@ import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.image.PixelWriter;
-import javafx.scene.image.WritableImage;
 
 public class PictureController {
 
@@ -137,7 +106,6 @@ public class PictureController {
 		try {
 			grabFromVideo();
 		} catch (org.bytedeco.javacv.FrameGrabber.Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		// initDrone(); grabFromDrone();
@@ -192,15 +160,8 @@ public class PictureController {
 	public void grabFromDrone() {
 
 		drone.getVideoManager().start();
-		// drone.getVideoManager().reinitialize();
-		drone.getCommandManager().setVideoChannel(VideoChannel.VERT);
-
 		drone.getVideoManager().addImageListener(new ImageListener() {
 			boolean isFirst = true;
-			QRCodeReader reader = new QRCodeReader();
-			LuminanceSource source;
-			BinaryBitmap bitmap;
-
 			@Override
 			public void imageUpdated(BufferedImage arg0) {
 				if (isFirst) {
@@ -210,23 +171,6 @@ public class PictureController {
 				}
 				video.setArg0(arg0);
 				ofvideo.setArg0(arg0);
-				// source = new BufferedImageLuminanceSource(arg0);
-				// bitmap = new BinaryBitmap(new HybridBinarizer(source));
-				// try {
-				// Result detectionResult = reader.decode(bitmap);
-				// String code = detectionResult.getText();
-				// System.out.println("--------------------------");
-				// System.out.println(code);
-				// System.out.println("--------------------------");
-				// } catch (NotFoundException e)
-				// {
-				// } catch (ChecksumException e) {
-				// // TODO Auto-generated catch block
-				// e.printStackTrace();
-				// } catch (FormatException e) {
-				// // TODO Auto-generated catch block
-				// e.printStackTrace();
-				// }
 			}
 		});
 	}
@@ -282,7 +226,6 @@ public class PictureController {
 				new Thread(OFC).start();
 			}
 		} catch (org.bytedeco.javacv.FrameGrabber.Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -292,17 +235,14 @@ public class PictureController {
 	
 	public void trackBlack(){
 		colorInt = 1;
-		
 	}
 	
 	public void trackRed(){
 		colorInt = 2;
-		
 	}
 	
 	public void trackGreen(){
 		colorInt = 3;
-		
 	}
 
 	public BufferedImage IplImageToBufferedImage(IplImage src) {

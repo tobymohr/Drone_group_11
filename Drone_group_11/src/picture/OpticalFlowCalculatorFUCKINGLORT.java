@@ -1,20 +1,65 @@
 package picture;
 
-import static org.bytedeco.javacpp.opencv_core.*;
-import static org.bytedeco.javacpp.opencv_imgproc.*;
-import static org.bytedeco.javacpp.opencv_imgproc.cvFindContours;
-import static org.bytedeco.javacpp.opencv_imgproc.cvPolyLine;
-import static org.bytedeco.javacpp.helper.opencv_imgproc.*;
 import static org.bytedeco.javacpp.helper.opencv_core.CV_RGB;
 import static org.bytedeco.javacpp.helper.opencv_imgproc.cvDrawContours;
 import static org.bytedeco.javacpp.helper.opencv_imgproc.cvFindContours;
-import static org.bytedeco.javacpp.opencv_imgproc.*;
+import static org.bytedeco.javacpp.opencv_core.CV_TERMCRIT_EPS;
+import static org.bytedeco.javacpp.opencv_core.CV_TERMCRIT_ITER;
+import static org.bytedeco.javacpp.opencv_core.CV_TERMCRIT_NUMBER;
+import static org.bytedeco.javacpp.opencv_core.CV_WHOLE_SEQ;
+import static org.bytedeco.javacpp.opencv_core.IPL_DEPTH_32F;
+import static org.bytedeco.javacpp.opencv_core.IPL_DEPTH_8U;
+import static org.bytedeco.javacpp.opencv_core.cvClearMemStorage;
+import static org.bytedeco.javacpp.opencv_core.cvCloneImage;
+import static org.bytedeco.javacpp.opencv_core.cvCopy;
+import static org.bytedeco.javacpp.opencv_core.cvCreateImage;
+import static org.bytedeco.javacpp.opencv_core.cvCreateSeq;
+import static org.bytedeco.javacpp.opencv_core.cvCvtSeqToArray;
+import static org.bytedeco.javacpp.opencv_core.cvGetSeqElem;
+import static org.bytedeco.javacpp.opencv_core.cvGetSize;
+import static org.bytedeco.javacpp.opencv_core.cvInRangeS;
+import static org.bytedeco.javacpp.opencv_core.cvMerge;
+import static org.bytedeco.javacpp.opencv_core.cvPoint;
+import static org.bytedeco.javacpp.opencv_core.cvRect;
+import static org.bytedeco.javacpp.opencv_core.cvScalar;
+import static org.bytedeco.javacpp.opencv_core.cvSeqPush;
+import static org.bytedeco.javacpp.opencv_core.cvSetImageCOI;
+import static org.bytedeco.javacpp.opencv_core.cvSetImageROI;
+import static org.bytedeco.javacpp.opencv_core.cvSize;
+import static org.bytedeco.javacpp.opencv_core.cvSplit;
+import static org.bytedeco.javacpp.opencv_core.cvTermCriteria;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_AA;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_BGR2GRAY;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_BGR2HSV;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_CHAIN_APPROX_SIMPLE;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_HSV2BGR;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_POLY_APPROX_DP;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_RETR_LIST;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_THRESH_BINARY;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_THRESH_TOZERO;
+import static org.bytedeco.javacpp.opencv_imgproc.cvApproxPoly;
+import static org.bytedeco.javacpp.opencv_imgproc.cvCanny;
+import static org.bytedeco.javacpp.opencv_imgproc.cvCheckContourConvexity;
+import static org.bytedeco.javacpp.opencv_imgproc.cvContourArea;
+import static org.bytedeco.javacpp.opencv_imgproc.cvContourPerimeter;
+import static org.bytedeco.javacpp.opencv_imgproc.cvCvtColor;
+import static org.bytedeco.javacpp.opencv_imgproc.cvDilate;
+import static org.bytedeco.javacpp.opencv_imgproc.cvEqualizeHist;
+import static org.bytedeco.javacpp.opencv_imgproc.cvFindContours;
+import static org.bytedeco.javacpp.opencv_imgproc.cvFindCornerSubPix;
+import static org.bytedeco.javacpp.opencv_imgproc.cvGetCentralMoment;
+import static org.bytedeco.javacpp.opencv_imgproc.cvGetSpatialMoment;
+import static org.bytedeco.javacpp.opencv_imgproc.cvGoodFeaturesToTrack;
+import static org.bytedeco.javacpp.opencv_imgproc.cvLine;
+import static org.bytedeco.javacpp.opencv_imgproc.cvMinAreaRect2;
+import static org.bytedeco.javacpp.opencv_imgproc.cvMoments;
+import static org.bytedeco.javacpp.opencv_imgproc.cvPolyLine;
+import static org.bytedeco.javacpp.opencv_imgproc.cvPyrDown;
+import static org.bytedeco.javacpp.opencv_imgproc.cvPyrUp;
+import static org.bytedeco.javacpp.opencv_imgproc.cvSmooth;
+import static org.bytedeco.javacpp.opencv_imgproc.cvThreshold;
 import static org.bytedeco.javacpp.opencv_video.cvCalcOpticalFlowPyrLK;
-import static org.bytedeco.javacpp.opencv_shape.*;
 
-import org.bytedeco.javacv.*;
-import java.awt.image.BufferedImage;
-import org.bytedeco.javacv.ObjectFinder;
 import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.FloatPointer;
 import org.bytedeco.javacpp.IntPointer;
@@ -26,7 +71,6 @@ import org.bytedeco.javacpp.opencv_core.CvPoint;
 import org.bytedeco.javacpp.opencv_core.CvPoint2D32f;
 import org.bytedeco.javacpp.opencv_core.CvScalar;
 import org.bytedeco.javacpp.opencv_core.CvSeq;
-import org.bytedeco.javacpp.opencv_core.CvSet;
 import org.bytedeco.javacpp.opencv_core.CvSize;
 import org.bytedeco.javacpp.opencv_core.CvSlice;
 import org.bytedeco.javacpp.opencv_core.IplImage;
@@ -36,13 +80,7 @@ import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 
 import com.google.zxing.BinaryBitmap;
-import com.google.zxing.ChecksumException;
-import com.google.zxing.FormatException;
 import com.google.zxing.LuminanceSource;
-import com.google.zxing.NotFoundException;
-import com.google.zxing.Result;
-import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
-import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
 
 import helper.Vector;
@@ -639,7 +677,7 @@ public class OpticalFlowCalculatorFUCKINGLORT implements Runnable {
         return squares;
     }
 	
-	public void kåreHalløj(){
+	public void kaare(){
 		String[] codes = new String[3];
 		boolean found = true;
 		double[] distances = new double[3];

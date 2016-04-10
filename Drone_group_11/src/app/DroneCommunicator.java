@@ -1,19 +1,14 @@
 package app;
 
-import de.yadrone.base.ARDrone;
 import de.yadrone.base.IARDrone;
 import de.yadrone.base.command.CommandManager;
 import de.yadrone.base.command.VideoChannel;
-import de.yadrone.base.navdata.VelocityListener;
-import de.yadrone.base.exception.ARDroneException;
-import de.yadrone.base.exception.IExceptionListener;
 
 
 public class DroneCommunicator implements DroneInterface {
 	private IARDrone drone;
 	private boolean connectedToDrone = false;
 	private boolean droneFlying = false;
-	private boolean cancelMovement = false;
 	private CommandManager commandManager = null;
 	private int speed = 30;
 	private VideoChannel videoChannel;
