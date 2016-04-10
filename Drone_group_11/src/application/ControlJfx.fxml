@@ -40,8 +40,10 @@
 				<Insets left="10" right="10" />
 			</padding>
    <children>
-            <HBox prefHeight="269.0" prefWidth="160.0">
+            <HBox >
                <children>
+                  <Button mnemonicParsing="false" onAction="#emergencyStop" text="Emergency" />
+                  <Button mnemonicParsing="false" onAction="#land" text="Land" />
                   <Button mnemonicParsing="false" onAction="#trackGreen" text="Green" />
                   <Button mnemonicParsing="false" onAction="#trackRed" text="Red" />
                   <Button mnemonicParsing="false" onAction="#trackBlack" text="Black" />
@@ -62,16 +64,12 @@
 			<padding>
 				<Insets bottom="25" left="25" right="25" top="25" />
 			</padding>
- 	<children>
-   			<Button fx:id="cameraButton" alignment="center" onAction="#startCamera" text="Start camera" />
-   			<Separator />
-   			<Label fx:id="hsvCurrentValues" />
-   </children>			
-   <children>
-   
-   			<Separator />
-   			<Label fx:id="hsvCurrentValues" />
-   </children>
+		 	<children>
+		 		<HBox alignment="CENTER">
+		 			<Button fx:id="cameraButton" alignment="center" onAction="#startCamera" text="Start camera" />
+		   			<Button alignment="center" onAction="#startDrone" text="Start drone" />
+		 		</HBox>
+		   </children>
 		</VBox>
 	</bottom>
 </BorderPane>

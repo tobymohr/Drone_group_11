@@ -5,21 +5,23 @@ import java.awt.image.BufferedImage;
 import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.Java2DFrameConverter;
 
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+
 public class Video implements Runnable
 {
-
-	Java2DFrameConverter converter1;
-	CanvasFrame canvas;
-	BufferedImage arg0;
+	ImageView polyFrame;
+	Image arg0;
 	
 	public void setArg0(BufferedImage arg0) {
-		this.arg0 = arg0;
+		this.arg0 = SwingFXUtils.toFXImage(arg0, null);
+;
 	}
 
-	public Video(BufferedImage arg0){
-		this.arg0 = arg0;
-		converter1 = new Java2DFrameConverter();
-		canvas = new CanvasFrame("Video");
+	public Video(ImageView polyFrame, BufferedImage arg0){
+		this.polyFrame = polyFrame;
+		this.arg0 = SwingFXUtils.toFXImage(arg0, null);
 	}
 
 	@Override
@@ -31,7 +33,7 @@ public class Video implements Runnable
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		canvas.showImage(converter1.convert(arg0));
+			polyFrame.setImage(arg0);
 		}
 		
 	}

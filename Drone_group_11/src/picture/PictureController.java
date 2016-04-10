@@ -1,14 +1,9 @@
 package picture;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
-import javax.swing.JButton;
-import javax.swing.JFrame;
 
 import org.bytedeco.javacpp.opencv_core.IplImage;
 import org.bytedeco.javacv.Frame;
@@ -25,10 +20,6 @@ import de.yadrone.base.exception.IExceptionListener;
 import de.yadrone.base.video.ImageListener;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
@@ -42,50 +33,11 @@ public class PictureController {
 	private ScheduledExecutorService timer;
 	private int colorInt = 0;
 
-	// DRONE
-	@FXML
-	private Button connectDrone;
-	@FXML
-	private Button takeOffDrone;
-	@FXML
-	private Button landDrone;
-	@FXML
-	private Button forwardDrone;
-	@FXML
-	private Button backwardsDrone;
-	@FXML
-	private Button emergencyDrone;
-	@FXML
-	private TextField speedDrone;
-
-	@FXML
-	private Button redButton;
-	@FXML
-	private Button greenButton;
-	@FXML
-	private Button yellowButton;
-
 	// CAMERA
-	@FXML
-	private Button cameraButton;
 	@FXML
 	private ImageView polyFrame;
 	@FXML
 	private ImageView filterFrame;
-	@FXML
-	private Slider hueStart;
-	@FXML
-	private Slider hueStop;
-	@FXML
-	private Slider saturationStart;
-	@FXML
-	private Slider saturationStop;
-	@FXML
-	private Slider valueStart;
-	@FXML
-	private Slider valueStop;
-	@FXML
-	private Label hsvCurrentValues;
 
 	public PictureController() throws Exception {
 	}
@@ -99,16 +51,16 @@ public class PictureController {
 	protected void startCamera() {
 		setDimension(polyFrame, 400);
 		setDimension(filterFrame, 400);
-		start();
-	}
-
-	public void start() {
 		try {
 			grabFromVideo();
 		} catch (org.bytedeco.javacv.FrameGrabber.Exception e) {
 			e.printStackTrace();
 		}
-		// initDrone(); grabFromDrone();
+	}
+
+	public void startDrone() {
+		 initDrone(); 
+		 grabFromDrone();
 	}
 
 	public void initDrone() {
@@ -122,39 +74,6 @@ public class PictureController {
 		});
 		drone.start();
 		droneCommunicator = new DroneCommunicator(drone);
-
-		JFrame frame1 = new JFrame("Emergency");
-
-		frame1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		JButton buttonEmergencyStop = new JButton("Emergency");
-		buttonEmergencyStop.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				droneCommunicator.emergencyStop();
-			}
-		});
-		buttonEmergencyStop.setSize(200, 200);
-		frame1.add(buttonEmergencyStop);
-
-		JFrame frame2 = new JFrame("Land");
-		frame2.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		JButton buttonFreezeLand = new JButton("Freeze and land");
-		buttonFreezeLand.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				droneCommunicator.freeze();
-				droneCommunicator.land();
-			}
-		});
-		buttonFreezeLand.setSize(200, 200);
-		frame2.add(buttonFreezeLand);
-
-		frame1.setSize(400, 200);
-		frame1.setVisible(true);
-		frame2.setSize(400, 200);
-		frame2.setVisible(true);
 	}
 
 	public void grabFromDrone() {
@@ -165,7 +84,7 @@ public class PictureController {
 			@Override
 			public void imageUpdated(BufferedImage arg0) {
 				if (isFirst) {
-					new Thread(video = new Video(arg0)).start();
+					new Thread(video = new Video(polyFrame, arg0)).start();
 					new Thread(ofvideo = new OFVideo(arg0)).start();
 					isFirst = false;
 				}
@@ -250,6 +169,15 @@ public class PictureController {
 		Java2DFrameConverter paintConverter = new Java2DFrameConverter();
 		Frame frame = grabberConverter.convert(src);
 		return paintConverter.getBufferedImage(frame, 1);
+	}
+	
+	public void emergencyStop() {
+		droneCommunicator.emergencyStop();
+	}
+	
+	public void land() {
+		droneCommunicator.freeze();
+		droneCommunicator.land();
 	}
 
 }
