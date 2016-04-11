@@ -27,6 +27,7 @@ public class OFVideo implements Runnable {
 	OpenCVFrameConverter.ToIplImage converter;
 	private ImageView filterFrame;
 	private ImageView polyFrame;
+	
 	BufferedImage arg0;
 
 
@@ -80,6 +81,8 @@ public class OFVideo implements Runnable {
 			e.printStackTrace();
 		}
 	}
+	
+	
 
 	public BufferedImage IplImageToBufferedImage(IplImage src) {
 		OpenCVFrameConverter.ToIplImage grabberConverter = new OpenCVFrameConverter.ToIplImage();

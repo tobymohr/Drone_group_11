@@ -54,6 +54,7 @@ import static org.bytedeco.javacpp.opencv_imgproc.cvMoments;
 import static org.bytedeco.javacpp.opencv_imgproc.cvSmooth;
 import static org.bytedeco.javacpp.opencv_imgproc.cvThreshold;
 import static org.bytedeco.javacpp.opencv_video.cvCalcOpticalFlowPyrLK;
+import picture.PictureController;
 
 import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.FloatPointer;
@@ -98,21 +99,21 @@ public class OpticalFlowCalculator {
 	public OpticalFlowCalculator() {
 	}
 
-	public int getMinThresh() {
-		return minThresh;
-	}
-
-	public void setMinThresh(int minThresh) {
-		this.minThresh = minThresh;
-	}
-
-	public int getMaxThresh() {
-		return maxThresh;
-	}
-
-	public void setMaxThresh(int maxThresh) {
-		this.maxThresh = maxThresh;
-	}
+//	public int getMinThresh() {
+//		return minThresh;
+//	}
+//
+//	public void setMinThresh(int minThresh) {
+//		this.minThresh = minThresh;
+//	}
+//
+//	public int getMaxThresh() {
+//		return maxThresh;
+//	}
+//
+//	public void setMaxThresh(int maxThresh) {
+//		this.maxThresh = maxThresh;
+//	}
 
 	double angle(CvPoint pt1, CvPoint pt2, CvPoint pt0) {
 		double dx1 = pt1.x() - pt0.x();
@@ -185,7 +186,7 @@ public class OpticalFlowCalculator {
 		IplImage grayImage = IplImage.create(img.width(), img.height(), IPL_DEPTH_8U, 1);
 		cvCvtColor(img, grayImage, CV_BGR2GRAY);
 		
-		cvThreshold(grayImage, grayImage, 100, 255, CV_THRESH_BINARY); 
+		cvThreshold(grayImage, grayImage, 100,255, CV_THRESH_BINARY); 
 
 		cvFindContours(grayImage, storage, contour1, Loader.sizeof(CvContour.class), CV_RETR_LIST, CV_LINK_RUNS,
 				cvPoint(0, 0));
