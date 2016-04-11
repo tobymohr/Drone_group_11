@@ -401,7 +401,6 @@ public class OpticalFlowCalculator {
 				if (points.total() == edgeNumber && cvContourArea(points) > 50 && cvContourArea(points) < 175000) {
 					// drawLines of Box
 					cvDrawContours(coloredImage, points, CvScalar.WHITE, CvScalar.WHITE, -2, 2, CV_AA);
-					System.out.println(cvContourArea(points));
 					// Counter for checking points in center box
 				}
 			}
