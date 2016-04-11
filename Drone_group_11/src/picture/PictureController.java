@@ -27,13 +27,13 @@ import javafx.scene.image.ImageView;
 
 public class PictureController {
 
-	private OpticalFlowCalculator OFC;
+	private OpticalFlowCalculator OFC = new OpticalFlowCalculator();
 	private DroneInterface droneCommunicator;
 	private IARDrone drone;
 	private Video video;
 	private OFVideo ofvideo;
 	private ScheduledExecutorService timer;
-	private int colorInt = 0;
+	public static int colorInt = 0;
 
 	// CAMERA
 	@FXML
@@ -76,6 +76,7 @@ public class PictureController {
 		});
 		drone.start();
 		droneCommunicator = new DroneCommunicator(drone);
+		droneCommunicator.setFrontCamera();
 	}
 
 	public void grabFromDrone() {
@@ -86,11 +87,11 @@ public class PictureController {
 			@Override
 			public void imageUpdated(BufferedImage arg0) {
 				if (isFirst) {
-					new Thread(video = new Video(polyFrame, arg0)).start();
-					new Thread(ofvideo = new OFVideo(arg0)).start();
+//					new Thread(video = new Video(polyFrame, arg0)).start();
+					new Thread(ofvideo = new OFVideo(filterFrame, polyFrame, arg0)).start();
 					isFirst = false;
 				}
-				video.setArg0(arg0);
+//				video.setArg0(arg0);
 				ofvideo.setArg0(arg0);
 			}
 		});
@@ -142,10 +143,6 @@ public class PictureController {
 		try {
 			newImg = converter.convert(grabber.grab());
 			
-			if (OFC == null) {
-				OFC = new OpticalFlowCalculator(newImg);
-				new Thread(OFC).start();
-			}
 		} catch (org.bytedeco.javacv.FrameGrabber.Exception e) {
 			e.printStackTrace();
 		}

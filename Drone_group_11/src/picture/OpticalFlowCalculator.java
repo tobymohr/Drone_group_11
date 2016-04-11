@@ -70,7 +70,7 @@ import org.bytedeco.javacv.OpenCVFrameConverter;
 
 import helper.Vector;
 
-public class OpticalFlowCalculator implements Runnable {
+public class OpticalFlowCalculator {
 
 	private static final int MAX_CORNERS = 5;
 	OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
@@ -91,7 +91,7 @@ public class OpticalFlowCalculator implements Runnable {
 
 	CvSeq squares = cvCreateSeq(0, Loader.sizeof(CvSeq.class), Loader.sizeof(CvPoint.class), storage);
 
-	public OpticalFlowCalculator(IplImage frame) {
+	public OpticalFlowCalculator() {
 	}
 
 	public int getMinThresh() {
@@ -108,17 +108,6 @@ public class OpticalFlowCalculator implements Runnable {
 
 	public void setMaxThresh(int maxThresh) {
 		this.maxThresh = maxThresh;
-	}
-
-	@Override
-	public void run() {
-		while (true) {
-			try {
-				Thread.sleep(5);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
 	}
 
 	double angle(CvPoint pt1, CvPoint pt2, CvPoint pt0) {
