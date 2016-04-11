@@ -3,6 +3,13 @@ package picture;
 import static org.bytedeco.javacpp.helper.opencv_core.CV_RGB;
 import static org.bytedeco.javacpp.helper.opencv_imgproc.cvDrawContours;
 import static org.bytedeco.javacpp.helper.opencv_imgproc.cvFindContours;
+import static org.bytedeco.javacpp.opencv_core.*;
+import static org.bytedeco.javacpp.opencv_imgproc.*;
+import static org.bytedeco.javacpp.opencv_imgcodecs.*;
+import static org.bytedeco.javacpp.opencv_highgui.*;
+import static org.bytedeco.javacpp.helper.opencv_imgproc.*;
+import static org.bytedeco.javacpp.helper.opencv_core.*;
+import static org.bytedeco.javacpp.helper.opencv_imgcodecs.*;
 import static org.bytedeco.javacpp.opencv_core.CV_TERMCRIT_EPS;
 import static org.bytedeco.javacpp.opencv_core.CV_TERMCRIT_ITER;
 import static org.bytedeco.javacpp.opencv_core.CV_TERMCRIT_NUMBER;
@@ -61,6 +68,10 @@ import static org.bytedeco.javacpp.opencv_imgproc.cvPyrUp;
 import static org.bytedeco.javacpp.opencv_imgproc.cvSmooth;
 import static org.bytedeco.javacpp.opencv_imgproc.cvThreshold;
 import static org.bytedeco.javacpp.opencv_video.cvCalcOpticalFlowPyrLK;
+
+import java.io.File;
+
+import javax.swing.JFileChooser;
 
 import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.FloatPointer;
@@ -423,10 +434,11 @@ public class OpticalFlowCalculatorFUCKINGLORT implements Runnable {
 		cvClearMemStorage(storage);
 //		image = balanceWhite(image);
 		IplImage grayImage = IplImage.create(image.width(), image.height(), IPL_DEPTH_8U, image.nChannels());
-		cvCvtColor(image, grayImage, CV_BGR2GRAY);
+		cvCopy(image, grayImage);
+//		cvCvtColor(image, grayImage, CV_RGB2GRAY);
 		IplImage orgImage = IplImage.create(image.width(), image.height(), IPL_DEPTH_8U, image.nChannels());
 		cvCopy(image, orgImage);
-		grayImage = getThresholdBlackImage(grayImage);
+//		grayImage = getThresholdBlackImage(grayImage);
 		CvSeq contour = new CvSeq(null);
 		cvFindContours(grayImage, storage, contour, Loader.sizeof(CvContour.class), CV_RETR_LIST,
 				CV_CHAIN_APPROX_SIMPLE);
@@ -517,6 +529,35 @@ public class OpticalFlowCalculatorFUCKINGLORT implements Runnable {
 			contour = contour.h_next();
 		}
 		return crop;
+	}
+	
+	public IplImage extractQRImage(IplImage img0) {
+        IplImage img1 = cvCreateImage(cvGetSize(img0), IPL_DEPTH_8U, 1);
+        cvCvtColor(img0, img1, CV_RGB2GRAY);
+        
+        cvCanny(img1, img1, 100, 200);
+		CvSeq contour = new CvSeq(null);
+		cvFindContours(img1, storage, contour, Loader.sizeof(CvContour.class), CV_RETR_EXTERNAL,
+				CV_CHAIN_APPROX_NONE);
+		
+		IplImage mask = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img1.nChannels());
+		IplImage crop = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
+		cvSetZero(crop);
+		cvSetZero(mask);
+		while (contour != null && !contour.isNull()) {
+			if (contour.elem_size() > 0) {
+				CvSeq points = cvApproxPoly(contour, Loader.sizeof(CvContour.class), storage, CV_POLY_APPROX_DP,
+						cvContourPerimeter(contour) * 0.02, 0);
+				if (points.total() == 4 && cvContourArea(points) > 150 && cvContourArea(points) < 175000) {
+					cvDrawContours(mask, contour, CvScalar.WHITE, CV_RGB(248, 18, 18), 1, -1, 8);
+					cvCopy(img0, crop, mask);
+				}
+			}
+
+			contour = contour.h_next();
+		}
+		
+        return crop;
 	}
 	
 	public IplImage drawSquares(IplImage img, CvSeq squares) {

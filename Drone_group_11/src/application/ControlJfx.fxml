@@ -55,6 +55,7 @@
             </VBox>
             <ImageView fx:id="filterFrame" fitHeight="271.0" fitWidth="251.0" pickOnBounds="true" preserveRatio="true" />
             <ImageView fx:id="polyFrame" fitHeight="269.0" fitWidth="269.0" pickOnBounds="true" preserveRatio="true" />
+            <ImageView fx:id="qrFrame" fitHeight="269.0" fitWidth="269.0" pickOnBounds="true" preserveRatio="true" />
    </children>
 		</HBox>
 	</center>

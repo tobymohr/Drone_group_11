@@ -4,6 +4,13 @@ import static org.bytedeco.javacpp.helper.opencv_core.CV_RGB;
 import static org.bytedeco.javacpp.helper.opencv_imgproc.cvDrawContours;
 import static org.bytedeco.javacpp.helper.opencv_imgproc.cvFindContours;
 import static org.bytedeco.javacpp.opencv_core.CV_TERMCRIT_EPS;
+import static org.bytedeco.javacpp.opencv_core.*;
+import static org.bytedeco.javacpp.opencv_imgproc.*;
+import static org.bytedeco.javacpp.opencv_imgcodecs.*;
+import static org.bytedeco.javacpp.opencv_highgui.*;
+import static org.bytedeco.javacpp.helper.opencv_imgproc.*;
+import static org.bytedeco.javacpp.helper.opencv_core.*;
+import static org.bytedeco.javacpp.helper.opencv_imgcodecs.*;
 import static org.bytedeco.javacpp.opencv_core.CV_TERMCRIT_ITER;
 import static org.bytedeco.javacpp.opencv_core.CV_TERMCRIT_NUMBER;
 import static org.bytedeco.javacpp.opencv_core.CV_WHOLE_SEQ;
@@ -69,6 +76,7 @@ import org.bytedeco.javacpp.opencv_core.CvScalar;
 import org.bytedeco.javacpp.opencv_core.CvSeq;
 import org.bytedeco.javacpp.opencv_core.CvSize;
 import org.bytedeco.javacpp.opencv_core.IplImage;
+import org.bytedeco.javacpp.opencv_imgproc.CvLSHOperations;
 import org.bytedeco.javacpp.opencv_imgproc.CvMoments;
 import org.bytedeco.javacpp.helper.opencv_core.CvArr;
 import org.bytedeco.javacv.OpenCVFrameConverter;
@@ -390,9 +398,10 @@ public class OpticalFlowCalculator {
 			if (contour.elem_size() > 0) {
 				CvSeq points = cvApproxPoly(contour, Loader.sizeof(CvContour.class), storage, CV_POLY_APPROX_DP,
 						cvContourPerimeter(contour) * 0.02, 0);
-				if (points.total() == edgeNumber && cvContourArea(points) > 50) {
+				if (points.total() == edgeNumber && cvContourArea(points) > 50 && cvContourArea(points) < 175000) {
 					// drawLines of Box
 					cvDrawContours(coloredImage, points, CvScalar.WHITE, CvScalar.WHITE, -2, 2, CV_AA);
+					System.out.println(cvContourArea(points));
 					// Counter for checking points in center box
 				}
 			}
@@ -401,15 +410,19 @@ public class OpticalFlowCalculator {
 		return coloredImage;
 	}
 
-	public synchronized IplImage findQRFrames(IplImage coloredImage, IplImage filteredImage) {
+	public synchronized IplImage findQRFrames(IplImage ncoloredImage, IplImage filteredImage) {
 		float known_distance = 100;
 		float known_width = 27;
 		float focalLength = (167 * known_distance) / known_width;
-
+		IplImage coloredImage = cvLoadImage("apple.jpg");
+		IplImage img1 = IplImage.create(coloredImage.width(), coloredImage.height(), coloredImage.depth(), 1);
+		cvCvtColor(coloredImage, img1, CV_RGB2GRAY);
+		cvCanny(img1, img1, 100, 200);
+		
 		cvClearMemStorage(storage);
 		CvSeq contour = new CvSeq(null);
-		cvFindContours(filteredImage, storage, contour, Loader.sizeof(CvContour.class), CV_RETR_LIST,
-				CV_CHAIN_APPROX_NONE);
+		cvFindContours(img1, storage, contour, Loader.sizeof(CvContour.class), CV_RETR_LIST,
+				CV_CHAIN_APPROX_SIMPLE);
 		
 		CvBox2D[] markers = new CvBox2D[3];
 		markers[0] = new CvBox2D();
@@ -422,9 +435,6 @@ public class OpticalFlowCalculator {
 						cvContourPerimeter(contour) * 0.02, 0);
 				if (points.total() == 4 && cvContourArea(points) > 50) {
 					markers[codeIndex] = cvMinAreaRect2(contour, storage);
-					IplImage img1 = IplImage.create(coloredImage.width(), coloredImage.height(), coloredImage.depth(), 1);
-					cvCvtColor(coloredImage, img1, CV_RGB2GRAY);
-					cvCanny(img1, img1, 100, 200);
 					
 					IplImage mask = IplImage.create(coloredImage.width(), coloredImage.height(), IPL_DEPTH_8U, coloredImage.nChannels());
 					cvDrawContours(mask, contour, CvScalar.WHITE, CV_RGB(248, 18, 18), 1, -1, 8);
@@ -436,7 +446,7 @@ public class OpticalFlowCalculator {
 			}
 			contour = contour.h_next();
 		}
-		return coloredImage;
+		return null;
 	}
 
 	private int checkPositionInCenter(int posx, int posy) {
