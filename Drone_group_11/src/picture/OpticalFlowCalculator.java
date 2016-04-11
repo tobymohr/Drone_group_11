@@ -28,6 +28,8 @@ import static org.bytedeco.javacpp.opencv_imgproc.CV_BGR2GRAY;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_RGB2GRAY;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_BGR2HSV;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_CHAIN_APPROX_SIMPLE;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_CHAIN_APPROX_NONE;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_RETR_EXTERNAL;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_FILLED;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_LINK_RUNS;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_POLY_APPROX_DP;
@@ -406,7 +408,7 @@ public class OpticalFlowCalculator {
 		cvClearMemStorage(storage);
 		CvSeq contour = new CvSeq(null);
 		cvFindContours(filteredImage, storage, contour, Loader.sizeof(CvContour.class), CV_RETR_LIST,
-				CV_CHAIN_APPROX_SIMPLE);
+				CV_CHAIN_APPROX_NONE);
 		
 		CvBox2D[] markers = new CvBox2D[3];
 		markers[0] = new CvBox2D();
@@ -427,7 +429,6 @@ public class OpticalFlowCalculator {
 					cvDrawContours(mask, contour, CvScalar.WHITE, CV_RGB(248, 18, 18), 1, -1, 8);
 					IplImage crop = IplImage.create(coloredImage.width(), coloredImage.height(), IPL_DEPTH_8U, coloredImage.nChannels());
 					cvSetZero(crop);
-					
 					cvCopy(coloredImage, crop, mask);
 					return crop;
 				}
