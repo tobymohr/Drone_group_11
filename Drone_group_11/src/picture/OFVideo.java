@@ -68,7 +68,7 @@ public class OFVideo implements Runnable {
 						break;
 					}
 					
-					IplImage polyImage = OFC.findPolygons(newImg,filteredImage,4);
+					IplImage polyImage = OFC.findQRFrames(newImg,filteredImage);
 					BufferedImage bufferedImage = IplImageToBufferedImage(polyImage);
 					BufferedImage bufferedImageFilter = IplImageToBufferedImage(filteredImage);
 					Image imageFilter = SwingFXUtils.toFXImage(bufferedImageFilter, null);
