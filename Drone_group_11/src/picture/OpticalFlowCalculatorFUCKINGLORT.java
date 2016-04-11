@@ -31,6 +31,7 @@ import static org.bytedeco.javacpp.opencv_core.cvTermCriteria;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_AA;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_BGR2GRAY;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_BGR2HSV;
+import static org.bytedeco.javacpp.opencv_core.cvSetZero;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_CHAIN_APPROX_SIMPLE;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_HSV2BGR;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_POLY_APPROX_DP;
@@ -413,7 +414,7 @@ public class OpticalFlowCalculatorFUCKINGLORT implements Runnable {
 
 	}
 	
-	public synchronized IplImage findQRFrames(IplImage image) {
+	public synchronized IplImage fRFrames(IplImage image) {
 		float known_distance = 100;
 		float known_width = 27;
 		float focalLength = (167 * known_distance) / known_width;
