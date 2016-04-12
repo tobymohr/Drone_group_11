@@ -4,6 +4,13 @@ import static org.bytedeco.javacpp.helper.opencv_core.CV_RGB;
 import static org.bytedeco.javacpp.helper.opencv_imgproc.cvDrawContours;
 import static org.bytedeco.javacpp.helper.opencv_imgproc.cvFindContours;
 import static org.bytedeco.javacpp.opencv_core.CV_TERMCRIT_EPS;
+import static org.bytedeco.javacpp.opencv_core.*;
+import static org.bytedeco.javacpp.opencv_imgproc.*;
+import static org.bytedeco.javacpp.opencv_imgcodecs.*;
+import static org.bytedeco.javacpp.opencv_highgui.*;
+import static org.bytedeco.javacpp.helper.opencv_imgproc.*;
+import static org.bytedeco.javacpp.helper.opencv_core.*;
+import static org.bytedeco.javacpp.helper.opencv_imgcodecs.*;
 import static org.bytedeco.javacpp.opencv_core.CV_TERMCRIT_ITER;
 import static org.bytedeco.javacpp.opencv_core.CV_TERMCRIT_NUMBER;
 import static org.bytedeco.javacpp.opencv_core.CV_WHOLE_SEQ;
@@ -19,13 +26,17 @@ import static org.bytedeco.javacpp.opencv_core.cvInRangeS;
 import static org.bytedeco.javacpp.opencv_core.cvMerge;
 import static org.bytedeco.javacpp.opencv_core.cvPoint;
 import static org.bytedeco.javacpp.opencv_core.cvScalar;
+import static org.bytedeco.javacpp.opencv_core.cvSetZero;
 import static org.bytedeco.javacpp.opencv_core.cvSize;
 import static org.bytedeco.javacpp.opencv_core.cvSplit;
 import static org.bytedeco.javacpp.opencv_core.cvTermCriteria;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_AA;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_BGR2GRAY;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_RGB2GRAY;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_BGR2HSV;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_CHAIN_APPROX_SIMPLE;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_CHAIN_APPROX_NONE;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_RETR_EXTERNAL;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_FILLED;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_LINK_RUNS;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_POLY_APPROX_DP;
@@ -50,6 +61,7 @@ import static org.bytedeco.javacpp.opencv_imgproc.cvMoments;
 import static org.bytedeco.javacpp.opencv_imgproc.cvSmooth;
 import static org.bytedeco.javacpp.opencv_imgproc.cvThreshold;
 import static org.bytedeco.javacpp.opencv_video.cvCalcOpticalFlowPyrLK;
+import picture.PictureController;
 
 import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.FloatPointer;
@@ -64,13 +76,14 @@ import org.bytedeco.javacpp.opencv_core.CvScalar;
 import org.bytedeco.javacpp.opencv_core.CvSeq;
 import org.bytedeco.javacpp.opencv_core.CvSize;
 import org.bytedeco.javacpp.opencv_core.IplImage;
+import org.bytedeco.javacpp.opencv_imgproc.CvLSHOperations;
 import org.bytedeco.javacpp.opencv_imgproc.CvMoments;
 import org.bytedeco.javacpp.helper.opencv_core.CvArr;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 
 import helper.Vector;
 
-public class OpticalFlowCalculator implements Runnable {
+public class OpticalFlowCalculator {
 
 	private static final int MAX_CORNERS = 5;
 	OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
@@ -91,35 +104,24 @@ public class OpticalFlowCalculator implements Runnable {
 
 	CvSeq squares = cvCreateSeq(0, Loader.sizeof(CvSeq.class), Loader.sizeof(CvPoint.class), storage);
 
-	public OpticalFlowCalculator(IplImage frame) {
+	public OpticalFlowCalculator() {
 	}
 
-	public int getMinThresh() {
-		return minThresh;
-	}
-
-	public void setMinThresh(int minThresh) {
-		this.minThresh = minThresh;
-	}
-
-	public int getMaxThresh() {
-		return maxThresh;
-	}
-
-	public void setMaxThresh(int maxThresh) {
-		this.maxThresh = maxThresh;
-	}
-
-	@Override
-	public void run() {
-		while (true) {
-			try {
-				Thread.sleep(5);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-	}
+//	public int getMinThresh() {
+//		return minThresh;
+//	}
+//
+//	public void setMinThresh(int minThresh) {
+//		this.minThresh = minThresh;
+//	}
+//
+//	public int getMaxThresh() {
+//		return maxThresh;
+//	}
+//
+//	public void setMaxThresh(int maxThresh) {
+//		this.maxThresh = maxThresh;
+//	}
 
 	double angle(CvPoint pt1, CvPoint pt2, CvPoint pt0) {
 		double dx1 = pt1.x() - pt0.x();
@@ -192,7 +194,7 @@ public class OpticalFlowCalculator implements Runnable {
 		IplImage grayImage = IplImage.create(img.width(), img.height(), IPL_DEPTH_8U, 1);
 		cvCvtColor(img, grayImage, CV_BGR2GRAY);
 		
-		cvThreshold(grayImage, grayImage, 100, 255, CV_THRESH_BINARY); 
+		cvThreshold(grayImage, grayImage, 100,255, CV_THRESH_BINARY); 
 
 		cvFindContours(grayImage, storage, contour1, Loader.sizeof(CvContour.class), CV_RETR_LIST, CV_LINK_RUNS,
 				cvPoint(0, 0));
@@ -396,7 +398,7 @@ public class OpticalFlowCalculator implements Runnable {
 			if (contour.elem_size() > 0) {
 				CvSeq points = cvApproxPoly(contour, Loader.sizeof(CvContour.class), storage, CV_POLY_APPROX_DP,
 						cvContourPerimeter(contour) * 0.02, 0);
-				if (points.total() == edgeNumber && cvContourArea(points) > 50) {
+				if (points.total() == edgeNumber && cvContourArea(points) > 50 && cvContourArea(points) < 175000) {
 					// drawLines of Box
 					cvDrawContours(coloredImage, points, CvScalar.WHITE, CvScalar.WHITE, -2, 2, CV_AA);
 					// Counter for checking points in center box
@@ -407,84 +409,43 @@ public class OpticalFlowCalculator implements Runnable {
 		return coloredImage;
 	}
 
-	public synchronized IplImage findQRFrames(IplImage image) {
+	public synchronized IplImage findQRFrames(IplImage ncoloredImage, IplImage filteredImage) {
 		float known_distance = 100;
 		float known_width = 27;
-
 		float focalLength = (167 * known_distance) / known_width;
+		IplImage coloredImage = cvLoadImage("apple.jpg");
+		IplImage img1 = IplImage.create(coloredImage.width(), coloredImage.height(), coloredImage.depth(), 1);
+		cvCvtColor(coloredImage, img1, CV_RGB2GRAY);
+		cvCanny(img1, img1, 100, 200);
+		
 		cvClearMemStorage(storage);
-		// image = balanceWhite(image);
-		IplImage grayImage = IplImage.create(image.width(), image.height(), IPL_DEPTH_8U, 1);
-		cvCvtColor(image, grayImage, CV_BGR2GRAY);
-		cvCanny(getThresholdWhiteImage(grayImage), grayImage, getMinThresh(), getMaxThresh());
-		cvThreshold(getThresholdWhiteImage(grayImage), grayImage, getMinThresh(), getMaxThresh(), CV_THRESH_TOZERO);
-		// System.out.println("Min " + getMinThresh() + "max " +
-		// getMaxThresh());
 		CvSeq contour = new CvSeq(null);
-		cvFindContours(grayImage, storage, contour, Loader.sizeof(CvContour.class), CV_RETR_LIST,
+		cvFindContours(img1, storage, contour, Loader.sizeof(CvContour.class), CV_RETR_LIST,
 				CV_CHAIN_APPROX_SIMPLE);
-
-		// center dots
-		int factor = 3;
-
-		// find center points
-		xleft = (int) image.width() / factor;
-		xright = (int) (image.width() / factor) * (factor - 1);
-		ytop = (int) image.height() / factor;
-		ybot = (int) (image.height() / factor) * (factor - 1);
-
-		// Make center points
-		CvPoint pointTopLeft = cvPoint(xleft, ytop);
-		CvPoint pointBottomLeft = cvPoint(xleft, ybot);
-		CvPoint pointTopRight = cvPoint(xright, ytop);
-		CvPoint pointRightBottom = cvPoint(xright, ybot);
-
-		// Find red point
-		int posX = 0;
-		int posY = 0;
-		IplImage detectThrs = getThresholdImage(grayImage);
-		CvMoments moments = new CvMoments();
-		cvMoments(detectThrs, moments, 1);
-		double mom10 = cvGetSpatialMoment(moments, 1, 0);
-		double mom01 = cvGetSpatialMoment(moments, 0, 1);
-		double area = cvGetCentralMoment(moments, 0, 0);
-		posX = (int) (mom10 / area);
-		posY = (int) (mom01 / area);
-		CvBox2D marker = new CvBox2D();
+		
+		CvBox2D[] markers = new CvBox2D[3];
+		markers[0] = new CvBox2D();
+		markers[1] = new CvBox2D();
+		markers[2] = new CvBox2D();
+		int codeIndex = 0;
 		while (contour != null && !contour.isNull()) {
-
-			// Draw red point
-			cvLine(image, pointTopLeft, pointTopRight, CV_RGB(255, 0, 255), 3, CV_AA, 0);
-			cvLine(image, pointTopRight, pointRightBottom, CV_RGB(255, 0, 255), 3, CV_AA, 0);
-			cvLine(image, pointRightBottom, pointBottomLeft, CV_RGB(255, 0, 255), 3, CV_AA, 0);
-			cvLine(image, pointBottomLeft, pointTopLeft, CV_RGB(255, 0, 255), 3, CV_AA, 0);
-
 			if (contour.elem_size() > 0) {
 				CvSeq points = cvApproxPoly(contour, Loader.sizeof(CvContour.class), storage, CV_POLY_APPROX_DP,
 						cvContourPerimeter(contour) * 0.02, 0);
-				if (points.total() == 4 && cvContourArea(points) > 100) {
-					for (int i = 0; i < points.total(); i++) {
-						CvPoint v = new CvPoint(cvGetSeqElem(points, i));
-						if (checkForCenter(v.x(), v.y(), posX, posY)) {
-							CvPoint p0 = cvPoint(posX, posY);
-							// Draw red point
-							cvLine(image, p0, p0, CV_RGB(255, 0, 0), 3, CV_AA, 0);
-							cvDrawContours(image, points, CvScalar.RED, CvScalar.RED, -2, 2, CV_AA);
-							if (marker.get(2) < cvMinAreaRect2(contour, storage).get(2)) {
-
-								marker = cvMinAreaRect2(contour, storage);
-							}
-						}
-					}
+				if (points.total() == 4 && cvContourArea(points) > 50) {
+					markers[codeIndex] = cvMinAreaRect2(contour, storage);
+					
+					IplImage mask = IplImage.create(coloredImage.width(), coloredImage.height(), IPL_DEPTH_8U, coloredImage.nChannels());
+					cvDrawContours(mask, contour, CvScalar.WHITE, CV_RGB(248, 18, 18), 1, -1, 8);
+					IplImage crop = IplImage.create(coloredImage.width(), coloredImage.height(), IPL_DEPTH_8U, coloredImage.nChannels());
+					cvSetZero(crop);
+					cvCopy(coloredImage, crop, mask);
+					return crop;
 				}
 			}
-
 			contour = contour.h_next();
 		}
-
-		System.out.println((known_width * focalLength) / marker.get(2));
-		return image;
-
+		return null;
 	}
 
 	private int checkPositionInCenter(int posx, int posy) {

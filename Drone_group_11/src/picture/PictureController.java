@@ -18,30 +18,36 @@ import de.yadrone.base.IARDrone;
 import de.yadrone.base.exception.ARDroneException;
 import de.yadrone.base.exception.IExceptionListener;
 import de.yadrone.base.video.ImageListener;
-import helper.Circle;
-import helper.Point;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
+import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
 public class PictureController {
 
-	private OpticalFlowCalculator OFC;
+	private OpticalFlowCalculator OFC = new OpticalFlowCalculator();
 	private DroneInterface droneCommunicator;
 	private IARDrone drone;
 	private Video video;
 	private OFVideo ofvideo;
 	private ScheduledExecutorService timer;
-	private int colorInt = 0;
+
+	public static int colorInt = 0;
 
 	// CAMERA
 	@FXML
 	private ImageView polyFrame;
 	@FXML
 	private ImageView filterFrame;
+	@FXML
+	private static Slider minimumThresh;
+	@FXML
+	private static Slider maximumThresh;
+	
 
 	public PictureController() throws Exception {
+	
 	}
 
 	private void setDimension(ImageView image, int dimension) {
@@ -51,8 +57,8 @@ public class PictureController {
 
 	@FXML
 	protected void startCamera() {
-		setDimension(polyFrame, 400);
-		setDimension(filterFrame, 400);
+		setDimension(polyFrame, 600);
+		setDimension(filterFrame, 600);
 		try {
 			grabFromVideo();
 		} catch (org.bytedeco.javacv.FrameGrabber.Exception e) {
@@ -62,7 +68,18 @@ public class PictureController {
 
 	public void startDrone() {
 		 initDrone();
+		 setDimension(polyFrame, 800);
+			setDimension(filterFrame, 800);
 		 grabFromDrone();
+	}
+	
+	public static double getMinThresh(){
+		
+		return  minimumThresh.getValue();
+	}
+	
+	public static double getMaxThresh(){
+		return  minimumThresh.getValue();
 	}
 
 	public void initDrone() {
@@ -76,6 +93,7 @@ public class PictureController {
 		});
 		drone.start();
 		droneCommunicator = new DroneCommunicator(drone);
+		droneCommunicator.setFrontCamera();
 	}
 
 	public void grabFromDrone() {
@@ -86,11 +104,11 @@ public class PictureController {
 			@Override
 			public void imageUpdated(BufferedImage arg0) {
 				if (isFirst) {
-					new Thread(video = new Video(polyFrame, arg0)).start();
-					new Thread(ofvideo = new OFVideo(arg0)).start();
+//					new Thread(video = new Video(polyFrame, arg0)).start();
+					new Thread(ofvideo = new OFVideo(filterFrame, polyFrame, arg0)).start();
 					isFirst = false;
 				}
-				video.setArg0(arg0);
+//				video.setArg0(arg0);
 				ofvideo.setArg0(arg0);
 			}
 		});
@@ -100,7 +118,7 @@ public class PictureController {
 		OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
 		OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(0);
 		grabber.start();
-		// Declare img as IplImage
+
 
 		Runnable frameGrabber = new Runnable() {
 			@Override
@@ -142,10 +160,6 @@ public class PictureController {
 		try {
 			newImg = converter.convert(grabber.grab());
 			
-			if (OFC == null) {
-				OFC = new OpticalFlowCalculator(newImg);
-				new Thread(OFC).start();
-			}
 		} catch (org.bytedeco.javacv.FrameGrabber.Exception e) {
 			e.printStackTrace();
 		}
