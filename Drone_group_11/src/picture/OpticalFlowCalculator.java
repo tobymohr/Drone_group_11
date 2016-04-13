@@ -1,82 +1,18 @@
 package picture;
 
-import static org.bytedeco.javacpp.helper.opencv_core.CV_RGB;
-import static org.bytedeco.javacpp.helper.opencv_imgproc.cvDrawContours;
-import static org.bytedeco.javacpp.helper.opencv_imgproc.cvFindContours;
-import static org.bytedeco.javacpp.opencv_core.CV_TERMCRIT_EPS;
-import static org.bytedeco.javacpp.opencv_core.CV_TERMCRIT_ITER;
-import static org.bytedeco.javacpp.opencv_core.CV_TERMCRIT_NUMBER;
-import static org.bytedeco.javacpp.opencv_core.CV_WHOLE_SEQ;
-import static org.bytedeco.javacpp.opencv_core.IPL_DEPTH_32F;
-import static org.bytedeco.javacpp.opencv_core.IPL_DEPTH_8U;
-import static org.bytedeco.javacpp.opencv_core.cvClearMemStorage;
-import static org.bytedeco.javacpp.opencv_core.cvCloneImage;
-import static org.bytedeco.javacpp.opencv_core.cvCopy;
-import static org.bytedeco.javacpp.opencv_core.cvCreateImage;
-import static org.bytedeco.javacpp.opencv_core.cvCreateSeq;
-import static org.bytedeco.javacpp.opencv_core.cvGetSeqElem;
-import static org.bytedeco.javacpp.opencv_core.cvGetSize;
-import static org.bytedeco.javacpp.opencv_core.cvInRangeS;
-import static org.bytedeco.javacpp.opencv_core.cvMerge;
-import static org.bytedeco.javacpp.opencv_core.cvPoint;
-import static org.bytedeco.javacpp.opencv_core.cvScalar;
-import static org.bytedeco.javacpp.opencv_core.cvSetZero;
-import static org.bytedeco.javacpp.opencv_core.cvSize;
-import static org.bytedeco.javacpp.opencv_core.cvSplit;
-import static org.bytedeco.javacpp.opencv_core.cvTermCriteria;
-import static org.bytedeco.javacpp.opencv_imgproc.CV_AA;
-import static org.bytedeco.javacpp.opencv_imgproc.CV_BGR2GRAY;
-import static org.bytedeco.javacpp.opencv_imgproc.CV_RGB2GRAY;
-import static org.bytedeco.javacpp.opencv_imgproc.CV_BGR2HSV;
-import static org.bytedeco.javacpp.opencv_imgproc.CV_CHAIN_APPROX_NONE;
-import static org.bytedeco.javacpp.opencv_imgproc.CV_CHAIN_APPROX_SIMPLE;
-import static org.bytedeco.javacpp.opencv_imgproc.CV_FILLED;
-import static org.bytedeco.javacpp.opencv_imgproc.CV_LINK_RUNS;
-import static org.bytedeco.javacpp.opencv_imgproc.CV_POLY_APPROX_DP;
-import static org.bytedeco.javacpp.opencv_imgproc.CV_RETR_EXTERNAL;
-import static org.bytedeco.javacpp.opencv_imgproc.CV_RETR_LIST;
-import static org.bytedeco.javacpp.opencv_imgproc.CV_THRESH_BINARY;
-import static org.bytedeco.javacpp.opencv_imgproc.CV_THRESH_TOZERO;
-import static org.bytedeco.javacpp.opencv_imgproc.cvApproxPoly;
-import static org.bytedeco.javacpp.opencv_imgproc.cvCanny;
-import static org.bytedeco.javacpp.opencv_imgproc.cvContourArea;
-import static org.bytedeco.javacpp.opencv_imgproc.cvContourPerimeter;
-import static org.bytedeco.javacpp.opencv_imgproc.cvCvtColor;
-import static org.bytedeco.javacpp.opencv_imgproc.cvDrawContours;
-import static org.bytedeco.javacpp.opencv_imgproc.cvEqualizeHist;
-import static org.bytedeco.javacpp.opencv_imgproc.cvFindContours;
-import static org.bytedeco.javacpp.opencv_imgproc.cvFindCornerSubPix;
-import static org.bytedeco.javacpp.opencv_imgproc.cvGetCentralMoment;
-import static org.bytedeco.javacpp.opencv_imgproc.cvGetSpatialMoment;
-import static org.bytedeco.javacpp.opencv_imgproc.cvGoodFeaturesToTrack;
-import static org.bytedeco.javacpp.opencv_imgproc.cvLine;
-import static org.bytedeco.javacpp.opencv_imgproc.cvMinAreaRect2;
-import static org.bytedeco.javacpp.opencv_imgproc.cvMoments;
-import static org.bytedeco.javacpp.opencv_imgproc.cvSmooth;
-import static org.bytedeco.javacpp.opencv_imgproc.cvThreshold;
-import static org.bytedeco.javacpp.opencv_video.cvCalcOpticalFlowPyrLK;
+import static org.bytedeco.javacpp.helper.opencv_core.*;
+import static org.bytedeco.javacpp.helper.opencv_imgproc.*;
+import static org.bytedeco.javacpp.opencv_imgproc.*;
+import static org.bytedeco.javacpp.opencv_video.*;
+import static org.bytedeco.javacpp.opencv_imgcodecs.*;
+import org.bytedeco.javacv.*;
+import org.bytedeco.javacpp.*;
+import org.bytedeco.javacpp.opencv_core.*;
+import static org.bytedeco.javacpp.opencv_core.*;
 
 import java.awt.image.BufferedImage;
-
-import picture.PictureController;
-
-import org.bytedeco.javacpp.BytePointer;
-import org.bytedeco.javacpp.FloatPointer;
-import org.bytedeco.javacpp.IntPointer;
-import org.bytedeco.javacpp.Loader;
-import org.bytedeco.javacpp.opencv_core.CvBox2D;
-import org.bytedeco.javacpp.opencv_core.CvContour;
-import org.bytedeco.javacpp.opencv_core.CvMemStorage;
-import org.bytedeco.javacpp.opencv_core.CvPoint;
-import org.bytedeco.javacpp.opencv_core.CvPoint2D32f;
-import org.bytedeco.javacpp.opencv_core.CvScalar;
-import org.bytedeco.javacpp.opencv_core.CvSeq;
-import org.bytedeco.javacpp.opencv_core.CvSize;
-import org.bytedeco.javacpp.opencv_core.IplImage;
-import org.bytedeco.javacpp.opencv_imgproc.CvMoments;
-import org.bytedeco.javacpp.helper.opencv_core.CvArr;
-import org.bytedeco.javacv.Java2DFrameConverter;
-import org.bytedeco.javacv.OpenCVFrameConverter;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.ChecksumException;
@@ -104,6 +40,7 @@ public class OpticalFlowCalculator {
 	static int minBlue = 134;
 	static int smoother = 11;
 	private int minThresh = 30;
+	private int i = 0;
 
 	private int maxThresh = 5;
 	private CvScalar rgba_min = cvScalar(minRed, minGreen, minBlue, 0);
@@ -170,53 +107,88 @@ public class OpticalFlowCalculator {
 		cvFindContours(img1, storage, contour, Loader.sizeof(CvContour.class), CV_RETR_EXTERNAL,
 				CV_CHAIN_APPROX_NONE);
 		
-		IplImage mask = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img1.nChannels());
-		IplImage mask2 = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img1.nChannels());
-		IplImage crop = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
-		IplImage crop2 = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
-		cvSetZero(crop);
-		cvSetZero(crop2);
-		cvSetZero(mask);
-		cvSetZero(mask2);
+		
 		
 		CvBox2D[] markers = new CvBox2D[3];
 		markers[0] = new CvBox2D();
 		markers[1] = new CvBox2D();
 		markers[2] = new CvBox2D();
+		List<String> codes = new ArrayList<String>();
+		List<CvPoint> pointlist = new ArrayList<CvPoint>();
 		
 		BufferedImage qrCode;
-		System.out.println("-------------");
+		IplImage mask2 = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img1.nChannels());
+		IplImage crop2 = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
+		cvSetZero(crop2);
+		cvSetZero(mask2);
+		boolean found = false;
 		while (contour != null && !contour.isNull()) {
 			if (contour.elem_size() > 0) {
 				CvSeq points = cvApproxPoly(contour, Loader.sizeof(CvContour.class), storage, CV_POLY_APPROX_DP,
 						cvContourPerimeter(contour) * 0.02, 0);
-				if (points.total() == 4 && cvContourArea(points) > 150 && cvContourArea(points) < 125000) {
-					cvDrawContours(mask, contour, CvScalar.WHITE, CV_RGB(248, 18, 18), 1, -1, 8);
-					cvDrawContours(mask2, contour, CvScalar.WHITE, CV_RGB(248, 18, 18), 1, -1, 8);
+				if (points.total() == 4 && cvContourArea(points) > 150 && cvContourArea(points) < 75000) {
+					
+					CvMat mmat = cvCreateMat(3,3,CV_32FC1);
+				    CvPoint2D32f c1 = new CvPoint2D32f(4);
+				    CvPoint2D32f c2 = new CvPoint2D32f(4);
+				    
+				    c2.position(0).put(0, 0);
+				    c2.position(1).put(320, 0);
+				    c2.position(2).put(0, 240);
+				    c2.position(3).put(320, 240);
+					
+					for(int i = 0; i<points.total(); i++){
+						CvPoint p = new CvPoint(cvGetSeqElem(points, i ));
+						c1.position(i).put(p.x(), p.y());
+					}
+					
+				    mmat = cvGetPerspectiveTransform(c1, c2, mmat);  
+				    cvWarpPerspective(Y, Y, mmat);
+
+										
+					
+					IplImage mask = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img1.nChannels());
+					IplImage crop = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
+					cvSetZero(crop);
+					cvSetZero(mask);
+					cvDrawContours(mask, points, CvScalar.WHITE, CV_RGB(248, 18, 18), 1, -1, 8);
+					cvDrawContours(mask2, points, CvScalar.WHITE, CV_RGB(248, 18, 18), 1, -1, 8);
 					cvCopy(img0, crop, mask);
 					cvCopy(img0, crop2, mask2);
-					markers[0] = cvMinAreaRect2(contour, storage);
+				
+					markers[0] = cvMinAreaRect2(points, storage);
 //					System.out.println((known_width * focalLength) / markers[0].get(2));
 					qrCode = converter1.convert(converter.convert(crop));
 					source = new BufferedImageLuminanceSource(qrCode);
 					bitmap = new BinaryBitmap(new HybridBinarizer(source));
 	 				try {
 	 					Result detectionResult = reader.decode(bitmap);
- 						System.out.println(detectionResult.getText());
+	 					codes.add(detectionResult.getText());
+	 					found = true;
 	 				} catch (NotFoundException e) 
 	 				{
 	 				} catch (ChecksumException e) {
 	 				} catch (FormatException e) {
-	 				}													
+	 				}
+	 				
 					
 					cvSetZero(crop);
 					cvSetZero(mask);
+					cvReleaseImage(crop);
+					cvReleaseImage(mask);
 				}
 			}
 
 			contour = contour.h_next();
 		}
-		System.out.println("-------------");
+		if (found) {
+			System.out.println("-------------");
+			for (String e : codes) {
+				System.out.println(e);
+			}
+			System.out.println("-------------");
+
+		}
         return crop2;
 	}
 
@@ -473,7 +445,7 @@ public class OpticalFlowCalculator {
 			if (contour.elem_size() > 0) {
 				CvSeq points = cvApproxPoly(contour, Loader.sizeof(CvContour.class), storage, CV_POLY_APPROX_DP,
 						cvContourPerimeter(contour) * 0.02, 0);
-				if (points.total() == edgeNumber && cvContourArea(points) > 50) {
+				if (points.total() == edgeNumber && cvContourArea(points) > 50 && cvContourArea(points) < 50000) {
 					// drawLines of Box
 					cvDrawContours(coloredImage, points, CvScalar.WHITE, CvScalar.WHITE, -2, 2, CV_AA);
 					// Counter for checking points in center box
