@@ -8,6 +8,8 @@ import java.util.concurrent.TimeUnit;
 import org.bytedeco.javacpp.opencv_core.IplImage;
 import org.bytedeco.javacpp.opencv_videoio.CvCapture;
 import org.bytedeco.javacv.Frame;
+import static org.bytedeco.javacpp.helper.opencv_imgproc.*;
+import static org.bytedeco.javacpp.opencv_imgcodecs.*;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
@@ -62,13 +64,20 @@ public class PictureController {
 
 	@FXML
 	protected void startCamera() {
+		IplImage f = cvLoadImage("0QR.jpg");
+		OFC = new OpticalFlowCalculator();
+		IplImage qrImage = OFC.extractQRImage(f);
 		setDimension(polyFrame, 600);
-		setDimension(filterFrame, 600);
-		try {
-			grabFromVideo();
-		} catch (org.bytedeco.javacv.FrameGrabber.Exception e) {
-			e.printStackTrace();
-		}
+		BufferedImage bufferedImageQr = IplImageToBufferedImage(qrImage);
+		Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
+		polyFrame.setImage(imageQr);
+
+//		setDimension(filterFrame, 600);
+//		try {
+//			grabFromVideo();
+//		} catch (org.bytedeco.javacv.FrameGrabber.Exception e) {
+//			e.printStackTrace();
+//		}
 	}
 
 	public void startDrone() {
@@ -127,10 +136,10 @@ public class PictureController {
 		OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
 		
 		// Works with Tobias CAM - adjust grabFromCam accordingly
-		//OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(0);
+		OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(0);
 		
 		// Works with Mathias CAM - adjust grabFromCam accordingly
-		 FrameGrabber grabber = new VideoInputFrameGrabber(0);
+//		 FrameGrabber grabber = new VideoInputFrameGrabber(0);
 		grabber.start();
 
 
@@ -157,7 +166,8 @@ public class PictureController {
 				}
 				
 				IplImage polyImage = OFC.findPolygons(camImage,filteredImage,4);
-				IplImage qrImage = OFC.extractQRImage(camImage);
+				IplImage f = cvLoadImage("OQR.jpg");
+				IplImage qrImage = OFC.extractQRImage(f);
 				BufferedImage bufferedImage = IplImageToBufferedImage(polyImage);
 				BufferedImage bufferedImageFilter = IplImageToBufferedImage(filteredImage);
 				BufferedImage bufferedImageQr = IplImageToBufferedImage(qrImage);
