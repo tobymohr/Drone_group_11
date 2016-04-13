@@ -44,6 +44,8 @@ public class PictureController {
 	@FXML
 	private ImageView filterFrame;
 	@FXML
+	private ImageView qrFrame;
+	@FXML
 	private static Slider minimumThresh;
 	@FXML
 	private static Slider maximumThresh;
@@ -73,6 +75,7 @@ public class PictureController {
 		 initDrone();
 		 setDimension(polyFrame, 800);
 			setDimension(filterFrame, 800);
+			setDimension(qrFrame, 800);
 		 grabFromDrone();
 	}
 	

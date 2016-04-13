@@ -49,19 +49,19 @@ public class Point {
 	}
 	
 	public static double calculateAngle(double distanceToPoint, double distanceBetweenPoints) {
-		return Math.atan(distanceBetweenPoints / distanceToPoint);
+		return Math.toDegrees(Math.atan(distanceBetweenPoints / distanceToPoint));
 	}
 	
 	public static Point parseQRText(String text) {
 		text = text.substring(1);
 		if (text.startsWith("00")) {
-			return new Point(Double.parseDouble(text.substring(4)), MAX_Y_COORDINATE);
+			return new Point(Double.parseDouble(text.substring(4)) + 1, MAX_Y_COORDINATE);
 		} else if (text.startsWith("01")) {
-			return new Point(MAX_X_COORDINATE, Double.parseDouble(text.substring(4)));
+			return new Point(MAX_X_COORDINATE, Double.parseDouble(text.substring(4)) + 1);
 		} else if (text.startsWith("02")) {
-			return new Point(Double.parseDouble(text.substring(4)), 0);
+			return new Point(Double.parseDouble(text.substring(4)) + 1, 0);
 		} else if (text.startsWith("03")) {
-			return new Point(0, Double.parseDouble(text.substring(4)));
+			return new Point(0, Double.parseDouble(text.substring(4)) + 1);
 		} else {
 			return null;
 		}

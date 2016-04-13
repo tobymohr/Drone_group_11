@@ -240,11 +240,13 @@ public class Square {
         return cpy;
     }
 
+    
     String names[] = new String[]{ "pic1.png", "pic2.png", "pic3.png",
                       "pic4.png", "pic5.png", "pic6.png" };
 
     public static void main(String args[]) throws Exception {
         new Square().main();
+        
     }
 
     public void main() throws InterruptedException, org.bytedeco.javacv.FrameGrabber.Exception {

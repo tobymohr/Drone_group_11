@@ -24,21 +24,21 @@ public class Main extends Application {
 	}
 	
 	public static void main(String[] args) {
-		double distanceBetweenPointsOne = 1;
-		double distanceBetweenPointsTwo = Math.sqrt(2);
-		double distanceOne = 2.8;
-		double distanceTwo = 3.65;
-		double distanceThree = 4.15;
+		double distanceBetweenPointsOne = 1.5;
+		double distanceBetweenPointsTwo = 1.5;
+		double distanceOne = 3.3;
+		double distanceTwo = 3;
+		double distanceThree = 3.3;
 		double angleA = Point.calculateAngle(distanceOne, distanceBetweenPointsOne);
-		double angleB = Point.calculateAngle(distanceTwo, distanceBetweenPointsTwo);
+		double angleB = Point.calculateAngle(distanceThree, distanceBetweenPointsTwo);
 //		System.out.println(angleA);
 //		System.out.println(angleB);
 		String codeOne = "W02.02";
 		String codeTwo = "W02.01";
 		String codeThree = "W02.00";
-		Point P1 = new Point(2, 0);
-		Point P2 = new Point(1, 0);
-		Point P3 = new Point(0, 1);
+		Point P1 = new Point(6, 0);
+		Point P2 = new Point(5, 0);
+		Point P3 = new Point(4, 0);
 		Circle C1 = new Circle(Circle.calculateCenter(P1, P2, distanceBetweenPointsOne, angleA), 
 				Circle.calculateRadius(distanceBetweenPointsOne, angleA));
 		System.out.println(C1.getCenter().getX() + "|" + C1.getCenter().getY() + "|" + C1.getRadius());
@@ -47,7 +47,7 @@ public class Main extends Application {
 		System.out.println(C2.getCenter().getX() + "|" + C2.getCenter().getY() + "|" + C2.getRadius());
 		Point[] points = Circle.intersection(C1, C2);
 		for (Point p : points) {
-			System.out.println(p.getX() + "|" + p.getY());
+			System.out.println(Math.round(p.getX()) + "|" + Math.round(p.getY()));
 		}
 		launch(args);
 	}
