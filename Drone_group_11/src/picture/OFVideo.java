@@ -34,11 +34,11 @@ public class OFVideo implements Runnable {
 
 	OpticalFlowCalculator OFC = new OpticalFlowCalculator();
 
-	public OFVideo(ImageView filterFrame, ImageView polyFrame, ImageView qrFrame, BufferedImage arg0) {
+	public OFVideo(ImageView filterFrame, ImageView polyFrame, BufferedImage arg0) {
 		this.arg0 = arg0;
 		this.filterFrame = filterFrame;
 		this.polyFrame = polyFrame;
-		this.qrFrame = qrFrame;
+		//this.qrFrame = qrFrame;
 		converter = new OpenCVFrameConverter.ToIplImage();
 		converter1 = new Java2DFrameConverter();		
 		
@@ -78,6 +78,7 @@ public class OFVideo implements Runnable {
 						Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
 						qrFrame.setImage(imageQr);
 					}
+
 					BufferedImage bufferedImage = IplImageToBufferedImage(polyImage);
 					BufferedImage bufferedImageFilter = IplImageToBufferedImage(filteredImage);
 					Image imageFilter = SwingFXUtils.toFXImage(bufferedImageFilter, null);
