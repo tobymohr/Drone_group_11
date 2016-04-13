@@ -5,6 +5,10 @@ import java.util.ArrayList;
 public class Coordinates {
 	ArrayList<Cord> cordList;
 	
+	public ArrayList<Cord> getCords() {
+		return cordList;
+	}
+
 	public Coordinates(){
 		cordList = new ArrayList<Cord>();
 	}

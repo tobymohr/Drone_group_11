@@ -3,18 +3,15 @@ package coordinateSystem;
 
 
 import javax.swing.*;
-
-import helper.Vector;
-
+import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
 public class DrawCoordinates extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 	ArrayList<Cord> cords;
+	static int scale = 60;
 
 public DrawCoordinates(ArrayList<Cord> cords) {
 	this.cords = cords;
@@ -22,16 +19,21 @@ public DrawCoordinates(ArrayList<Cord> cords) {
   }
 
   public static void main(String[] args) {
+	 init();
+  }
+  
+  public static void init(){
 	  ArrayList<Cord> cordss = new ArrayList<Cord>();
-	  cordss.add(new Cord(5,5, true));
-	  cordss.add(new Cord(9,6, false));
+	  cordss.add(new Cord(10.78*scale,9.63*scale, true));
+	  cordss.add(new Cord(50,6, false));
 	  DrawCoordinates frame = new DrawCoordinates(cordss);
-    frame.setTitle("Trajectory");
+    frame.setTitle("Map");
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frame.setSize(1200, 1000);
+    frame.setSize(675, 630);
     frame.setLocationRelativeTo(null); // Center the frame
     frame.setVisible(true);
   }
+  
 
   class DrawPanel extends JPanel {
     /**
@@ -40,14 +42,20 @@ public DrawCoordinates(ArrayList<Cord> cords) {
 	private static final long serialVersionUID = 1L;
 
 	 DrawPanel(){
-	      
+	      repaint();
 	    }
 
 
     protected void paintComponent(Graphics g) {
       super.paintComponent(g);
-      for(int i=0; i<cords.size()-1;i++){
-      g.fillOval((int)cords[i]., (int)y, 1, 1);
+      for(int i=0; i<cords.size();i++){
+    	  if(cords.get(i).green){
+    		  g.setColor(Color.GREEN);
+    	  }else{
+    		  g.setColor(Color.RED);
+    	  }
+      g.fillOval((int)cords.get(i).x, (int)cords.get(i).y, 10, 10);
+      
       }
   }
 
