@@ -74,6 +74,8 @@ public class PictureController {
 			setDimension(filterFrame, 800);
 			setDimension(qrFrame, 800);
 		 grabFromDrone();
+//		OpticalFlowCalculator OFC = new OpticalFlowCalculator();
+//		OFC.testWarp();
 	}
 	
 	public static double getMinThresh(){
@@ -146,12 +148,16 @@ public class PictureController {
 				}
 				
 				IplImage polyImage = OFC.findPolygons(camImage,filteredImage,4);
+				IplImage qrImage = OFC.extractQRImage(camImage);
 				BufferedImage bufferedImage = IplImageToBufferedImage(polyImage);
 				BufferedImage bufferedImageFilter = IplImageToBufferedImage(filteredImage);
+				BufferedImage bufferedImageQr = IplImageToBufferedImage(qrImage);
 				Image imageFilter = SwingFXUtils.toFXImage(bufferedImageFilter, null);
 				Image imagePoly = SwingFXUtils.toFXImage(bufferedImage, null);
+				Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
 				polyFrame.setImage(imagePoly);
 				filterFrame.setImage(imageFilter);
+				qrFrame.setImage(imageQr);
 			}
 		};
 		timer = Executors.newSingleThreadScheduledExecutor();
