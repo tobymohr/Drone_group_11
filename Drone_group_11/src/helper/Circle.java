@@ -40,7 +40,7 @@ public class Circle {
 				* Math.sqrt((Math.pow(a, 2))/(Math.pow(Math.sin(angle), 2)) - Math.pow(a, 2))
 				+ 0.5 * P1.getX() + 0.5 * P2.getX();
 
-		y = 0.5 * (P2.getX() - P1.getX())
+		y = 0.5 * (-1 * P2.getX() + P1.getX())
 				/(Math.sqrt(Math.pow(Math.abs(-1 * P2.getY() + P1.getY()), 2) 
 						+ Math.pow(Math.abs(-1 * P2.getX() + P1.getX()), 2)))
 				* Math.sqrt((Math.pow(a, 2))/(Math.pow(Math.sin(angle), 2)) - Math.pow(a, 2))

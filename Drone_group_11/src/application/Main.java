@@ -24,13 +24,13 @@ public class Main extends Application {
 	}
 	
 	public static void main(String[] args) {
-		double distanceBetweenPointsOne = 1;
-		double distanceBetweenPointsTwo = Math.sqrt(2);
-		double distanceOne = 2.8;
-		double distanceTwo = 3.65;
-		double distanceThree = 4.15;
+		double distanceBetweenPointsOne = 1.5;
+		double distanceBetweenPointsTwo = Math.sqrt(Math.pow(1.5, 2) + Math.pow(1.5, 2));
+		double distanceOne = 2.55;
+		double distanceTwo = 2.7;
+		double distanceThree = 2.7;
 		double angleA = Point.calculateAngle(distanceOne, distanceBetweenPointsOne);
-		double angleB = Point.calculateAngle(distanceTwo, distanceBetweenPointsTwo);
+		double angleB = Point.calculateAngle(distanceThree, distanceBetweenPointsTwo);
 //		System.out.println(angleA);
 //		System.out.println(angleB);
 		String codeOne = "W02.02";
@@ -49,6 +49,6 @@ public class Main extends Application {
 		for (Point p : points) {
 			System.out.println(p.getX() + "|" + p.getY());
 		}
-		launch(args);
+//		launch(args);
 	}
 }
