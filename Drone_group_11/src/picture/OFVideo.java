@@ -1,18 +1,8 @@
 package picture;
 
-import java.awt.Panel;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JSlider;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-
 import org.bytedeco.javacpp.opencv_core.IplImage;
-import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
@@ -34,11 +24,11 @@ public class OFVideo implements Runnable {
 
 	OpticalFlowCalculator OFC = new OpticalFlowCalculator();
 
-	public OFVideo(ImageView filterFrame, ImageView polyFrame, BufferedImage arg0) {
+	public OFVideo(ImageView filterFrame, ImageView polyFrame, ImageView qrFrame, BufferedImage arg0) {
 		this.arg0 = arg0;
 		this.filterFrame = filterFrame;
 		this.polyFrame = polyFrame;
-		//this.qrFrame = qrFrame;
+		this.qrFrame = qrFrame;
 		converter = new OpenCVFrameConverter.ToIplImage();
 		converter1 = new Java2DFrameConverter();		
 		
@@ -73,19 +63,18 @@ public class OFVideo implements Runnable {
 					
 					IplImage polyImage = OFC.findPolygons(newImg,filteredImage, 4);
 					IplImage qrImage = OFC.extractQRImage(newImg);
-					if (qrImage != null) {
-						BufferedImage bufferedImageQr = IplImageToBufferedImage(qrImage);
-						Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
-						qrFrame.setImage(imageQr);
-					}
 
 					BufferedImage bufferedImage = IplImageToBufferedImage(polyImage);
 					BufferedImage bufferedImageFilter = IplImageToBufferedImage(filteredImage);
+					BufferedImage bufferedImageQr = IplImageToBufferedImage(qrImage);
+
 					Image imageFilter = SwingFXUtils.toFXImage(bufferedImageFilter, null);
 					Image imagePoly = SwingFXUtils.toFXImage(bufferedImage, null);
+					Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
+
 					polyFrame.setImage(imagePoly);
 					filterFrame.setImage(imageFilter);
-					
+					qrFrame.setImage(imageQr);
 		}
 		} catch (Exception e) {
 			e.printStackTrace();
