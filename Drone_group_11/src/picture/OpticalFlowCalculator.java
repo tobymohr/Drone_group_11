@@ -11,11 +11,19 @@ import static org.bytedeco.javacpp.opencv_imgcodecs.*;
 import org.bytedeco.javacv.*;
 
 import com.google.zxing.BinaryBitmap;
+import com.google.zxing.ChecksumException;
+import com.google.zxing.FormatException;
 import com.google.zxing.LuminanceSource;
+import com.google.zxing.NotFoundException;
+import com.google.zxing.Result;
+import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
+import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
 
 import org.bytedeco.javacpp.*;
 import org.bytedeco.javacpp.opencv_core.*;
+import org.bytedeco.javacpp.indexer.FloatIndexer;
+
 import static org.bytedeco.javacpp.opencv_core.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -43,7 +51,6 @@ public class OpticalFlowCalculator {
 	CvPoint2D32f c1 = new CvPoint2D32f(4);
 	CvPoint2D32f c2 = new CvPoint2D32f(4);
 
-
 	private CvScalar rgba_min = cvScalar(minRed, minGreen, minBlue, 0);
 	private CvScalar rgba_max = cvScalar(maxRed, maxGreen, maxBlue, 0);
 	private int xleft, xright, ytop, ybot, yCenterTop, yCenterBottom;
@@ -51,10 +58,18 @@ public class OpticalFlowCalculator {
 	LuminanceSource source;
 	BinaryBitmap bitmap;
 	List<CvPoint> corners = new ArrayList<CvPoint>();
+	IplImage mask;
+	IplImage crop;
+	IplImage imgWarped;
+	IplImage imgSharpened;
 
 	CvSeq squares = cvCreateSeq(0, Loader.sizeof(CvSeq.class), Loader.sizeof(CvPoint.class), storage);
+    CanvasFrame canvas = new CanvasFrame("Warped Image");
+    CanvasFrame canvas1 = new CanvasFrame("Sharpened Image");
 
 	public OpticalFlowCalculator() {
+	    canvas.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	    canvas1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 
 
@@ -81,54 +96,58 @@ public class OpticalFlowCalculator {
 	}
 
 	public IplImage warpImage(IplImage crop, CvSeq points) {
+		corners.clear();
 		for (int i = 0; i < 4; i++) {
 			CvPoint p = new CvPoint(cvGetSeqElem(points, i));
 			corners.add(p);
 		}
-		//
-		// Initialize Table Corners as Image Coordinates
-
-		float[] aImg = { corners.get(0).x(), corners.get(0).y(), // BR
-																	// X:
-																	// 3234
-																	// Y:
-																	// 1858
-																	// TL
-				corners.get(1).x(), corners.get(1).y(), // BL X: 0
-														// Y: 1801
-														// BL
-				corners.get(2).x(), corners.get(2).y(), // TR X:
-														// 2722 Y:
-														// 1069 BR
-				corners.get(3).x(), corners.get(3).y() // TL X: 523
-														// Y: 1030
-														// TR
+		
+		float[] aImg = { 
+				corners.get(0).x(), corners.get(0).y(), 
+				corners.get(1).x(), corners.get(1).y(), 
+				corners.get(2).x(), corners.get(2).y(), 
+				corners.get(3).x(), corners.get(3).y()
 		};
 
-		//
-		cvLine(crop, corners.get(2), corners.get(2), CvScalar.RED, 3, CV_AA, 0);
 
 		int height = corners.get(1).y() - corners.get(0).y();
 		int width = corners.get(3).x() - corners.get(0).x();
-		if (height <= 0 || width <= 0 || height == width) {
+		if (height <= 0 || width <= 0 || ((int)height/width) == 0) {
 			return crop;
 		}
 		float aspect = height / width;
 		
 		float[] aWorld = { 
-				0.0f, 0.0f,
-				0.0f, crop.height() * aspect,
-				crop.width(), crop.height() * aspect,
-				crop.width(),0.0f 
+				0.0f, 			0.0f,
+				0.0f, 			crop.height() * aspect,
+				crop.width(), 	crop.height() * aspect,
+				crop.width(), 	0.0f 
 				};
 
 		CvMat homography = cvCreateMat(3, 3, opencv_core.CV_32FC1);
 		opencv_imgproc.cvGetPerspectiveTransform(aImg, aWorld, homography);
 
-		IplImage imgWarped = cvCreateImage(new CvSize(crop.width(), (int) (crop.height() * aspect)), 8, 3);
+		imgWarped = cvCreateImage(new CvSize(crop.width(), (int) (crop.height() * aspect)), 8, 3);
 		opencv_imgproc.cvWarpPerspective(crop, imgWarped, homography, opencv_imgproc.CV_INTER_LINEAR, CvScalar.ZERO);
+		
+		Mat kernel = new Mat(3, 3, CV_32F, new Scalar(0));
+		  // Indexer is used to access value in the matrix
+		FloatIndexer ki = kernel.createIndexer();
+		ki.put(1, 1, 5);
+		ki.put(0, 1, -1);
+		ki.put(2, 1, -1);
+		ki.put(1, 0, -1);
+		ki.put(1, 2, -1);
+		  
+		Mat dest = cvarrToMat(imgWarped);
+		filter2D(cvarrToMat(imgWarped), dest, imgWarped.depth(), kernel);
 
-		return imgWarped;
+		imgSharpened = new IplImage(dest);
+		
+		canvas.showImage(converter.convert(imgWarped));
+		canvas1.showImage(converter.convert(imgSharpened));
+		
+		return imgSharpened;
 	}
 
 	public IplImage extractQRImage(IplImage img0) {
@@ -149,10 +168,9 @@ public class OpticalFlowCalculator {
 		markers[1] = new CvBox2D();
 		markers[2] = new CvBox2D();
 		List<String> codes = new ArrayList<String>();
-
-		IplImage mask2 = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img1.nChannels());
+		
 		IplImage crop2 = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
-		IplImage imgWarped = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());;
+		IplImage mask2 = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
 		cvSetZero(crop2);
 		cvSetZero(mask2);
 		boolean found = false;
@@ -163,40 +181,32 @@ public class OpticalFlowCalculator {
 				CvSeq points = cvApproxPoly(contour, Loader.sizeof(CvContour.class), storage, CV_POLY_APPROX_DP,
 						cvContourPerimeter(contour) * 0.02, 0);
 				if (points.total() == 4 && cvContourArea(points) > 150 && cvContourArea(points) < 75000) {
-
-
-					IplImage mask = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img1.nChannels());
-					IplImage crop = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
+					mask = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img1.nChannels());
+					crop = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
 					cvSetZero(crop);
 					cvSetZero(mask);
 					cvDrawContours(mask, points, CvScalar.WHITE, CV_RGB(248, 18, 18), 1, -1, 8);
-					cvDrawContours(mask2, points, CvScalar.WHITE, CV_RGB(248, 18, 18), 1, -1, 8);
 					cvCopy(img0, crop, mask);
+					cvDrawContours(mask2, points, CvScalar.WHITE, CV_RGB(248, 18, 18), 1, -1, 8);
 					cvCopy(img0, crop2, mask2);
 
 					markers[0] = cvMinAreaRect2(points, storage);
 					
+					crop = warpImage(crop, points);
 					
-//					qrCode = converter1.convert(converter.convert(imgWarped));
-//					source = new BufferedImageLuminanceSource(qrCode);
-//					bitmap = new BinaryBitmap(new HybridBinarizer(source));
-//					try {
-//						Result detectionResult = reader.decode(bitmap);
-//						codes.add(detectionResult.getText());
-//						found = true;
-//					} catch (NotFoundException e) {
-//					} catch (ChecksumException e) {
-//					} catch (FormatException e) {
-//					}
-////					canvas.showImage(converter.convert(imgWarped));
-
-				
-					imgWarped = warpImage(crop, points);
-					
-					return imgWarped;
+					qrCode = converter1.convert(converter.convert(crop));
+					source = new BufferedImageLuminanceSource(qrCode);
+					bitmap = new BinaryBitmap(new HybridBinarizer(source));
+					try {
+						Result detectionResult = reader.decode(bitmap);
+						codes.add(detectionResult.getText());
+						found = true;
+					} catch (NotFoundException e) {
+					} catch (ChecksumException e) {
+					} catch (FormatException e) {
+					}
 				}
 			}
-
 			contour = contour.h_next();
 		}
 		if (found) {
@@ -205,9 +215,8 @@ public class OpticalFlowCalculator {
 				System.out.println(e);
 			}
 			System.out.println("-------------");
-
 		}
-		return img0;
+		return crop2;
 	}
 
 	public IplImage findContoursBlue(IplImage img) {

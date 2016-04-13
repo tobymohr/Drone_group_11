@@ -20,9 +20,11 @@ import app.DroneCommunicator;
 import app.DroneInterface;
 import de.yadrone.base.ARDrone;
 import de.yadrone.base.IARDrone;
+import de.yadrone.base.command.VideoBitRateMode;
 import de.yadrone.base.exception.ARDroneException;
 import de.yadrone.base.exception.IExceptionListener;
 import de.yadrone.base.video.ImageListener;
+import de.yadrone.base.video.VideoManager;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.control.Slider;
@@ -110,8 +112,8 @@ public class PictureController {
 		});
 		drone.start();
 		droneCommunicator = new DroneCommunicator(drone);
-//		droneCommunicator.setFrontCamera();
-		droneCommunicator.setBottomCamera();
+		droneCommunicator.setFrontCamera();
+//		droneCommunicator.setBottomCamera();
 	}
 
 	public void grabFromDrone() {
@@ -122,14 +124,13 @@ public class PictureController {
 			@Override
 			public void imageUpdated(BufferedImage arg0) {
 				if (isFirst) {
-//					new Thread(video = new Video(polyFrame, arg0)).start();
-					new Thread(ofvideo = new OFVideo(filterFrame, polyFrame, arg0)).start();
+					new Thread(ofvideo = new OFVideo(filterFrame, polyFrame, qrFrame, arg0)).start();
 					isFirst = false;
 				}
-//				video.setArg0(arg0);
 				ofvideo.setArg0(arg0);
 			}
 		});
+		drone.getCommandManager().setVideoBitrate(100000);
 	}
 
 	public void grabFromVideo() throws org.bytedeco.javacv.FrameGrabber.Exception {
