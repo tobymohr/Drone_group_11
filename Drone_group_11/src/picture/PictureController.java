@@ -6,10 +6,13 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.bytedeco.javacpp.opencv_core.IplImage;
+import org.bytedeco.javacpp.opencv_videoio.CvCapture;
 import org.bytedeco.javacv.Frame;
+import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameGrabber;
+import org.bytedeco.javacv.VideoInputFrameGrabber;
 
 import app.DroneCommunicator;
 import app.DroneInterface;
@@ -93,7 +96,8 @@ public class PictureController {
 		});
 		drone.start();
 		droneCommunicator = new DroneCommunicator(drone);
-		droneCommunicator.setFrontCamera();
+//		droneCommunicator.setFrontCamera();
+		droneCommunicator.setBottomCamera();
 	}
 
 	public void grabFromDrone() {
@@ -116,7 +120,12 @@ public class PictureController {
 
 	public void grabFromVideo() throws org.bytedeco.javacv.FrameGrabber.Exception {
 		OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
-		OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(0);
+		
+		// Works with Tobias CAM - adjust grabFromCam accordingly
+		//OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(0);
+		
+		// Works with Mathias CAM - adjust grabFromCam accordingly
+		 FrameGrabber grabber = new VideoInputFrameGrabber(0);
 		grabber.start();
 
 
@@ -138,7 +147,7 @@ public class PictureController {
 					filteredImage = OFC.findContoursGreen(camImage);
 					break;
 				default: 
-					filteredImage = OFC.findContoursBlack(camImage);
+					filteredImage = OFC.findContoursBlue(camImage);
 					break;
 				}
 				
@@ -155,7 +164,7 @@ public class PictureController {
 		timer.scheduleAtFixedRate(frameGrabber, 0, 33, TimeUnit.MILLISECONDS);
 	}	
 	
-	public IplImage grabFromCam(OpenCVFrameConverter.ToIplImage converter, OpenCVFrameGrabber grabber){
+	public IplImage grabFromCam(OpenCVFrameConverter.ToIplImage converter, FrameGrabber grabber){
 		IplImage newImg = null;
 		try {
 			newImg = converter.convert(grabber.grab());

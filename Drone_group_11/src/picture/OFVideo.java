@@ -35,11 +35,11 @@ public class OFVideo implements Runnable {
 	OpticalFlowCalculator OFC = new OpticalFlowCalculator();
 	OpticalFlowCalculatorFUCKINGLORT OFC2 = new OpticalFlowCalculatorFUCKINGLORT(null);
 
-	public OFVideo(ImageView filterFrame, ImageView polyFrame, ImageView qrFrame, BufferedImage arg0) {
+	public OFVideo(ImageView filterFrame, ImageView polyFrame, BufferedImage arg0) {
 		this.arg0 = arg0;
 		this.filterFrame = filterFrame;
 		this.polyFrame = polyFrame;
-		this.qrFrame = qrFrame;
+		//this.qrFrame = qrFrame;
 		converter = new OpenCVFrameConverter.ToIplImage();
 		converter1 = new Java2DFrameConverter();		
 		
@@ -74,12 +74,12 @@ public class OFVideo implements Runnable {
 					
 					IplImage polyImage = OFC.findPolygons(newImg,filteredImage, 4);
 //					IplImage qrImage = OFC.findQRFrames(newImg, filteredImage);
-					IplImage qrImage = OFC2.extractQRImage(newImg);
-					if (qrImage != null) {
-						BufferedImage bufferedImageQr = IplImageToBufferedImage(qrImage);
-						Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
-						qrFrame.setImage(imageQr);
-					}
+					//IplImage qrImage = OFC2.extractQRImage(newImg);
+//					if (qrImage != null) {
+//						BufferedImage bufferedImageQr = IplImageToBufferedImage(qrImage);
+//						Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
+						//qrFrame.setImage(imageQr);
+//					}
 					BufferedImage bufferedImage = IplImageToBufferedImage(polyImage);
 					BufferedImage bufferedImageFilter = IplImageToBufferedImage(filteredImage);
 					Image imageFilter = SwingFXUtils.toFXImage(bufferedImageFilter, null);
