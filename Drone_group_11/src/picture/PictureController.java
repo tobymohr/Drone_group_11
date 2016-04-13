@@ -41,6 +41,8 @@ public class PictureController {
 	@FXML
 	private ImageView filterFrame;
 	@FXML
+	private ImageView qrFrame;
+	@FXML
 	private static Slider minimumThresh;
 	@FXML
 	private static Slider maximumThresh;
@@ -70,6 +72,7 @@ public class PictureController {
 		 initDrone();
 		 setDimension(polyFrame, 800);
 			setDimension(filterFrame, 800);
+			setDimension(qrFrame, 800);
 		 grabFromDrone();
 	}
 	
@@ -105,7 +108,7 @@ public class PictureController {
 			public void imageUpdated(BufferedImage arg0) {
 				if (isFirst) {
 //					new Thread(video = new Video(polyFrame, arg0)).start();
-					new Thread(ofvideo = new OFVideo(filterFrame, polyFrame, arg0)).start();
+					new Thread(ofvideo = new OFVideo(filterFrame, polyFrame,qrFrame, arg0)).start();
 					isFirst = false;
 				}
 //				video.setArg0(arg0);

@@ -49,6 +49,6 @@ public class Main extends Application {
 		for (Point p : points) {
 			System.out.println(p.getX() + "|" + p.getY());
 		}
-//		launch(args);
+		launch(args);
 	}
 }

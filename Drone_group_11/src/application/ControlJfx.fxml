@@ -11,7 +11,7 @@
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.HBox?>
 
-<BorderPane prefHeight="531.0" prefWidth="1056.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="picture.PictureController">
+<BorderPane prefHeight="531.0" prefWidth="1800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="picture.PictureController">
 	<top>
 		<VBox alignment="CENTER" spacing="5">
    <children>

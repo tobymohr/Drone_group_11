@@ -28,10 +28,12 @@ import static org.bytedeco.javacpp.opencv_imgproc.CV_AA;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_BGR2GRAY;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_RGB2GRAY;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_BGR2HSV;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_CHAIN_APPROX_NONE;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_CHAIN_APPROX_SIMPLE;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_FILLED;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_LINK_RUNS;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_POLY_APPROX_DP;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_RETR_EXTERNAL;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_RETR_LIST;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_THRESH_BINARY;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_THRESH_TOZERO;
@@ -53,6 +55,9 @@ import static org.bytedeco.javacpp.opencv_imgproc.cvMoments;
 import static org.bytedeco.javacpp.opencv_imgproc.cvSmooth;
 import static org.bytedeco.javacpp.opencv_imgproc.cvThreshold;
 import static org.bytedeco.javacpp.opencv_video.cvCalcOpticalFlowPyrLK;
+
+import java.awt.image.BufferedImage;
+
 import picture.PictureController;
 
 import org.bytedeco.javacpp.BytePointer;
@@ -70,7 +75,18 @@ import org.bytedeco.javacpp.opencv_core.CvSize;
 import org.bytedeco.javacpp.opencv_core.IplImage;
 import org.bytedeco.javacpp.opencv_imgproc.CvMoments;
 import org.bytedeco.javacpp.helper.opencv_core.CvArr;
+import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
+
+import com.google.zxing.BinaryBitmap;
+import com.google.zxing.ChecksumException;
+import com.google.zxing.FormatException;
+import com.google.zxing.LuminanceSource;
+import com.google.zxing.NotFoundException;
+import com.google.zxing.Result;
+import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
+import com.google.zxing.common.HybridBinarizer;
+import com.google.zxing.qrcode.QRCodeReader;
 
 import helper.Vector;
 
@@ -78,6 +94,7 @@ public class OpticalFlowCalculator {
 
 	private static final int MAX_CORNERS = 5;
 	OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
+	Java2DFrameConverter converter1 = new Java2DFrameConverter();
 	private CvMemStorage storage = CvMemStorage.create();
 	static int maxRed = 242;
 	static int maxGreen = 99;
@@ -92,6 +109,9 @@ public class OpticalFlowCalculator {
 	private CvScalar rgba_min = cvScalar(minRed, minGreen, minBlue, 0);
 	private CvScalar rgba_max = cvScalar(maxRed, maxGreen, maxBlue, 0);
 	private int xleft, xright, ytop, ybot, yCenterTop, yCenterBottom;
+	QRCodeReader reader = new QRCodeReader();
+	LuminanceSource source;
+	BinaryBitmap bitmap;
 
 	CvSeq squares = cvCreateSeq(0, Loader.sizeof(CvSeq.class), Loader.sizeof(CvPoint.class), storage);
 
@@ -134,6 +154,70 @@ public class OpticalFlowCalculator {
 		double areaMax, areaC = 0;
 
 		return null;
+	}
+	
+	public IplImage extractQRImage(IplImage img0) {
+		float known_distance = 100;
+		float known_width = 28;
+		float focalLength = (152 * known_distance) / known_width;
+		
+		
+        IplImage img1 = cvCreateImage(cvGetSize(img0), IPL_DEPTH_8U, 1);
+        cvCvtColor(img0, img1, CV_RGB2GRAY);
+        
+        cvCanny(img1, img1, 100, 200);
+		CvSeq contour = new CvSeq(null);
+		cvFindContours(img1, storage, contour, Loader.sizeof(CvContour.class), CV_RETR_EXTERNAL,
+				CV_CHAIN_APPROX_NONE);
+		
+		IplImage mask = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img1.nChannels());
+		IplImage mask2 = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img1.nChannels());
+		IplImage crop = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
+		IplImage crop2 = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
+		cvSetZero(crop);
+		cvSetZero(crop2);
+		cvSetZero(mask);
+		cvSetZero(mask2);
+		
+		CvBox2D[] markers = new CvBox2D[3];
+		markers[0] = new CvBox2D();
+		markers[1] = new CvBox2D();
+		markers[2] = new CvBox2D();
+		
+		BufferedImage qrCode;
+		System.out.println("-------------");
+		while (contour != null && !contour.isNull()) {
+			if (contour.elem_size() > 0) {
+				CvSeq points = cvApproxPoly(contour, Loader.sizeof(CvContour.class), storage, CV_POLY_APPROX_DP,
+						cvContourPerimeter(contour) * 0.02, 0);
+				if (points.total() == 4 && cvContourArea(points) > 150 && cvContourArea(points) < 125000) {
+					cvDrawContours(mask, contour, CvScalar.WHITE, CV_RGB(248, 18, 18), 1, -1, 8);
+					cvDrawContours(mask2, contour, CvScalar.WHITE, CV_RGB(248, 18, 18), 1, -1, 8);
+					cvCopy(img0, crop, mask);
+					cvCopy(img0, crop2, mask2);
+					markers[0] = cvMinAreaRect2(contour, storage);
+//					System.out.println((known_width * focalLength) / markers[0].get(2));
+					qrCode = converter1.convert(converter.convert(crop));
+					source = new BufferedImageLuminanceSource(qrCode);
+					bitmap = new BinaryBitmap(new HybridBinarizer(source));
+	 				try {
+	 					Result detectionResult = reader.decode(bitmap);
+ 						System.out.println(detectionResult.getText());
+	 				} catch (NotFoundException e) 
+	 				{
+	 				} catch (ChecksumException e) {
+	 				} catch (FormatException e) {
+	 				}													
+					
+					cvSetZero(crop);
+					cvSetZero(mask);
+				}
+			}
+
+			contour = contour.h_next();
+		}
+		System.out.println("-------------");
+        return crop2;
 	}
 
 	public IplImage findContoursBlue(IplImage img) {
