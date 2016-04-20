@@ -59,7 +59,7 @@ import javafx.scene.image.ImageView;
 
 public class PictureController {
 
-	private OpticalFlowCalculator OFC = new OpticalFlowCalculator();
+	private PictureProcessingHelper OFC = new PictureProcessingHelper();
 	private DroneInterface droneCommunicator;
 	private IARDrone drone;
 	private Video video;
@@ -233,11 +233,13 @@ public class PictureController {
 				
 				//Optical Flow
 				if(!isFirst){
-				IplImage opticalImage = OFC.drawAndCalc(camImageOld, camImage);
+				IplImage opticalImage = OFC.opticalFlowOnDrones(camImageOld, camImage);
 				BufferedImage bufferedImageOptical = IplImageToBufferedImage(opticalImage);
 				Image imageOptical = SwingFXUtils.toFXImage(bufferedImageOptical, null);
 				polyFrame.setImage(imageOptical);
 				}
+				
+				
 				
 				isFirst = false;
 				
