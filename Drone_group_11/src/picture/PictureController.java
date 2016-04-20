@@ -18,9 +18,11 @@ import app.DroneCommunicator;
 import app.DroneInterface;
 import de.yadrone.base.ARDrone;
 import de.yadrone.base.IARDrone;
+import de.yadrone.base.command.VideoBitRateMode;
 import de.yadrone.base.exception.ARDroneException;
 import de.yadrone.base.exception.IExceptionListener;
 import de.yadrone.base.video.ImageListener;
+import de.yadrone.base.video.VideoManager;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.control.Slider;
@@ -36,7 +38,7 @@ public class PictureController {
 	private OFVideo ofvideo;
 	private ScheduledExecutorService timer;
 
-	public static int colorInt = 0;
+	public static int colorInt = 2;
 
 	// CAMERA
 	@FXML
@@ -77,6 +79,8 @@ public class PictureController {
 			setDimension(filterFrame, 800);
 			setDimension(qrFrame, 800);
 		 grabFromDrone();
+//		OpticalFlowCalculator OFC = new OpticalFlowCalculator();
+//		OFC.testWarp();
 	}
 	
 	public static double getMinThresh(){
@@ -99,8 +103,8 @@ public class PictureController {
 		});
 		drone.start();
 		droneCommunicator = new DroneCommunicator(drone);
-//		droneCommunicator.setFrontCamera();
-		droneCommunicator.setBottomCamera();
+		droneCommunicator.setFrontCamera();
+//		droneCommunicator.setBottomCamera();
 	}
 
 	public void grabFromDrone() {
@@ -111,14 +115,13 @@ public class PictureController {
 			@Override
 			public void imageUpdated(BufferedImage arg0) {
 				if (isFirst) {
-//					new Thread(video = new Video(polyFrame, arg0)).start();
-					new Thread(ofvideo = new OFVideo(filterFrame, polyFrame, arg0)).start();
+					new Thread(ofvideo = new OFVideo(filterFrame, polyFrame, qrFrame, arg0)).start();
 					isFirst = false;
 				}
-//				video.setArg0(arg0);
 				ofvideo.setArg0(arg0);
 			}
 		});
+		drone.getCommandManager().setVideoBitrate(100000);
 	}
 
 	public void grabFromVideo() throws org.bytedeco.javacv.FrameGrabber.Exception {
@@ -154,13 +157,18 @@ public class PictureController {
 					break;
 				}
 				
+				filteredImage = OFC.erodeAndDilate(filteredImage);
 				IplImage polyImage = OFC.findPolygons(camImage,filteredImage,4);
+				//IplImage qrImage = OFC.extractQRImage(camImage);
 				BufferedImage bufferedImage = IplImageToBufferedImage(polyImage);
 				BufferedImage bufferedImageFilter = IplImageToBufferedImage(filteredImage);
+				//BufferedImage bufferedImageQr = IplImageToBufferedImage(qrImage);
 				Image imageFilter = SwingFXUtils.toFXImage(bufferedImageFilter, null);
 				Image imagePoly = SwingFXUtils.toFXImage(bufferedImage, null);
+				//Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
 				polyFrame.setImage(imagePoly);
 				filterFrame.setImage(imageFilter);
+				//qrFrame.setImage(imageQr);
 			}
 		};
 		timer = Executors.newSingleThreadScheduledExecutor();
