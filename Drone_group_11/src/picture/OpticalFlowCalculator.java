@@ -25,17 +25,23 @@ import org.bytedeco.javacpp.opencv_core.*;
 import org.bytedeco.javacpp.indexer.FloatIndexer;
 
 import static org.bytedeco.javacpp.opencv_core.*;
+
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.JFrame;
 
+import helper.Circle;
+import helper.Point;
 import helper.Vector;
 
 public class OpticalFlowCalculator {
 
-	private static final int MAX_CORNERS = 5;
+	private static final int MAX_CORNERS = 200;
 	OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
 	Java2DFrameConverter converter1 = new Java2DFrameConverter();
 	private CvMemStorage storage = CvMemStorage.create();
@@ -66,10 +72,40 @@ public class OpticalFlowCalculator {
 	CvSeq squares = cvCreateSeq(0, Loader.sizeof(CvSeq.class), Loader.sizeof(CvPoint.class), storage);
     CanvasFrame canvas = new CanvasFrame("Warped Image");
     CanvasFrame canvas1 = new CanvasFrame("Sharpened Image");
+	private CvBox2D markerRight;
+	private CvBox2D markerLeft;
+	private CvPoint pointMiddle;
+	private CvPoint pointClosest;
+	private CvBox2D markerMiddle;
 
 	public OpticalFlowCalculator() {
 	    canvas.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	    canvas1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	    canvas.addComponentListener(new ComponentListener() {
+			
+			@Override
+			public void componentShown(ComponentEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void componentResized(ComponentEvent e) {
+				System.out.println(canvas.getWidth()+ " "+  canvas.getHeight());
+			}
+			
+			@Override
+			public void componentMoved(ComponentEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void componentHidden(ComponentEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
 	}
 
 
@@ -94,8 +130,26 @@ public class OpticalFlowCalculator {
 
 		return null;
 	}
+	public IplImage sharpenImage(IplImage img0){
+		Mat kernel = new Mat(3, 3, CV_32F, new Scalar(0));
+		  // Indexer is used to access value in the matrix
+		FloatIndexer ki = kernel.createIndexer();
+		  ki.put(1, 1, 5);
+		  ki.put(0, 1, -1);
+		  ki.put(2, 1, -1);
+		  ki.put(1, 0, -1);
+		  ki.put(1, 2, -1);
+//		  
+		Mat dest = new Mat();
+		filter2D(cvarrToMat(img0), dest, img0.depth(), kernel);
+
+		imgSharpened = new IplImage(dest);
+		return imgSharpened;
+	}
 
 	public IplImage warpImage(IplImage crop, CvSeq points) {
+		canvas1.showImage(converter.convert(crop));
+		crop = sharpenImage(crop);
 		corners.clear();
 		for (int i = 0; i < 4; i++) {
 			CvPoint p = new CvPoint(cvGetSeqElem(points, i));
@@ -108,53 +162,43 @@ public class OpticalFlowCalculator {
 				corners.get(2).x(), corners.get(2).y(), 
 				corners.get(3).x(), corners.get(3).y()
 		};
-
-
-		int height = corners.get(1).y() - corners.get(0).y();
-		int width = corners.get(3).x() - corners.get(0).x();
-		if (height <= 0 || width <= 0 || ((int)height/width) == 0) {
+		
+		int qrHeight = corners.get(1).y() - corners.get(0).y();
+		int qrWidth = corners.get(3).x() - corners.get(0).x();
+		if (qrHeight <= 0 || qrWidth <= 0 || ((int)qrHeight/qrWidth) == 0) {
 			return crop;
 		}
-		float aspect = height / width;
-		
+		float aspect = qrHeight / qrWidth;
+		int height = 146;
+		int width = 98;
+//		System.out.println("Aspect " + aspect + " width " + width + " height " + height );
 		float[] aWorld = { 
 				0.0f, 			0.0f,
-				0.0f, 			crop.height() * aspect,
-				crop.width(), 	crop.height() * aspect,
-				crop.width(), 	0.0f 
+				0.0f, 			height*4,
+				width*4, 			height*4,
+				width*4,		 	0.0f 
 				};
 
-		CvMat homography = cvCreateMat(3, 3, opencv_core.CV_32FC1);
+		CvMat homography = cvCreateMat(3,3, opencv_core.CV_32FC1);
 		opencv_imgproc.cvGetPerspectiveTransform(aImg, aWorld, homography);
 
-		imgWarped = cvCreateImage(new CvSize(crop.width(), (int) (crop.height() * aspect)), 8, 3);
-		opencv_imgproc.cvWarpPerspective(crop, imgWarped, homography, opencv_imgproc.CV_INTER_LINEAR, CvScalar.ZERO);
-		
-		Mat kernel = new Mat(3, 3, CV_32F, new Scalar(0));
-		  // Indexer is used to access value in the matrix
-		FloatIndexer ki = kernel.createIndexer();
-		ki.put(1, 1, 5);
-		ki.put(0, 1, -1);
-		ki.put(2, 1, -1);
-		ki.put(1, 0, -1);
-		ki.put(1, 2, -1);
-		  
-		Mat dest = cvarrToMat(imgWarped);
-		filter2D(cvarrToMat(imgWarped), dest, imgWarped.depth(), kernel);
-
-		imgSharpened = new IplImage(dest);
-		
+		imgWarped = cvCreateImage(new CvSize(width*4, height*4), 8, 3);
+		cvResize(imgWarped, imgWarped, 1/4);
+		cvWarpPerspective(crop, imgWarped, homography, opencv_imgproc.CV_INTER_LINEAR, CvScalar.ZERO);
+		cvSmooth(imgWarped, imgWarped, 2, 21, 0, 0, 0);
 		canvas.showImage(converter.convert(imgWarped));
-		canvas1.showImage(converter.convert(imgSharpened));
-		
-		return imgSharpened;
+		return imgWarped;
+	}
+	
+	public void transformForDistance() {
 	}
 
 	public IplImage extractQRImage(IplImage img0) {
 		cvClearMemStorage(storage);
-		float known_distance = 100;
+		float known_distance = 200;
 		float known_width = 28;
-		float focalLength = (152 * known_distance) / known_width;
+		float focalLength = (113 * known_distance) / known_width;
+		float distance_between_points = 150;
 
 		IplImage img1 = cvCreateImage(cvGetSize(img0), IPL_DEPTH_8U, 1);
 		cvCvtColor(img0, img1, CV_RGB2GRAY);
@@ -163,11 +207,10 @@ public class OpticalFlowCalculator {
 		CvSeq contour = new CvSeq(null);
 		cvFindContours(img1, storage, contour, Loader.sizeof(CvContour.class), CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 
-		CvBox2D[] markers = new CvBox2D[3];
-		markers[0] = new CvBox2D();
-		markers[1] = new CvBox2D();
-		markers[2] = new CvBox2D();
-		List<String> codes = new ArrayList<String>();
+		List<CvBox2D> markers = new ArrayList<>();
+		List<CvSeq> pointsList = new ArrayList<>();
+		String code = "";
+		int foundIndex = 0;
 		
 		IplImage crop2 = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
 		IplImage mask2 = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
@@ -180,7 +223,7 @@ public class OpticalFlowCalculator {
 			if (contour.elem_size() > 0) {
 				CvSeq points = cvApproxPoly(contour, Loader.sizeof(CvContour.class), storage, CV_POLY_APPROX_DP,
 						cvContourPerimeter(contour) * 0.02, 0);
-				if (points.total() == 4 && cvContourArea(points) > 150 && cvContourArea(points) < 75000) {
+				if (points.total() == 4 && cvContourArea(points) > 150 && cvContourArea(points) < 10000) {
 					mask = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img1.nChannels());
 					crop = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
 					cvSetZero(crop);
@@ -189,34 +232,93 @@ public class OpticalFlowCalculator {
 					cvCopy(img0, crop, mask);
 					cvDrawContours(mask2, points, CvScalar.WHITE, CV_RGB(248, 18, 18), 1, -1, 8);
 					cvCopy(img0, crop2, mask2);
-
-					markers[0] = cvMinAreaRect2(points, storage);
+					// Draw red point
+					pointsList.add(points);
 					
 					crop = warpImage(crop, points);
-					
 					qrCode = converter1.convert(converter.convert(crop));
 					source = new BufferedImageLuminanceSource(qrCode);
 					bitmap = new BinaryBitmap(new HybridBinarizer(source));
 					try {
 						Result detectionResult = reader.decode(bitmap);
-						codes.add(detectionResult.getText());
+						code = detectionResult.getText();
 						found = true;
 					} catch (NotFoundException e) {
+//						e.printStackTrace();
 					} catch (ChecksumException e) {
+//						e.printStackTrace();
 					} catch (FormatException e) {
+//						e.printStackTrace();
 					}
+					if (!found)foundIndex++;
 				}
 			}
 			contour = contour.h_next();
 		}
-		if (found) {
-			System.out.println("-------------");
-			for (String e : codes) {
-				System.out.println(e);
+		if (found && pointsList.size() >= 3) {
+			markerRight = new CvBox2D();
+			markerLeft = new CvBox2D();
+			
+			CvSeq pointsMiddle = pointsList.get(foundIndex);
+			markerMiddle = cvMinAreaRect2(pointsMiddle, storage);
+			pointMiddle = new CvPoint(cvGetSeqElem(pointsList.get(foundIndex), 0));
+			pointsList.remove(foundIndex);
+			
+			int indexOne = closestPoint(pointsList, pointsMiddle);
+			CvSeq pointsClosest = pointsList.get(indexOne);
+			pointClosest = new CvPoint(cvGetSeqElem(pointsClosest, 0));
+			if (pointClosest.x() < pointMiddle.x()) {
+				markerLeft = cvMinAreaRect2(pointsClosest, storage);
+			} else {
+				markerRight = cvMinAreaRect2(pointsClosest, storage);
 			}
-			System.out.println("-------------");
+			pointsList.remove(indexOne);
+			
+			indexOne = closestPoint(pointsList, pointsMiddle);
+			pointsClosest = pointsList.get(indexOne);
+			pointClosest = new CvPoint(cvGetSeqElem(pointsClosest, 0));
+			if (pointClosest.x() < pointMiddle.x()) {
+				markerLeft = cvMinAreaRect2(pointsClosest, storage);
+			} else {
+				markerRight = cvMinAreaRect2(pointsClosest, storage);
+			}
+			
+			double distanceOne = (known_width * focalLength) / markerLeft.get(2);
+			double distanceTwo = (known_width * focalLength) / markerMiddle.get(2);
+			double distanceThree = (known_width * focalLength) / markerRight.get(2);
+			System.out.println("--------------------------------");
+			System.out.println(distanceOne + "|" + distanceTwo + "|" + distanceThree);
+			double angleA = Point.calculateAngle(distanceOne, distance_between_points);
+			double angleB = Point.calculateAngle(distanceThree, distance_between_points);
+			Point P1 = Point.parseQRTextLeft(code);
+			Point P2 = Point.parseQRText(code);
+			Point P3 = Point.parseQRTextRight(code);
+			System.out.println("(" + P1.getX() + "," + P1.getY() + ")" + "(" + P2.getX() + "," + P2.getY() + ")" + "(" + P3.getX() + "," + P3.getY() + ")");
+			Circle C1 = new Circle(Circle.calculateCenter(P1, P2, distance_between_points, angleA), 
+					Circle.calculateRadius(distance_between_points, angleA));
+			Circle C2 = new Circle(Circle.calculateCenter(P2, P3, distance_between_points, angleB), 
+					Circle.calculateRadius(distance_between_points, angleB));
+			Point[] points = Circle.intersection(C1, C2);
+			for (Point p : points) {
+				System.out.println(Math.round(p.getX()) + "|" + Math.round(p.getY()));
+			}			
+			System.out.println("--------------------------------");
 		}
 		return crop2;
+	}
+	
+	private int closestPoint(List<CvSeq> pointsList, CvSeq markerMiddle) {
+		double qrMarkerSize = cvContourArea(markerMiddle);
+		double distance = Math.abs(cvContourArea(pointsList.get(0)) - qrMarkerSize);
+		int index = 0;
+		for (int i = 1; i < pointsList.size(); i++) {
+			double newDistance = Math.abs(cvContourArea(pointsList.get(i)) - qrMarkerSize);
+			if (newDistance < distance) {
+				index = i;
+				distance = newDistance;
+			}
+		}
+		return index;
 	}
 
 	public IplImage findContoursBlue(IplImage img) {
@@ -395,22 +497,21 @@ public class OpticalFlowCalculator {
 
 	}
 
-	public synchronized IplImage drawAndCalc(IplImage oldImg, IplImage newImg) {
-		cvClearMemStorage(storage);
+	public IplImage drawAndCalc(IplImage imgA, IplImage newFrame) {
 		// Load two images and allocate other structures
+		CvSize cvSize = cvSize(imgA.width(), imgA.height());
+//		IplImage imgA = cvCreateImage(cvSize, oldFrame.depth(), 1);
+//		cvCvtColor(oldFrame, imgA, CV_BGR2GRAY);
 
-		CvSize cvSize = cvSize(oldImg.width(), oldImg.height());
+		IplImage imgB = cvCreateImage(cvSize, newFrame.depth(), 1);
+		cvCvtColor(newFrame, imgB, CV_BGR2GRAY);
 
-		IplImage imgB = cvCreateImage(cvSize, newImg.depth(), 1);
-		cvCvtColor(newImg, imgB, CV_BGR2GRAY);
+		IplImage imgC = cvCreateImage(cvSize, newFrame.depth(), 1);
+		cvCopy(imgA, imgC);
+		
+		cvThreshold(imgC, imgC, 100, 255, CV_THRESH_TOZERO);
 
-		IplImage imgC = cvCreateImage(cvSize, newImg.depth(), 1);
-		cvCopy(oldImg, imgC);
-
-		IplImage dst = cvCreateImage(cvGetSize(imgC), imgC.depth(), 1);
-		// cvCanny(imgC, dst, 100, 100, 3);
-
-		CvSize img_sz = cvGetSize(oldImg);
+		CvSize img_sz = cvGetSize(imgA);
 		int win_size = 15;
 
 		IplImage eig_image = cvCreateImage(img_sz, IPL_DEPTH_32F, 1);
@@ -420,38 +521,41 @@ public class OpticalFlowCalculator {
 		CvPoint2D32f cornersA = new CvPoint2D32f(MAX_CORNERS);
 
 		CvArr mask = null;
-		cvGoodFeaturesToTrack(oldImg, eig_image, tmp_image, cornersA, corner_count, 0.05, 5.0, mask, 3, 0, 0.04);
+		cvGoodFeaturesToTrack(imgA, eig_image, tmp_image, cornersA, corner_count, 0.05, 5.0, mask, 3, 0, 0.04);
 
-		cvFindCornerSubPix(oldImg, cornersA, corner_count.get(), cvSize(win_size, win_size), cvSize(-1, -1),
-				cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.2));
+		cvFindCornerSubPix(imgA, cornersA, corner_count.get(), cvSize(win_size, win_size), cvSize(-1, -1),
+				cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.03));
 
 		// Call Lucas Kanade algorithm
 		BytePointer features_found = new BytePointer(MAX_CORNERS);
 		FloatPointer feature_errors = new FloatPointer(MAX_CORNERS);
 
-		CvSize pyr_sz = cvSize(oldImg.width() + 8, imgB.height() / 3);
+		CvSize pyr_sz = cvSize(imgA.width() + 8, imgB.height() / 3);
 
 		IplImage pyrA = cvCreateImage(pyr_sz, IPL_DEPTH_32F, 1);
 		IplImage pyrB = cvCreateImage(pyr_sz, IPL_DEPTH_32F, 1);
 
 		CvPoint2D32f cornersB = new CvPoint2D32f(MAX_CORNERS);
-		cvCalcOpticalFlowPyrLK(oldImg, imgB, pyrA, pyrB, cornersA, cornersB, corner_count.get(),
-				cvSize(win_size, win_size), 5, features_found, feature_errors,
-				cvTermCriteria(CV_TERMCRIT_NUMBER | CV_TERMCRIT_NUMBER, 120, 0.3), 0);
 
+		cvCalcOpticalFlowPyrLK(imgA, imgB, pyrA, pyrB, cornersA, cornersB, corner_count.get(),
+				cvSize(win_size, win_size), 5, features_found, feature_errors,
+				cvTermCriteria(CV_TERMCRIT_NUMBER | CV_TERMCRIT_NUMBER, 20, 0.3), 0);
+
+		// Put lines on the screen along with dots
 		for (int i = 0; i < corner_count.get(); i++) {
+			if (features_found.get(i) == 0 || feature_errors.get(i) > 550) {
+				System.out.println("Error is " + feature_errors.get(i) + "/n");
+				continue;
+			}
+
 			cornersA.position(i);
 			cornersB.position(i);
 			CvPoint p0 = cvPoint(Math.round(cornersA.x()), Math.round(cornersA.y()));
 			CvPoint p1 = cvPoint(Math.round(cornersB.x()), Math.round(cornersB.y()));
-			cvLine(imgC, p0, p1, CV_RGB(0, 0, 0), 3, CV_AA, 0);
-
-			if (!p0.toString().equals(p1.toString())) {
-				Vector v0 = convertToVector(p0.toString());
-				Vector v1 = convertToVector(p1.toString());
-			}
+			cvLine(imgC, p0, p1, CV_RGB(255, 255, 255), 3, CV_AA, 0);
+			
+			
 		}
-
 		return imgC;
 	}
 
@@ -490,7 +594,7 @@ public class OpticalFlowCalculator {
 			if (contour.elem_size() > 0) {
 				CvSeq points = cvApproxPoly(contour, Loader.sizeof(CvContour.class), storage, CV_POLY_APPROX_DP,
 						cvContourPerimeter(contour) * 0.02, 0);
-				if (points.total() == edgeNumber && cvContourArea(points) > 50 && cvContourArea(points) < 50000) {
+				if (points.total() == edgeNumber && cvContourArea(points) > 150 && cvContourArea(points) < 10000) {
 					// drawLines of Box
 					cvDrawContours(coloredImage, points, CvScalar.WHITE, CvScalar.WHITE, -2, 2, CV_AA);
 					// Counter for checking points in center box

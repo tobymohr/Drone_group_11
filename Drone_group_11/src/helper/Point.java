@@ -66,4 +66,34 @@ public class Point {
 			return null;
 		}
 	}
+	
+	public static Point parseQRTextLeft(String text) {
+		text = text.substring(1);
+		if (text.startsWith("00")) {
+			return new Point(Double.parseDouble(text.substring(4)), MAX_Y_COORDINATE);
+		} else if (text.startsWith("01")) {
+			return new Point(MAX_X_COORDINATE, Double.parseDouble(text.substring(4)) + 2);
+		} else if (text.startsWith("02")) {
+			return new Point(Double.parseDouble(text.substring(4)) + 2, 0);
+		} else if (text.startsWith("03")) {
+			return new Point(0, Double.parseDouble(text.substring(4)));
+		} else {
+			return null;
+		}
+	}
+	
+	public static Point parseQRTextRight(String text) {
+		text = text.substring(1);
+		if (text.startsWith("00")) {
+			return new Point(Double.parseDouble(text.substring(4)) + 2, MAX_Y_COORDINATE);
+		} else if (text.startsWith("01")) {
+			return new Point(MAX_X_COORDINATE, Double.parseDouble(text.substring(4)));
+		} else if (text.startsWith("02")) {
+			return new Point(Double.parseDouble(text.substring(4)), 0);
+		} else if (text.startsWith("03")) {
+			return new Point(0, Double.parseDouble(text.substring(4)) + 2);
+		} else {
+			return null;
+		}
+	}
 }
