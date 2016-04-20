@@ -282,27 +282,33 @@ public class OpticalFlowCalculator {
 		cvReleaseImage(hueUpper);
 		cvReleaseImage(imghsv);
 
-		cvFindContours(imgbin, storage, contour1, Loader.sizeof(CvContour.class), CV_RETR_LIST, CV_LINK_RUNS,
-				cvPoint(0, 0));
+//		cvFindContours(imgbin, storage, contour1, Loader.sizeof(CvContour.class), CV_RETR_LIST, CV_LINK_RUNS,
+//				cvPoint(0, 0));
+//	
 	
-	
-		contour2 = contour1;
-
-		while (contour1 != null && !contour1.isNull()) {
-			areaC = cvContourArea(contour1, CV_WHOLE_SEQ, 1);
-			if (areaC > areaMax)
-				areaMax = areaC;
-			contour1 = contour1.h_next();
-
-		}
-
-		while (contour2 != null && !contour2.isNull()) {
-			areaC = cvContourArea(contour2, CV_WHOLE_SEQ, 1);
-			if (areaC < areaMax) {
-				cvDrawContours(imgbin, contour2, CV_RGB(0, 0, 0), CV_RGB(0, 0, 0), 0, CV_FILLED, 8, cvPoint(0, 0));
-			}
-			contour2 = contour2.h_next();
-		}
+		
+//		contour2 = contour1;
+//		if(cvContourArea(contour1, CV_WHOLE_SEQ, 1) > 100);
+//		{
+//		cvDrawContours(imgbin, contour1, CV_RGB(0, 0, 0), CV_RGB(0, 0, 0), 0, CV_FILLED, 8, cvPoint(0, 0));
+//		}
+//		contour1 = contour1.h_next();
+//		
+//		while (contour1 != null && !contour1.isNull()) {
+//			areaC = cvContourArea(contour1, CV_WHOLE_SEQ, 1);
+//			if (areaC > areaMax)
+//				areaMax = areaC;
+//			contour1 = contour1.h_next();
+//
+//		}
+//
+//		while (contour2 != null && !contour2.isNull()) {
+//			areaC = cvContourArea(contour2, CV_WHOLE_SEQ, 1);
+//			if (areaC < areaMax) {
+//				cvDrawContours(imgbin, contour2, CV_RGB(0, 0, 0), CV_RGB(0, 0, 0), 0, CV_FILLED, 8, cvPoint(0, 0));
+//			}
+//			contour2 = contour2.h_next();
+//		}
 //		cvSmooth(imgbin, imgbin, 3, smoother, 0, 0, 0);
 		return imgbin;
 	}
@@ -313,7 +319,7 @@ public class OpticalFlowCalculator {
 		
 		
 		// Green
-		CvScalar minc = cvScalar(35, 70, 7, 0), maxc = cvScalar(75, 255, 255, 0);
+		CvScalar minc = cvScalar(35, 75, 6, 0), maxc = cvScalar(75, 255, 255, 0);
 		CvSeq contour1 = new CvSeq(), contour2;
 		CvMemStorage storage = CvMemStorage.create();
 		double areaMax = 1000, areaC = 0;
@@ -414,7 +420,8 @@ public class OpticalFlowCalculator {
 
 	public synchronized IplImage findPolygons(IplImage coloredImage, IplImage filteredImage, int edgeNumber) {
 		cvClearMemStorage(storage);
-		// coloredImage = balanceWhite(coloredImage);
+		double angle = 0;
+		int polygonCount = 0;
 		CvSeq contour = new CvSeq(null);
 		cvFindContours(filteredImage, storage, contour, Loader.sizeof(CvContour.class), CV_RETR_LIST,
 				CV_CHAIN_APPROX_SIMPLE);
@@ -448,13 +455,38 @@ public class OpticalFlowCalculator {
 				CvSeq points = cvApproxPoly(contour, Loader.sizeof(CvContour.class), storage, CV_POLY_APPROX_DP,
 						cvContourPerimeter(contour) * 0.02, 0);
 				if (points.total() == edgeNumber && cvContourArea(points) > 50 && cvContourArea(points) < 50000) {
-					// drawLines of Box
-					cvDrawContours(coloredImage, points, CvScalar.WHITE, CvScalar.WHITE, -2, 2, CV_AA);
-					// Counter for checking points in center box
+					
+					
+					ArrayList<CvPoint> listen = new ArrayList<CvPoint>();
+					
+					// skal gøre det for hver unik figur
+					for (int i = 0; i < 5; i++)
+					{
+						listen.add(new CvPoint(cvGetSeqElem(points, i)));
+					}
+
+                    // find the maximum cosine of the angle between joint edges
+				
+						for (int j = 0; j < listen.size() - 1; j++)
+						 {
+							 angle = Math.atan2(listen.get(j + 1).y() - listen.get(j).y(), listen.get(j + 1).x() - listen.get(j).x()) * 180.0 / CV_PI;                     
+							 
+						    //angle += angle;
+						    System.out.println(angle);
+						    if (angle > 340 && angle < 380)
+						    {
+						       cvDrawContours(coloredImage, points, CvScalar.WHITE, CvScalar.WHITE, -2, 2, CV_AA);
+						       polygonCount++;
+						       break;
+						    }
+						 }
+					
+//				  
 				}
 			}
 			contour = contour.h_next();
 		}
+		//System.out.println(polygonCount);
 		return coloredImage;
 	}
 
@@ -714,4 +746,6 @@ public class OpticalFlowCalculator {
 		return thresh;
 		
 	}
-}
+	
+	
+	}
