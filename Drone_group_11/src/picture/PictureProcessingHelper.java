@@ -39,7 +39,7 @@ import helper.Circle;
 import helper.Point;
 import helper.Vector;
 
-public class OpticalFlowCalculator {
+public class PictureProcessingHelper {
 
 	private static final int MAX_CORNERS = 200;
 	OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
@@ -77,8 +77,64 @@ public class OpticalFlowCalculator {
 	private CvPoint pointMiddle;
 	private CvPoint pointClosest;
 	private CvBox2D markerMiddle;
+	private IplImage imghsv;
+	private IplImage imgbin;
+	private CvScalar bminc;
+	private CvScalar bmaxc;
+	private CvScalar rminc;
+	private CvScalar rmaxc;
+	private CvSeq contour1;
+	private CvSeq contour2;
+	private CvMemStorage storage2;
+	private Mat kernel;
+	private FloatIndexer ki;
+	private Mat dest;
+	private CvMat homography;
+	private IplImage img1;
+	private CvSeq contour;
+	private IplImage crop2;
+	private IplImage mask2;
+	private IplImage imghsv2;
+	private IplImage imgbin2;
+	private IplImage grayImage;
+	private IplImage hueLower;
+	private IplImage hueUpper;
+	private IplImage imghsv3;
+	private IplImage imgbin3;
+	private IplImage imghsv4;
+	private IplImage imgbin4;
+	private IplImage imgB;
+	private IplImage imgC;
+	private IplImage eig_image;
+	private IplImage tmp_image;
+	private IplImage pyrA;
+	private IplImage pyrB;
+	
+	
+	public void releaseAll(){
+		cvReleaseImage(img1);
+		cvReleaseImage(crop2);
+		cvReleaseImage(mask2);
+		cvReleaseImage(imghsv2);
+		cvReleaseImage(imgbin2);
+		cvReleaseImage(grayImage);
+		cvReleaseImage(hueLower);
+		cvReleaseImage(hueUpper);
+		cvReleaseImage(imghsv3);
+		cvReleaseImage(imgbin3);
+		cvReleaseImage(imghsv4);
+		cvReleaseImage(imgbin4);
+		cvReleaseImage(imgB);
+		cvReleaseImage(imgC);
+		cvReleaseImage(eig_image);
+		cvReleaseImage(tmp_image);
+		cvReleaseImage(pyrA);
+		cvReleaseImage(pyrB);
+		
+		
+	}
 
-	public OpticalFlowCalculator() {
+	public PictureProcessingHelper() {
 	    canvas.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	    canvas1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	    canvas.addComponentListener(new ComponentListener() {
@@ -120,27 +176,25 @@ public class OpticalFlowCalculator {
 
 	public IplImage findMoments(IplImage img) {
 
-		IplImage imghsv, imgbin;
-		CvScalar Bminc = cvScalar(95, 150, 75, 0), Bmaxc = cvScalar(145, 255, 255, 0);
-		CvScalar Rminc = cvScalar(150, 150, 75, 0), Rmaxc = cvScalar(190, 255, 255, 0);
-
-		CvSeq contour1 = new CvSeq(), contour2;
-		CvMemStorage storage = CvMemStorage.create();
+		bminc = cvScalar(95, 150, 75, 0);
+		bmaxc = cvScalar(145, 255, 255, 0);
+		rminc = cvScalar(150, 150, 75, 0);
+		rmaxc = cvScalar(190, 255, 255, 0);
+		contour1 = new CvSeq();
+		storage2 = CvMemStorage.create();
 		double areaMax, areaC = 0;
 
 		return null;
 	}
 	public IplImage sharpenImage(IplImage img0){
-		Mat kernel = new Mat(3, 3, CV_32F, new Scalar(0));
-		  // Indexer is used to access value in the matrix
-		FloatIndexer ki = kernel.createIndexer();
+		kernel = new Mat(3, 3, CV_32F, new Scalar(0));
+		  ki = kernel.createIndexer();
 		  ki.put(1, 1, 5);
 		  ki.put(0, 1, -1);
 		  ki.put(2, 1, -1);
 		  ki.put(1, 0, -1);
 		  ki.put(1, 2, -1);
-//		  
-		Mat dest = new Mat();
+dest = new Mat();
 		filter2D(cvarrToMat(img0), dest, img0.depth(), kernel);
 
 		imgSharpened = new IplImage(dest);
@@ -179,7 +233,7 @@ public class OpticalFlowCalculator {
 				width*4,		 	0.0f 
 				};
 
-		CvMat homography = cvCreateMat(3,3, opencv_core.CV_32FC1);
+		homography = cvCreateMat(3,3, opencv_core.CV_32FC1);
 		opencv_imgproc.cvGetPerspectiveTransform(aImg, aWorld, homography);
 
 		imgWarped = cvCreateImage(new CvSize(width*4, height*4), 8, 3);
@@ -200,11 +254,11 @@ public class OpticalFlowCalculator {
 		float focalLength = (113 * known_distance) / known_width;
 		float distance_between_points = 150;
 
-		IplImage img1 = cvCreateImage(cvGetSize(img0), IPL_DEPTH_8U, 1);
+		img1 = cvCreateImage(cvGetSize(img0), IPL_DEPTH_8U, 1);
 		cvCvtColor(img0, img1, CV_RGB2GRAY);
 
 		cvCanny(img1, img1, 100, 200);
-		CvSeq contour = new CvSeq(null);
+		contour = new CvSeq(null);
 		cvFindContours(img1, storage, contour, Loader.sizeof(CvContour.class), CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 
 		List<CvBox2D> markers = new ArrayList<>();
@@ -212,8 +266,9 @@ public class OpticalFlowCalculator {
 		String code = "";
 		int foundIndex = 0;
 		
-		IplImage crop2 = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
-		IplImage mask2 = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
+		
+		crop2 = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
+		mask2 = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
 		cvSetZero(crop2);
 		cvSetZero(mask2);
 		boolean found = false;
@@ -232,6 +287,7 @@ public class OpticalFlowCalculator {
 					cvCopy(img0, crop, mask);
 					cvDrawContours(mask2, points, CvScalar.WHITE, CV_RGB(248, 18, 18), 1, -1, 8);
 					cvCopy(img0, crop2, mask2);
+					
 					// Draw red point
 					pointsList.add(points);
 					
@@ -323,7 +379,6 @@ public class OpticalFlowCalculator {
 
 	public IplImage findContoursBlue(IplImage img) {
 
-		IplImage imghsv, imgbin;
 		// Blue
 		CvScalar minc = cvScalar(95, 150, 75, 0), maxc = cvScalar(145, 255, 255, 0);
 
@@ -331,16 +386,16 @@ public class OpticalFlowCalculator {
 		CvMemStorage storage = CvMemStorage.create();
 		double areaMax = 1000, areaC = 0;
 
-		imghsv = cvCreateImage(cvGetSize(img), 8, 3);
-		imgbin = cvCreateImage(cvGetSize(img), 8, 1);
+		imghsv2 = cvCreateImage(cvGetSize(img), 8, 3);
+		imgbin2 = cvCreateImage(cvGetSize(img), 8, 1);
 
-		cvCvtColor(img, imghsv, CV_BGR2HSV);
-		cvInRangeS(imghsv, minc, maxc, imgbin);
+		cvCvtColor(img, imghsv2, CV_BGR2HSV);
+		cvInRangeS(imghsv2, minc, maxc, imgbin2);
 
-		cvFindContours(imgbin, storage, contour1, Loader.sizeof(CvContour.class), CV_RETR_LIST, CV_LINK_RUNS,
+		cvFindContours(imgbin2, storage, contour1, Loader.sizeof(CvContour.class), CV_RETR_LIST, CV_LINK_RUNS,
 				cvPoint(0, 0));
 		
-		erodeAndDilate(imgbin);
+		erodeAndDilate(imgbin2);
 
 		contour2 = contour1;
 
@@ -355,13 +410,13 @@ public class OpticalFlowCalculator {
 		while (contour2 != null && !contour2.isNull()) {
 			areaC = cvContourArea(contour2, CV_WHOLE_SEQ, 1);
 			if (areaC < areaMax) {
-				cvDrawContours(imgbin, contour2, CV_RGB(0, 0, 0), CV_RGB(0, 0, 0), 0, CV_FILLED, 8, cvPoint(0, 0));
+				cvDrawContours(imgbin2, contour2, CV_RGB(0, 0, 0), CV_RGB(0, 0, 0), 0, CV_FILLED, 8, cvPoint(0, 0));
 			}
 			contour2 = contour2.h_next();
 		}
 
-		cvSmooth(imgbin, imgbin, 2, smoother, 0, 0, 0);
-		return imgbin;
+		cvSmooth(imgbin2, imgbin2, 2, smoother, 0, 0, 0);
+		return imgbin2;
 
 	}
 
@@ -369,7 +424,7 @@ public class OpticalFlowCalculator {
 		CvSeq contour1 = new CvSeq(), contour2;
 		CvMemStorage storage = CvMemStorage.create();
 		double areaMax = 1000, areaC = 0;
-		IplImage grayImage = IplImage.create(img.width(), img.height(), IPL_DEPTH_8U, 1);
+		grayImage = IplImage.create(img.width(), img.height(), IPL_DEPTH_8U, 1);
 		cvCvtColor(img, grayImage, CV_BGR2GRAY);
 
 		cvThreshold(grayImage, grayImage, 100, 255, CV_THRESH_BINARY);
@@ -401,33 +456,31 @@ public class OpticalFlowCalculator {
 
 	public IplImage findContoursRed(IplImage img) {
 
-		IplImage hueLower = null;// for red
-		IplImage hueUpper = null;
-		IplImage imghsv, imgbin;
-
+		hueLower = null;
+		hueUpper = null;
 		// img = balanceWhite(img);
 		CvSeq contour1 = new CvSeq(), contour2;
 		CvMemStorage storage = CvMemStorage.create();
 		double areaMax = 1000, areaC = 0;
 
-		imghsv = cvCreateImage(cvGetSize(img), 8, 3);
-		imgbin = cvCreateImage(cvGetSize(img), 8, 1);
+		imghsv3 = cvCreateImage(cvGetSize(img), 8, 3);
+		imgbin3 = cvCreateImage(cvGetSize(img), 8, 1);
 		hueLower = cvCreateImage(cvGetSize(img), 8, 1);
 		hueUpper = cvCreateImage(cvGetSize(img), 8, 1);
 
-		cvCvtColor(img, imghsv, CV_BGR2HSV);
+		cvCvtColor(img, imghsv3, CV_BGR2HSV);
 		
 		
 		// Two ranges to get full color spectrum
-		cvInRangeS(imghsv, cvScalar(0, 100, 100,0), cvScalar(10, 255, 255, 0), hueLower);
-		cvInRangeS(imghsv, cvScalar(160, 100, 100, 0), cvScalar(179, 255, 255, 0), hueUpper);
-		cvAddWeighted(hueLower, 1.0, hueUpper, 1.0, 0.0, imgbin);
+		cvInRangeS(imghsv3, cvScalar(0, 100, 100,0), cvScalar(10, 255, 255, 0), hueLower);
+		cvInRangeS(imghsv3, cvScalar(160, 100, 100, 0), cvScalar(179, 255, 255, 0), hueUpper);
+		cvAddWeighted(hueLower, 1.0, hueUpper, 1.0, 0.0, imgbin3);
 		
 		cvReleaseImage(hueLower);
 		cvReleaseImage(hueUpper);
-		cvReleaseImage(imghsv);
+		cvReleaseImage(imghsv3);
 
-		cvFindContours(imgbin, storage, contour1, Loader.sizeof(CvContour.class), CV_RETR_LIST, CV_LINK_RUNS,
+		cvFindContours(imgbin3, storage, contour1, Loader.sizeof(CvContour.class), CV_RETR_LIST, CV_LINK_RUNS,
 				cvPoint(0, 0));
 	
 	
@@ -444,18 +497,15 @@ public class OpticalFlowCalculator {
 		while (contour2 != null && !contour2.isNull()) {
 			areaC = cvContourArea(contour2, CV_WHOLE_SEQ, 1);
 			if (areaC < areaMax) {
-				cvDrawContours(imgbin, contour2, CV_RGB(0, 0, 0), CV_RGB(0, 0, 0), 0, CV_FILLED, 8, cvPoint(0, 0));
+				cvDrawContours(imgbin3, contour2, CV_RGB(0, 0, 0), CV_RGB(0, 0, 0), 0, CV_FILLED, 8, cvPoint(0, 0));
 			}
 			contour2 = contour2.h_next();
 		}
 		// cvSmooth(imgbin, imgbin, 3, smoother, 0, 0, 0);
-		return imgbin;
+		return imgbin3;
 	}
 
 	public IplImage findContoursGreen(IplImage img) {
-		
-		IplImage imghsv, imgbin;
-		
 		
 		// Green
 		CvScalar minc = cvScalar(35, 70, 7, 0), maxc = cvScalar(75, 255, 255, 0);
@@ -463,15 +513,15 @@ public class OpticalFlowCalculator {
 		CvMemStorage storage = CvMemStorage.create();
 		double areaMax = 1000, areaC = 0;
 
-		imghsv = cvCreateImage(cvGetSize(img), 8, 3);
-		imgbin = cvCreateImage(cvGetSize(img), 8, 1);
+		imghsv4 = cvCreateImage(cvGetSize(img), 8, 3);
+		imgbin4 = cvCreateImage(cvGetSize(img), 8, 1);
 		
-		cvCvtColor(img, imghsv, CV_BGR2HSV);
-		cvInRangeS(imghsv, minc, maxc, imgbin);
+		cvCvtColor(img, imghsv4, CV_BGR2HSV);
+		cvInRangeS(imghsv4, minc, maxc, imgbin4);
 	
 			
 			
-		cvFindContours(imgbin, storage, contour1, Loader.sizeof(CvContour.class), CV_RETR_LIST, CV_LINK_RUNS,
+		cvFindContours(imgbin4, storage, contour1, Loader.sizeof(CvContour.class), CV_RETR_LIST, CV_LINK_RUNS,
 				cvPoint(0, 0));
 
 		
@@ -488,25 +538,23 @@ public class OpticalFlowCalculator {
 		while (contour2 != null && !contour2.isNull()) {
 			areaC = cvContourArea(contour2, CV_WHOLE_SEQ, 1);
 			if (areaC < areaMax) {
-				cvDrawContours(imgbin, contour2, CV_RGB(0, 0, 0), CV_RGB(0, 0, 0), 0, CV_FILLED, 8, cvPoint(0, 0));
+				cvDrawContours(imgbin4, contour2, CV_RGB(0, 0, 0), CV_RGB(0, 0, 0), 0, CV_FILLED, 8, cvPoint(0, 0));
 			}
 			contour2 = contour2.h_next();
 		}
 
-		return imgbin;
+		return imgbin4;
 
 	}
 
-	public IplImage drawAndCalc(IplImage imgA, IplImage newFrame) {
+	public IplImage opticalFlowOnDrones(IplImage imgA, IplImage newFrame) {
 		// Load two images and allocate other structures
 		CvSize cvSize = cvSize(imgA.width(), imgA.height());
-//		IplImage imgA = cvCreateImage(cvSize, oldFrame.depth(), 1);
-//		cvCvtColor(oldFrame, imgA, CV_BGR2GRAY);
 
-		IplImage imgB = cvCreateImage(cvSize, newFrame.depth(), 1);
+		imgB = cvCreateImage(cvSize, newFrame.depth(), 1);
 		cvCvtColor(newFrame, imgB, CV_BGR2GRAY);
 
-		IplImage imgC = cvCreateImage(cvSize, newFrame.depth(), 1);
+		imgC = cvCreateImage(cvSize, newFrame.depth(), 1);
 		cvCopy(imgA, imgC);
 		
 		cvThreshold(imgC, imgC, 100, 255, CV_THRESH_TOZERO);
@@ -514,8 +562,8 @@ public class OpticalFlowCalculator {
 		CvSize img_sz = cvGetSize(imgA);
 		int win_size = 15;
 
-		IplImage eig_image = cvCreateImage(img_sz, IPL_DEPTH_32F, 1);
-		IplImage tmp_image = cvCreateImage(img_sz, IPL_DEPTH_32F, 1);
+		eig_image = cvCreateImage(img_sz, IPL_DEPTH_32F, 1);
+		tmp_image = cvCreateImage(img_sz, IPL_DEPTH_32F, 1);
 
 		IntPointer corner_count = new IntPointer(1).put(MAX_CORNERS);
 		CvPoint2D32f cornersA = new CvPoint2D32f(MAX_CORNERS);
@@ -532,8 +580,8 @@ public class OpticalFlowCalculator {
 
 		CvSize pyr_sz = cvSize(imgA.width() + 8, imgB.height() / 3);
 
-		IplImage pyrA = cvCreateImage(pyr_sz, IPL_DEPTH_32F, 1);
-		IplImage pyrB = cvCreateImage(pyr_sz, IPL_DEPTH_32F, 1);
+		pyrA = cvCreateImage(pyr_sz, IPL_DEPTH_32F, 1);
+		pyrB = cvCreateImage(pyr_sz, IPL_DEPTH_32F, 1);
 
 		CvPoint2D32f cornersB = new CvPoint2D32f(MAX_CORNERS);
 
@@ -544,17 +592,35 @@ public class OpticalFlowCalculator {
 		// Put lines on the screen along with dots
 		for (int i = 0; i < corner_count.get(); i++) {
 			if (features_found.get(i) == 0 || feature_errors.get(i) > 550) {
-				System.out.println("Error is " + feature_errors.get(i) + "/n");
 				continue;
 			}
-
 			cornersA.position(i);
 			cornersB.position(i);
 			CvPoint p0 = cvPoint(Math.round(cornersA.x()), Math.round(cornersA.y()));
 			CvPoint p1 = cvPoint(Math.round(cornersB.x()), Math.round(cornersB.y()));
 			cvLine(imgC, p0, p1, CV_RGB(255, 255, 255), 3, CV_AA, 0);
 			
-			
+			if (!p0.toString().equals(p1.toString())) {
+				Vector v0 = convertToVector(p0.toString());
+				Vector v1 = convertToVector(p1.toString());
+				Vector newVector = v0.subtract(v1);
+				
+				if(newVector.y < -10){
+					System.out.println("Moving Down");
+				}
+				
+				if(newVector.y > 10){
+					System.out.println("Moving Up");
+				}
+				
+				if(newVector.x > 10){
+					System.out.println("Moving Left");
+				}
+				
+				if(newVector.x < -10){
+					System.out.println("Moving Right");
+				}
+			}
 		}
 		return imgC;
 	}
