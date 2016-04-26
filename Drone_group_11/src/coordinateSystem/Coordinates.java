@@ -6,7 +6,7 @@ import helper.Point;
 
 public class Coordinates {
 	ArrayList<Cord> cordList;
-	double picScale = 0.1; //!!!!! skal scaleres så picture passer til valgt frame størrelse i rummet
+	double picScale = 0.1; //!!!!! skal scaleres sï¿½ picture passer til valgt frame stï¿½rrelse i rummet
 	
 	public ArrayList<Cord> getCords() {
 		return cordList;
@@ -29,6 +29,18 @@ public class Coordinates {
 			addCord(cord.x*altScale+currentPos.getX(),cord.y*altScale+currentPos.getY(),cord.green);
 		}
 	}
+	
+	public void drawCoordinates(){
+		DrawCoordinates.init(cordList);
+	}
+	
+	// test kode
+	  public static void main(String[] args) {
+		  Coordinates cor = new Coordinates();
+		  cor.addCord(2.5,3,false);
+		  cor.addCord(5, 7, true);
+			cor.drawCoordinates();
+		  }
 	
 }
 
