@@ -161,10 +161,10 @@ public class PictureController {
 		OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
 		OpenCVFrameConverter.ToMat converterMat = new OpenCVFrameConverter.ToMat();
 		// Works with Tobias CAM - adjust grabFromCam accordingly
-		OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(0);
+//		OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(0);
 		
 		// Works with Mathias CAM - adjust grabFromCam accordingly
-//		 FrameGrabber grabber = new VideoInputFrameGrabber(0);
+		 FrameGrabber grabber = new VideoInputFrameGrabber(0);
 		grabber.start();
 		
 		
@@ -262,7 +262,7 @@ public class PictureController {
 		timer.scheduleAtFixedRate(frameGrabber, 0, 33, TimeUnit.MILLISECONDS);
 	}	
 	
-	public Mat grabMatFromCam(OpenCVFrameConverter.ToMat converter, OpenCVFrameGrabber grabber){
+	public Mat grabMatFromCam(OpenCVFrameConverter.ToMat converter, FrameGrabber grabber){
 		Mat newImg = null;
 		try {
 			newImg = converter.convert(grabber.grab());

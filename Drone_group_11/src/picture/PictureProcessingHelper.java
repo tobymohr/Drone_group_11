@@ -12,7 +12,6 @@ import static org.bytedeco.javacpp.opencv_imgproc.cvDrawContours;
 import static org.bytedeco.javacpp.opencv_imgproc.cvFindContours;
 import static org.bytedeco.javacpp.opencv_video.*;
 import static org.bytedeco.javacpp.opencv_imgcodecs.*;
-import org.bytedeco.javacv.*;
 
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.ChecksumException;
@@ -28,6 +27,9 @@ import org.bytedeco.javacpp.*;
 import org.bytedeco.javacpp.opencv_core.*;
 import org.bytedeco.javacpp.opencv_imgproc.CvMoments;
 import org.bytedeco.javacpp.indexer.FloatIndexer;
+import org.bytedeco.javacv.CanvasFrame;
+import org.bytedeco.javacv.Java2DFrameConverter;
+import org.bytedeco.javacv.OpenCVFrameConverter;
 
 import static org.bytedeco.javacpp.opencv_core.*;
 
@@ -741,24 +743,29 @@ public class PictureProcessingHelper {
 	
 	public synchronized Mat findPolygonsMat(Mat coloredImage, Mat filteredImage, int edgeNumber) {
 		cvClearMemStorage(storage);
-		// coloredImage = balanceWhite(coloredImage);
 		MatVector contour = new MatVector();
 		findContours(filteredImage, contour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
 		
 		// find center points
 		for(int i = 0; i<contour.size(); i++){
-			
-			
 			approxPolyDP(contour.get(i), contour.get(i), 0.02*arcLength(contour.get(i), true), true);
+			if (contour.get(i).total() == 4 && contourArea(contour.get(i)) > 150) 
+			{
+				Point2f centerPoint = minAreaRect(contour.get(i)).center();
+				opencv_core.Point p = new opencv_core.Point((int)centerPoint.x(), (int)centerPoint.y());
+				line(coloredImage, p, p, new Scalar(255, 0, 0, 0), 16, CV_AA, 0);
+				drawContours(coloredImage, contour, i, new Scalar(0,0,0,0), 3, CV_AA, null, 1, new opencv_core.Point());
+				
+			}
 			
 //				if (contourArea(contour.get(i)) > 150 && contourArea(contour.get(i)) < 10000) {
 					// drawLines of Box
-//					drawContours(coloredImage, contour, i, new Scalar(0,0,0,3));
-					drawContours(coloredImage, contour, -1, new Scalar(0,0,0,0), 3, CV_AA, null, 1, new opencv_core.Point());
-					// Counter for checking points in center box
-//				}
-			
-		}
+//					drawContours(coloredImage, contour, i, new Scalar(0,0,0,3))
+//			
+//		
+		}	
+		// Counter for checking points in center box
+		
 		return coloredImage;
 	}
 
