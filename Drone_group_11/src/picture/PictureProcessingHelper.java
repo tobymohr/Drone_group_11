@@ -747,16 +747,8 @@ public class PictureProcessingHelper {
 		
 		// find center points
 		for(int i = 0; i<contour.size(); i++){
-			
-			
 			approxPolyDP(contour.get(i), contour.get(i), 0.02*arcLength(contour.get(i), true), true);
-			
-//				if (contourArea(contour.get(i)) > 150 && contourArea(contour.get(i)) < 10000) {
-					// drawLines of Box
-//					drawContours(coloredImage, contour, i, new Scalar(0,0,0,3));
 					drawContours(coloredImage, contour, -1, new Scalar(0,0,0,0), 3, CV_AA, null, 1, new opencv_core.Point());
-					// Counter for checking points in center box
-//				}
 			
 		}
 		return coloredImage;
