@@ -511,7 +511,7 @@ public class PictureProcessingHelper {
 	
 	public Mat findContoursRedMat(Mat img) {
 
-		MatVector matContour = new MatVector(), matContour2;
+		MatVector matContour = new MatVector();
 		double areaMax = 1000, areaC = 0;
 
 		Mat mathsv3 = new Mat(img.arraySize(), CV_8U, 3);//cvCreateImage(cvGetSize(img), 8, 3);
@@ -532,21 +532,14 @@ public class PictureProcessingHelper {
 		
 		findContours(imgbin3, matContour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());	
 		
-		matContour2 = matContour;
 
 		for (int i = 0; i < matContour.size(); i++) {
 
 			areaC = contourArea(matContour.get(i), true);
-			if (areaC > areaMax)
-				areaMax = areaC;
-		}
-
-		for (int i = 0; i < matContour2.size(); i++) {
-
-			areaC = contourArea(matContour2.get(i), true);
-			if (areaC < areaMax) {
-				drawContours(imgbin3, matContour2, 1, new Scalar(0,0,0,0));
-			}
+//			if (areaC < areaMax) {
+				drawContours(imgbin3, matContour, i, new Scalar(0,0,0,0), 3, CV_FILLED, null, 1, new opencv_core.Point());
+				//drawContours(imgbin3, matContour, i, new Scalar(0,0,0,0));
+//			}
 		}
 		return imgbin3;
 	}
