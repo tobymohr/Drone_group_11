@@ -168,10 +168,9 @@ public class PictureController {
 	public void grabFromVideo() throws org.bytedeco.javacv.FrameGrabber.Exception {
 		OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
 		OpenCVFrameConverter.ToMat converterMat = new OpenCVFrameConverter.ToMat();
-		// Works with Tobias CAM - adjust grabFromCam accordingly
-		//FrameGrabber grabber = new OpenCVFrameGrabber(0);
+
 		// Works with Mathias CAM - adjust grabFromCam accordingly
-//		 FrameGrabber grabber = new VideoInputFrameGrabber(0);
+		 FrameGrabber grabber = new VideoInputFrameGrabber(0);
 		grabber.start();
 		
 		
