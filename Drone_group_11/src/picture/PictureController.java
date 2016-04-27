@@ -67,8 +67,8 @@ public class PictureController {
 	private ScheduledExecutorService timer;
 	private Result qrCodeResult;
 
+
 	public static int colorInt = 0;
-	private int i = 0;
 
 	// CAMERA
 	@FXML
@@ -205,19 +205,19 @@ public class PictureController {
 //					filteredImage = OFC.findContoursBlue(camImage);
 					break;
 				}
-				
+
 				//POLY
+//				filteredImage = OFC.erodeAndDilate(filteredImage);
 //				IplImage polyImage = OFC.findPolygons(camImage,filteredImage,4);
 //				BufferedImage bufferedImage = IplImageToBufferedImage(polyImage);
 //				Image imagePoly = SwingFXUtils.toFXImage(bufferedImage, null);
 //				polyFrame.setImage(imagePoly);
-//				
+				
 //				QR
 //				IplImage qrImage = OFC.extractQRImage(camImage);
 //				BufferedImage bufferedImageQr = IplImageToBufferedImage(qrImage);
 //				Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
-////				LuminanceSource source = new BufferedImageLuminanceSource(bufferedImageQr);
-////				BinaryBitmap bm = new BinaryBitmap(new HybridBinarizer(source));
+
 //				qrFrame.setImage(imageQr);
 				
 //				try {
@@ -237,6 +237,7 @@ public class PictureController {
 				filterFrame.setImage(imageFilter);
 				
 				//POLY
+				filteredMat = OFC.erodeAndDilate(filteredMat);
 				Mat polyImage = OFC.findPolygonsMat(camMat,filteredMat,4);
 				BufferedImage bufferedImage = MatToBufferedImage(polyImage);
 				Image imagePoly = SwingFXUtils.toFXImage(bufferedImage, null);

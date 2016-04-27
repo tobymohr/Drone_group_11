@@ -5,14 +5,11 @@ import static org.bytedeco.javacpp.helper.opencv_core.*;
 
 import picture.PictureController;
 import static org.bytedeco.javacpp.helper.opencv_imgproc.*;
-import static org.bytedeco.javacpp.helper.opencv_imgproc.cvDrawContours;
-import static org.bytedeco.javacpp.helper.opencv_imgproc.cvFindContours;
 import static org.bytedeco.javacpp.opencv_imgproc.*;
-import static org.bytedeco.javacpp.opencv_imgproc.cvDrawContours;
-import static org.bytedeco.javacpp.opencv_imgproc.cvFindContours;
 import static org.bytedeco.javacpp.opencv_video.*;
 import static org.bytedeco.javacpp.opencv_imgcodecs.*;
 import org.bytedeco.javacv.*;
+
 
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.ChecksumException;
@@ -24,29 +21,27 @@ import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
 
+import coordinateSystem.DrawCoordinates;
+
 import org.bytedeco.javacpp.*;
 import org.bytedeco.javacpp.opencv_core.*;
-import org.bytedeco.javacpp.opencv_imgproc.CvMoments;
+import org.bytedeco.javacpp.opencv_core.Size;
+
 import org.bytedeco.javacpp.indexer.FloatIndexer;
 
 import static org.bytedeco.javacpp.opencv_core.*;
-
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import javax.swing.JFrame;
 
-import helper.Circle;
-import helper.Point;
 import helper.Vector;
 
-public class PictureProcessingHelper {
+public class OpticalFlowCalculator {
 
-	private static final int MAX_CORNERS = 200;
+	int vinkelcounter = 0;
+	private static final int MAX_CORNERS = 5;
 	OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
 	Java2DFrameConverter converter1 = new Java2DFrameConverter();
 	private CvMemStorage storage = CvMemStorage.create();
@@ -75,98 +70,12 @@ public class PictureProcessingHelper {
 	IplImage imgSharpened;
 
 	CvSeq squares = cvCreateSeq(0, Loader.sizeof(CvSeq.class), Loader.sizeof(CvPoint.class), storage);
-	CanvasFrame canvas = new CanvasFrame("Warped Image");
-	CanvasFrame canvas1 = new CanvasFrame("Sharpened Image");
-	private CvBox2D markerRight;
-	private CvBox2D markerLeft;
-	private CvPoint pointMiddle;
-	private CvPoint pointClosest;
-	private CvBox2D markerMiddle;
-	private IplImage imghsv;
-	private IplImage imgbin;
-	private CvScalar bminc;
-	private CvScalar bmaxc;
-	private CvScalar rminc;
-	private CvScalar rmaxc;
-	private CvSeq contour1;
-	private CvSeq contour2;
-	private CvMemStorage storage2;
-	private Mat kernel;
-	private FloatIndexer ki;
-	private Mat dest;
-	private CvMat homography;
-	private IplImage img1;
-	private CvSeq contour;
-	private IplImage crop2;
-	private IplImage mask2;
-	private IplImage imghsv2;
-	private IplImage imgbin2;
-	private IplImage grayImage;
-	private IplImage hueLower;
-	private IplImage hueUpper;
-	private IplImage imghsv3;
-	private IplImage imgbin3;
-	private IplImage imghsv4;
-	private IplImage imgbin4;
-	private IplImage imgB;
-	private IplImage imgC;
-	private IplImage eig_image;
-	private IplImage tmp_image;
-	private IplImage pyrA;
-	private IplImage pyrB;
+    CanvasFrame canvas = new CanvasFrame("Warped Image");
+    CanvasFrame canvas1 = new CanvasFrame("Sharpened Image");
 
-
-	public void releaseAll(){
-		cvReleaseImage(img1);
-		cvReleaseImage(crop2);
-		cvReleaseImage(mask2);
-		cvReleaseImage(imghsv2);
-		cvReleaseImage(imgbin2);
-		cvReleaseImage(grayImage);
-		cvReleaseImage(hueLower);
-		cvReleaseImage(hueUpper);
-		cvReleaseImage(imghsv3);
-		cvReleaseImage(imgbin3);
-		cvReleaseImage(imghsv4);
-		cvReleaseImage(imgbin4);
-		cvReleaseImage(imgB);
-		cvReleaseImage(imgC);
-		cvReleaseImage(eig_image);
-		cvReleaseImage(tmp_image);
-		cvReleaseImage(pyrA);
-		cvReleaseImage(pyrB);
-
-
-	}
-
-	public PictureProcessingHelper() {
-		canvas.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		canvas1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		canvas.addComponentListener(new ComponentListener() {
-
-			@Override
-			public void componentShown(ComponentEvent e) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void componentResized(ComponentEvent e) {
-				System.out.println(canvas.getWidth()+ " "+  canvas.getHeight());
-			}
-
-			@Override
-			public void componentMoved(ComponentEvent e) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void componentHidden(ComponentEvent e) {
-				// TODO Auto-generated method stub
-
-			}
-		});
+	public OpticalFlowCalculator() {
+	    canvas.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	    canvas1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 
 
@@ -181,40 +90,24 @@ public class PictureProcessingHelper {
 
 	public IplImage findMoments(IplImage img) {
 
-		bminc = cvScalar(95, 150, 75, 0);
-		bmaxc = cvScalar(145, 255, 255, 0);
-		rminc = cvScalar(150, 150, 75, 0);
-		rmaxc = cvScalar(190, 255, 255, 0);
-		contour1 = new CvSeq();
-		storage2 = CvMemStorage.create();
+		IplImage imghsv, imgbin;
+		CvScalar Bminc = cvScalar(95, 150, 75, 0), Bmaxc = cvScalar(145, 255, 255, 0);
+		CvScalar Rminc = cvScalar(150, 150, 75, 0), Rmaxc = cvScalar(190, 255, 255, 0);
+
+		CvSeq contour1 = new CvSeq(), contour2;
+		CvMemStorage storage = CvMemStorage.create();
 		double areaMax, areaC = 0;
 
 		return null;
 	}
-	public IplImage sharpenImage(IplImage img0){
-		kernel = new Mat(3, 3, CV_32F, new Scalar(0));
-		ki = kernel.createIndexer();
-		ki.put(1, 1, 5);
-		ki.put(0, 1, -1);
-		ki.put(2, 1, -1);
-		ki.put(1, 0, -1);
-		ki.put(1, 2, -1);
-		dest = new Mat();
-		filter2D(cvarrToMat(img0), dest, img0.depth(), kernel);
-
-		imgSharpened = new IplImage(dest);
-		return imgSharpened;
-	}
 
 	public IplImage warpImage(IplImage crop, CvSeq points) {
-		canvas1.showImage(converter.convert(crop));
-		crop = sharpenImage(crop);
 		corners.clear();
 		for (int i = 0; i < 4; i++) {
 			CvPoint p = new CvPoint(cvGetSeqElem(points, i));
 			corners.add(p);
 		}
-
+		
 		float[] aImg = { 
 				corners.get(0).x(), corners.get(0).y(), 
 				corners.get(1).x(), corners.get(1).y(), 
@@ -222,58 +115,68 @@ public class PictureProcessingHelper {
 				corners.get(3).x(), corners.get(3).y()
 		};
 
-		int qrHeight = corners.get(1).y() - corners.get(0).y();
-		int qrWidth = corners.get(3).x() - corners.get(0).x();
-		if (qrHeight <= 0 || qrWidth <= 0 || ((int)qrHeight/qrWidth) == 0) {
+
+		int height = corners.get(1).y() - corners.get(0).y();
+		int width = corners.get(3).x() - corners.get(0).x();
+		if (height <= 0 || width <= 0 || ((int)height/width) == 0) {
 			return crop;
 		}
-		float aspect = qrHeight / qrWidth;
-		int height = 146;
-		int width = 98;
-		//		System.out.println("Aspect " + aspect + " width " + width + " height " + height );
+		float aspect = height / width;
+		
 		float[] aWorld = { 
 				0.0f, 			0.0f,
-				0.0f, 			height*4,
-				width*4, 			height*4,
-				width*4,		 	0.0f 
-		};
+				0.0f, 			crop.height() * aspect,
+				crop.width(), 	crop.height() * aspect,
+				crop.width(), 	0.0f 
+				};
 
-		homography = cvCreateMat(3,3, opencv_core.CV_32FC1);
+		CvMat homography = cvCreateMat(3, 3, opencv_core.CV_32FC1);
 		opencv_imgproc.cvGetPerspectiveTransform(aImg, aWorld, homography);
 
-		imgWarped = cvCreateImage(new CvSize(width*4, height*4), 8, 3);
-		cvResize(imgWarped, imgWarped, 1/4);
-		cvWarpPerspective(crop, imgWarped, homography, opencv_imgproc.CV_INTER_LINEAR, CvScalar.ZERO);
-		cvSmooth(imgWarped, imgWarped, 2, 21, 0, 0, 0);
-		canvas.showImage(converter.convert(imgWarped));
-		return imgWarped;
-	}
+		imgWarped = cvCreateImage(new CvSize(crop.width(), (int) (crop.height() * aspect)), 8, 3);
+		opencv_imgproc.cvWarpPerspective(crop, imgWarped, homography, opencv_imgproc.CV_INTER_LINEAR, CvScalar.ZERO);
+		
+		Mat kernel = new Mat(3, 3, CV_32F, new Scalar(0));
+		  // Indexer is used to access value in the matrix
+		FloatIndexer ki = kernel.createIndexer();
+		ki.put(1, 1, 5);
+		ki.put(0, 1, -1);
+		ki.put(2, 1, -1);
+		ki.put(1, 0, -1);
+		ki.put(1, 2, -1);
+		  
+		Mat dest = cvarrToMat(imgWarped);
+		filter2D(cvarrToMat(imgWarped), dest, imgWarped.depth(), kernel);
 
-	public void transformForDistance() {
+		imgSharpened = new IplImage(dest);
+		
+		canvas.showImage(converter.convert(imgWarped));
+		canvas1.showImage(converter.convert(imgSharpened));
+		
+		return imgSharpened;
 	}
 
 	public IplImage extractQRImage(IplImage img0) {
 		cvClearMemStorage(storage);
-		float known_distance = 200;
+		float known_distance = 100;
 		float known_width = 28;
-		float focalLength = (113 * known_distance) / known_width;
-		float distance_between_points = 150;
+		float focalLength = (152 * known_distance) / known_width;
 
-		img1 = cvCreateImage(cvGetSize(img0), IPL_DEPTH_8U, 1);
+		IplImage img1 = cvCreateImage(cvGetSize(img0), IPL_DEPTH_8U, 1);
 		cvCvtColor(img0, img1, CV_RGB2GRAY);
 
 		cvCanny(img1, img1, 100, 200);
-		contour = new CvSeq(null);
+		CvSeq contour = new CvSeq(null);
 		cvFindContours(img1, storage, contour, Loader.sizeof(CvContour.class), CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 
-		List<CvBox2D> markers = new ArrayList<>();
-		List<CvSeq> pointsList = new ArrayList<>();
-		String code = "";
-		int foundIndex = 0;
-
-
-		crop2 = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
-		mask2 = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
+		CvBox2D[] markers = new CvBox2D[3];
+		markers[0] = new CvBox2D();
+		markers[1] = new CvBox2D();
+		markers[2] = new CvBox2D();
+		List<String> codes = new ArrayList<String>();
+		
+		IplImage crop2 = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
+		IplImage mask2 = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
 		cvSetZero(crop2);
 		cvSetZero(mask2);
 		boolean found = false;
@@ -283,7 +186,7 @@ public class PictureProcessingHelper {
 			if (contour.elem_size() > 0) {
 				CvSeq points = cvApproxPoly(contour, Loader.sizeof(CvContour.class), storage, CV_POLY_APPROX_DP,
 						cvContourPerimeter(contour) * 0.02, 0);
-				if (points.total() == 4 && cvContourArea(points) > 150 && cvContourArea(points) < 10000) {
+				if (points.total() == 4 && cvContourArea(points) > 150 && cvContourArea(points) < 75000) {
 					mask = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img1.nChannels());
 					crop = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
 					cvSetZero(crop);
@@ -293,97 +196,38 @@ public class PictureProcessingHelper {
 					cvDrawContours(mask2, points, CvScalar.WHITE, CV_RGB(248, 18, 18), 1, -1, 8);
 					cvCopy(img0, crop2, mask2);
 
-					// Draw red point
-					pointsList.add(points);
-
+					markers[0] = cvMinAreaRect2(points, storage);
+					
 					crop = warpImage(crop, points);
+					
 					qrCode = converter1.convert(converter.convert(crop));
 					source = new BufferedImageLuminanceSource(qrCode);
 					bitmap = new BinaryBitmap(new HybridBinarizer(source));
 					try {
 						Result detectionResult = reader.decode(bitmap);
-						code = detectionResult.getText();
+						codes.add(detectionResult.getText());
 						found = true;
 					} catch (NotFoundException e) {
-						//						e.printStackTrace();
 					} catch (ChecksumException e) {
-						//						e.printStackTrace();
 					} catch (FormatException e) {
-						//						e.printStackTrace();
 					}
-					if (!found)foundIndex++;
 				}
 			}
 			contour = contour.h_next();
 		}
-		if (found && pointsList.size() >= 3) {
-			markerRight = new CvBox2D();
-			markerLeft = new CvBox2D();
-
-			CvSeq pointsMiddle = pointsList.get(foundIndex);
-			markerMiddle = cvMinAreaRect2(pointsMiddle, storage);
-			pointMiddle = new CvPoint(cvGetSeqElem(pointsList.get(foundIndex), 0));
-			pointsList.remove(foundIndex);
-
-			int indexOne = closestPoint(pointsList, pointsMiddle);
-			CvSeq pointsClosest = pointsList.get(indexOne);
-			pointClosest = new CvPoint(cvGetSeqElem(pointsClosest, 0));
-			if (pointClosest.x() < pointMiddle.x()) {
-				markerLeft = cvMinAreaRect2(pointsClosest, storage);
-			} else {
-				markerRight = cvMinAreaRect2(pointsClosest, storage);
+		if (found) {
+			System.out.println("-------------");
+			for (String e : codes) {
+				System.out.println(e);
 			}
-			pointsList.remove(indexOne);
-
-			indexOne = closestPoint(pointsList, pointsMiddle);
-			pointsClosest = pointsList.get(indexOne);
-			pointClosest = new CvPoint(cvGetSeqElem(pointsClosest, 0));
-			if (pointClosest.x() < pointMiddle.x()) {
-				markerLeft = cvMinAreaRect2(pointsClosest, storage);
-			} else {
-				markerRight = cvMinAreaRect2(pointsClosest, storage);
-			}
-
-			double distanceOne = (known_width * focalLength) / markerLeft.get(2);
-			double distanceTwo = (known_width * focalLength) / markerMiddle.get(2);
-			double distanceThree = (known_width * focalLength) / markerRight.get(2);
-			System.out.println("--------------------------------");
-			System.out.println(distanceOne + "|" + distanceTwo + "|" + distanceThree);
-			double angleA = Point.calculateAngle(distanceOne, distance_between_points);
-			double angleB = Point.calculateAngle(distanceThree, distance_between_points);
-			Point P1 = Point.parseQRTextLeft(code);
-			Point P2 = Point.parseQRText(code);
-			Point P3 = Point.parseQRTextRight(code);
-			System.out.println("(" + P1.getX() + "," + P1.getY() + ")" + "(" + P2.getX() + "," + P2.getY() + ")" + "(" + P3.getX() + "," + P3.getY() + ")");
-			Circle C1 = new Circle(Circle.calculateCenter(P1, P2, distance_between_points, angleA), 
-					Circle.calculateRadius(distance_between_points, angleA));
-			Circle C2 = new Circle(Circle.calculateCenter(P2, P3, distance_between_points, angleB), 
-					Circle.calculateRadius(distance_between_points, angleB));
-			Point[] points = Circle.intersection(C1, C2);
-			for (Point p : points) {
-				System.out.println(Math.round(p.getX()) + "|" + Math.round(p.getY()));
-			}			
-			System.out.println("--------------------------------");
+			System.out.println("-------------");
 		}
 		return crop2;
 	}
 
-	private int closestPoint(List<CvSeq> pointsList, CvSeq markerMiddle) {
-		double qrMarkerSize = cvContourArea(markerMiddle);
-		double distance = Math.abs(cvContourArea(pointsList.get(0)) - qrMarkerSize);
-		int index = 0;
-		for (int i = 1; i < pointsList.size(); i++) {
-			double newDistance = Math.abs(cvContourArea(pointsList.get(i)) - qrMarkerSize);
-			if (newDistance < distance) {
-				index = i;
-				distance = newDistance;
-			}
-		}
-		return index;
-	}
-
 	public IplImage findContoursBlue(IplImage img) {
 
+		IplImage imghsv, imgbin;
 		// Blue
 		CvScalar minc = cvScalar(95, 150, 75, 0), maxc = cvScalar(145, 255, 255, 0);
 
@@ -391,15 +235,16 @@ public class PictureProcessingHelper {
 		CvMemStorage storage = CvMemStorage.create();
 		double areaMax = 1000, areaC = 0;
 
-		imghsv2 = cvCreateImage(cvGetSize(img), 8, 3);
-		imgbin2 = cvCreateImage(cvGetSize(img), 8, 1);
+		imghsv = cvCreateImage(cvGetSize(img), 8, 3);
+		imgbin = cvCreateImage(cvGetSize(img), 8, 1);
 
-		cvCvtColor(img, imghsv2, CV_BGR2HSV);
-		cvInRangeS(imghsv2, minc, maxc, imgbin2);
+		cvCvtColor(img, imghsv, CV_BGR2HSV);
+		cvInRangeS(imghsv, minc, maxc, imgbin);
 
-		cvFindContours(imgbin2, storage, contour1, Loader.sizeof(CvContour.class), CV_RETR_LIST, CV_LINK_RUNS,
+		cvFindContours(imgbin, storage, contour1, Loader.sizeof(CvContour.class), CV_RETR_LIST, CV_LINK_RUNS,
 				cvPoint(0, 0));
-
+		
+		erodeAndDilate(imgbin);
 
 		contour2 = contour1;
 
@@ -414,13 +259,13 @@ public class PictureProcessingHelper {
 		while (contour2 != null && !contour2.isNull()) {
 			areaC = cvContourArea(contour2, CV_WHOLE_SEQ, 1);
 			if (areaC < areaMax) {
-				cvDrawContours(imgbin2, contour2, CV_RGB(0, 0, 0), CV_RGB(0, 0, 0), 0, CV_FILLED, 8, cvPoint(0, 0));
+				cvDrawContours(imgbin, contour2, CV_RGB(0, 0, 0), CV_RGB(0, 0, 0), 0, CV_FILLED, 8, cvPoint(0, 0));
 			}
 			contour2 = contour2.h_next();
 		}
 
-		cvSmooth(imgbin2, imgbin2, 2, smoother, 0, 0, 0);
-		return imgbin2;
+		cvSmooth(imgbin, imgbin, 2, smoother, 0, 0, 0);
+		return imgbin;
 
 	}
 
@@ -428,14 +273,14 @@ public class PictureProcessingHelper {
 		CvSeq contour1 = new CvSeq(), contour2;
 		CvMemStorage storage = CvMemStorage.create();
 		double areaMax = 1000, areaC = 0;
-		grayImage = IplImage.create(img.width(), img.height(), IPL_DEPTH_8U, 1);
+		IplImage grayImage = IplImage.create(img.width(), img.height(), IPL_DEPTH_8U, 1);
 		cvCvtColor(img, grayImage, CV_BGR2GRAY);
 
 		cvThreshold(grayImage, grayImage, 100, 255, CV_THRESH_BINARY);
 
 		cvFindContours(grayImage, storage, contour1, Loader.sizeof(CvContour.class), CV_RETR_LIST, CV_LINK_RUNS,
 				cvPoint(0, 0));
-
+		
 
 		contour2 = contour1;
 
@@ -460,34 +305,80 @@ public class PictureProcessingHelper {
 
 	public IplImage findContoursRed(IplImage img) {
 
-		hueLower = null;
-		hueUpper = null;
+		IplImage hueLower = null;// for red
+		IplImage hueUpper = null;
+		IplImage imghsv, imgbin;
+
 		// img = balanceWhite(img);
 		CvSeq contour1 = new CvSeq(), contour2;
 		CvMemStorage storage = CvMemStorage.create();
 		double areaMax = 1000, areaC = 0;
 
-		imghsv3 = cvCreateImage(cvGetSize(img), 8, 3);
-		imgbin3 = cvCreateImage(cvGetSize(img), 8, 1);
+		imghsv = cvCreateImage(cvGetSize(img), 8, 3);
+		imgbin = cvCreateImage(cvGetSize(img), 8, 1);
 		hueLower = cvCreateImage(cvGetSize(img), 8, 1);
 		hueUpper = cvCreateImage(cvGetSize(img), 8, 1);
 
-		cvCvtColor(img, imghsv3, CV_BGR2HSV);
-
-
+		cvCvtColor(img, imghsv, CV_BGR2HSV);
+		
+		
 		// Two ranges to get full color spectrum
-		cvInRangeS(imghsv3, cvScalar(0, 100, 100,0), cvScalar(10, 255, 255, 0), hueLower);
-		cvInRangeS(imghsv3, cvScalar(160, 100, 100, 0), cvScalar(179, 255, 255, 0), hueUpper);
-		cvAddWeighted(hueLower, 1.0, hueUpper, 1.0, 0.0, imgbin3);
-
+		cvInRangeS(imghsv, cvScalar(0, 100, 100,0), cvScalar(10, 255, 255, 0), hueLower);
+		cvInRangeS(imghsv, cvScalar(160, 100, 100, 0), cvScalar(179, 255, 255, 0), hueUpper);
+		cvAddWeighted(hueLower, 1.0, hueUpper, 1.0, 0.0, imgbin);
+		
 		cvReleaseImage(hueLower);
 		cvReleaseImage(hueUpper);
-		cvReleaseImage(imghsv3);
+		cvReleaseImage(imghsv);
 
-		cvFindContours(imgbin3, storage, contour1, Loader.sizeof(CvContour.class), CV_RETR_LIST, CV_LINK_RUNS,
+		cvFindContours(imgbin, storage, contour1, Loader.sizeof(CvContour.class), CV_RETR_LIST, CV_LINK_RUNS,
+				cvPoint(0, 0));
+	
+	
+	contour2 = contour1;
+
+		while (contour1 != null && !contour1.isNull()) {
+			areaC = cvContourArea(contour1, CV_WHOLE_SEQ, 1);
+			if (areaC > areaMax)
+				areaMax = areaC;
+			contour1 = contour1.h_next();
+
+		}
+
+		while (contour2 != null && !contour2.isNull()) {
+			areaC = cvContourArea(contour2, CV_WHOLE_SEQ, 1);
+			if (areaC < areaMax) {
+				cvDrawContours(imgbin, contour2, CV_RGB(0, 0, 0), CV_RGB(0, 0, 0), 0, CV_FILLED, 8, cvPoint(0, 0));
+			}
+			contour2 = contour2.h_next();
+		}
+		// cvSmooth(imgbin, imgbin, 3, smoother, 0, 0, 0);
+		return imgbin;
+	}
+
+	public IplImage findContoursGreen(IplImage img) {
+		
+		IplImage imghsv, imgbin;
+		
+		
+		// Green
+		CvScalar minc = cvScalar(35, 75, 6, 0), maxc = cvScalar(75, 255, 255, 0);
+		CvSeq contour1 = new CvSeq(), contour2;
+		CvMemStorage storage = CvMemStorage.create();
+		double areaMax = 1000, areaC = 0;
+
+		imghsv = cvCreateImage(cvGetSize(img), 8, 3);
+		imgbin = cvCreateImage(cvGetSize(img), 8, 1);
+		
+		cvCvtColor(img, imghsv, CV_BGR2HSV);
+		cvInRangeS(imghsv, minc, maxc, imgbin);
+	
+			
+			
+		cvFindContours(imgbin, storage, contour1, Loader.sizeof(CvContour.class), CV_RETR_LIST, CV_LINK_RUNS,
 				cvPoint(0, 0));
 
-
+		
 		contour2 = contour1;
 
 		while (contour1 != null && !contour1.isNull()) {
@@ -501,183 +392,73 @@ public class PictureProcessingHelper {
 		while (contour2 != null && !contour2.isNull()) {
 			areaC = cvContourArea(contour2, CV_WHOLE_SEQ, 1);
 			if (areaC < areaMax) {
-				cvDrawContours(imgbin3, contour2, CV_RGB(0, 0, 0), CV_RGB(0, 0, 0), 0, CV_FILLED, 8, cvPoint(0, 0));
+				cvDrawContours(imgbin, contour2, CV_RGB(0, 0, 0), CV_RGB(0, 0, 0), 0, CV_FILLED, 8, cvPoint(0, 0));
 			}
-			contour2 = contour2.h_next();
-		}
-		// cvSmooth(imgbin, imgbin, 3, smoother, 0, 0, 0);
-		return imgbin3;
-	}
 	
-	public Mat findContoursRedMat(Mat img) {
-
-		hueLower = null;
-		hueUpper = null;
-		MatVector matContour = new MatVector(), matContour2;
-		double areaMax = 1000, areaC = 0;
-
-		Mat mathsv3 = new Mat(img.arraySize(), CV_8U, 3);//cvCreateImage(cvGetSize(img), 8, 3);
-		Mat mathueLower = new Mat(img.arraySize(), CV_8U, 1);
-		Mat mathueUpper = new Mat(img.arraySize(), CV_8U, 1);
-		Mat imgbin3 = new Mat(img.arraySize(), CV_8U, 3);
-
-		cvtColor(img, mathsv3, CV_BGR2HSV);
-		
-		Mat scalar1 = new Mat(new Scalar(0,100,100,0));
-		Mat scalar2 = new Mat(new Scalar(10,255,255,0));
-		Mat scalar3 = new Mat(new Scalar(160,100,100,0));
-		Mat scalar4 = new Mat(new Scalar(179,255,255,0));
-		// Two ranges to get full color spectrum
-		inRange(mathsv3, scalar1, scalar2, mathueLower);
-		inRange(mathsv3, scalar3, scalar4, mathueUpper);
-		addWeighted(mathueLower, 1.0, mathueUpper, 1.0,0.0, imgbin3);
-		
-		findContours(imgbin3, matContour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());	
-		
-		matContour2 = matContour;
-
-		for (int i = 0; i < matContour.size(); i++) {
-
-			areaC = contourArea(matContour.get(i), true);
-			if (areaC > areaMax)
-				areaMax = areaC;
-		}
-
-		for (int i = 0; i < matContour2.size(); i++) {
-
-			areaC = contourArea(matContour2.get(i), true);
-			if (areaC < areaMax) {
-				drawContours(imgbin3, matContour2, 1, new Scalar(0,0,0,0));
-			}
-		}
-		return imgbin3;
+			contour2 = contour2.h_next();
 	}
-
-
-	public IplImage findContoursGreen(IplImage img) {
-
-		IplImage imghsv, imgbin;
-
-
-		// Green
-		CvScalar minc = cvScalar(35, 75, 6, 0), maxc = cvScalar(75, 255, 255, 0);
-		CvSeq contour1 = new CvSeq(), contour2;
-		CvMemStorage storage = CvMemStorage.create();
-		double areaMax = 1000, areaC = 0;
-
-		imghsv = cvCreateImage(cvGetSize(img), 8, 3);
-		imgbin = cvCreateImage(cvGetSize(img), 8, 1);
-
-		cvCvtColor(img, imghsv, CV_BGR2HSV);
-		cvInRangeS(imghsv, minc, maxc, imgbin);
-
-
-
-		cvFindContours(imgbin, storage, contour1, Loader.sizeof(CvContour.class), CV_RETR_LIST, CV_LINK_RUNS,
-				cvPoint(0, 0));
-
-
-		contour2 = contour1;
-
-		while (contour1 != null && !contour1.isNull()) {
-			cvDrawContours(imgbin, contour2, CV_RGB(0, 0, 0), CV_RGB(0, 0, 0), 0, CV_FILLED, 8, cvPoint(0, 0));
-			contour1 = contour1.h_next();
-
-		}
-
-//		while (contour2 != null && !contour2.isNull()) {
-//			areaC = cvContourArea(contour2, CV_WHOLE_SEQ, 1);
-//			if (areaC < areaMax) {
-//				cvDrawContours(imgbin, contour2, CV_RGB(0, 0, 0), CV_RGB(0, 0, 0), 0, CV_FILLED, 8, cvPoint(0, 0));
-//			}
-//
-//			contour2 = contour2.h_next();
-//		}
 
 		return imgbin;
 
-
-	}
-	
-	public IplImage convertMatToIplImage(Mat mat){
-		return converter.convert(converter.convert(mat));
 	}
 
-	public IplImage opticalFlowOnDrones(IplImage imgA, IplImage newFrame) {
+	public synchronized IplImage drawAndCalc(IplImage oldImg, IplImage newImg) {
+		cvClearMemStorage(storage);
 		// Load two images and allocate other structures
-		CvSize cvSize = cvSize(imgA.width(), imgA.height());
 
-		imgB = cvCreateImage(cvSize, newFrame.depth(), 1);
-		cvCvtColor(newFrame, imgB, CV_BGR2GRAY);
+		CvSize cvSize = cvSize(oldImg.width(), oldImg.height());
 
-		imgC = cvCreateImage(cvSize, newFrame.depth(), 1);
-		cvCopy(imgA, imgC);
+		IplImage imgB = cvCreateImage(cvSize, newImg.depth(), 1);
+		cvCvtColor(newImg, imgB, CV_BGR2GRAY);
 
-		cvThreshold(imgC, imgC, 100, 255, CV_THRESH_TOZERO);
+		IplImage imgC = cvCreateImage(cvSize, newImg.depth(), 1);
+		cvCopy(oldImg, imgC);
 
-		CvSize img_sz = cvGetSize(imgA);
+		IplImage dst = cvCreateImage(cvGetSize(imgC), imgC.depth(), 1);
+		// cvCanny(imgC, dst, 100, 100, 3);
+
+		CvSize img_sz = cvGetSize(oldImg);
 		int win_size = 15;
 
-		eig_image = cvCreateImage(img_sz, IPL_DEPTH_32F, 1);
-		tmp_image = cvCreateImage(img_sz, IPL_DEPTH_32F, 1);
+		IplImage eig_image = cvCreateImage(img_sz, IPL_DEPTH_32F, 1);
+		IplImage tmp_image = cvCreateImage(img_sz, IPL_DEPTH_32F, 1);
 
 		IntPointer corner_count = new IntPointer(1).put(MAX_CORNERS);
 		CvPoint2D32f cornersA = new CvPoint2D32f(MAX_CORNERS);
 
 		CvArr mask = null;
-		cvGoodFeaturesToTrack(imgA, eig_image, tmp_image, cornersA, corner_count, 0.05, 5.0, mask, 3, 0, 0.04);
+		cvGoodFeaturesToTrack(oldImg, eig_image, tmp_image, cornersA, corner_count, 0.05, 5.0, mask, 3, 0, 0.04);
 
-		cvFindCornerSubPix(imgA, cornersA, corner_count.get(), cvSize(win_size, win_size), cvSize(-1, -1),
-				cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.03));
+		cvFindCornerSubPix(oldImg, cornersA, corner_count.get(), cvSize(win_size, win_size), cvSize(-1, -1),
+				cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.2));
 
 		// Call Lucas Kanade algorithm
 		BytePointer features_found = new BytePointer(MAX_CORNERS);
 		FloatPointer feature_errors = new FloatPointer(MAX_CORNERS);
 
-		CvSize pyr_sz = cvSize(imgA.width() + 8, imgB.height() / 3);
+		CvSize pyr_sz = cvSize(oldImg.width() + 8, imgB.height() / 3);
 
-		pyrA = cvCreateImage(pyr_sz, IPL_DEPTH_32F, 1);
-		pyrB = cvCreateImage(pyr_sz, IPL_DEPTH_32F, 1);
+		IplImage pyrA = cvCreateImage(pyr_sz, IPL_DEPTH_32F, 1);
+		IplImage pyrB = cvCreateImage(pyr_sz, IPL_DEPTH_32F, 1);
 
 		CvPoint2D32f cornersB = new CvPoint2D32f(MAX_CORNERS);
-
-		cvCalcOpticalFlowPyrLK(imgA, imgB, pyrA, pyrB, cornersA, cornersB, corner_count.get(),
+		cvCalcOpticalFlowPyrLK(oldImg, imgB, pyrA, pyrB, cornersA, cornersB, corner_count.get(),
 				cvSize(win_size, win_size), 5, features_found, feature_errors,
-				cvTermCriteria(CV_TERMCRIT_NUMBER | CV_TERMCRIT_NUMBER, 20, 0.3), 0);
+				cvTermCriteria(CV_TERMCRIT_NUMBER | CV_TERMCRIT_NUMBER, 120, 0.3), 0);
 
-		// Put lines on the screen along with dots
 		for (int i = 0; i < corner_count.get(); i++) {
-			if (features_found.get(i) == 0 || feature_errors.get(i) > 550) {
-				continue;
-			}
 			cornersA.position(i);
 			cornersB.position(i);
 			CvPoint p0 = cvPoint(Math.round(cornersA.x()), Math.round(cornersA.y()));
 			CvPoint p1 = cvPoint(Math.round(cornersB.x()), Math.round(cornersB.y()));
-			cvLine(imgC, p0, p1, CV_RGB(255, 255, 255), 3, CV_AA, 0);
+			cvLine(imgC, p0, p1, CV_RGB(0, 0, 0), 3, CV_AA, 0);
 
 			if (!p0.toString().equals(p1.toString())) {
 				Vector v0 = convertToVector(p0.toString());
 				Vector v1 = convertToVector(p1.toString());
-				Vector newVector = v0.subtract(v1);
-
-				if(newVector.y < -10){
-					System.out.println("Moving Down");
-				}
-
-				if(newVector.y > 10){
-					System.out.println("Moving Up");
-				}
-
-				if(newVector.x > 10){
-					System.out.println("Moving Left");
-				}
-
-				if(newVector.x < -10){
-					System.out.println("Moving Right");
-				}
 			}
 		}
+
 		return imgC;
 	}
 
@@ -688,6 +469,7 @@ public class PictureProcessingHelper {
 		CvSeq contour = new CvSeq(null);
 		cvFindContours(filteredImage, storage, contour, Loader.sizeof(CvContour.class), CV_RETR_LIST,
 				CV_CHAIN_APPROX_SIMPLE);
+
 
 		// scale of center box
 		int factor = 4;
@@ -702,63 +484,38 @@ public class PictureProcessingHelper {
 		yCenterTop = (coloredImage.height() / 3);
 
 		// Find red point
-
+		int posX = 0;
+		int posY = 0;
+		CvMoments moments = new CvMoments();
+		cvMoments(filteredImage, moments, 1);
+							
+		double mom10 = cvGetSpatialMoment(moments, 1, 0);
+		double mom01 = cvGetSpatialMoment(moments, 0, 1);
+		double area = cvGetCentralMoment(moments, 0, 0);
+		
+		posX = (int) (mom10 / area);
+		posY = (int) (mom01 / area);
 
 		while (contour != null && !contour.isNull()) {
 			if (contour.elem_size() > 0) {
 				CvSeq points = cvApproxPoly(contour, Loader.sizeof(CvContour.class), storage, CV_POLY_APPROX_DP,
 						cvContourPerimeter(contour) * 0.02, 0);
 				if ((points.total() > 2 && points.total() < 6) && cvContourArea(points) > 1200 && cvContourArea(points) < 50000) {
+					ArrayList<CvPoint> listen = new ArrayList<CvPoint>();
 					
-
-					int posX = 0;
-					int posY = 0;
-					CvMoments moments = new CvMoments();
-					cvMoments(filteredImage, moments, 1);
-					double mom10 = cvGetSpatialMoment(moments, 1, 0);
-					double mom01 = cvGetSpatialMoment(moments, 0, 1);
-					double area = cvGetCentralMoment(moments, 0, 0);
-
-					posX = (int) (mom10 / area);
-					posY = (int) (mom01 / area);
-
-					// skal gï¿½re det for hver unik figur
-
-					CvPoint p0 = cvPoint(posX, posY);						
-					cvLine(coloredImage, p0, p0, CV_RGB(255, 0, 0), 16, CV_AA, 0);
-					//							System.out.println(posX);
-					//							System.out.println(posY);
-					cvDrawContours(coloredImage, points, CvScalar.WHITE, CvScalar.WHITE, -2, 2, CV_AA);
-
+					// skal gøre det for hver unik figur
+				
+							CvPoint p0 = cvPoint(posX, posY);						
+							cvLine(coloredImage, p0, p0, CV_RGB(255, 0, 0), 16, CV_AA, 0);
+//							System.out.println(posX);
+//							System.out.println(posY);
+							cvDrawContours(coloredImage, points, CvScalar.WHITE, CvScalar.WHITE, -2, 2, CV_AA);
+						 
 				}
 			}
 			contour = contour.h_next();
 		}
 		//System.out.println(polygonCount);
-		return coloredImage;
-	}
-	
-	
-	public synchronized Mat findPolygonsMat(Mat coloredImage, Mat filteredImage, int edgeNumber) {
-		cvClearMemStorage(storage);
-		// coloredImage = balanceWhite(coloredImage);
-		MatVector contour = new MatVector();
-		findContours(filteredImage, contour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
-		
-		// find center points
-		for(int i = 0; i<contour.size(); i++){
-			
-			
-			approxPolyDP(contour.get(i), contour.get(i), 0.02*arcLength(contour.get(i), true), true);
-			
-//				if (contourArea(contour.get(i)) > 150 && contourArea(contour.get(i)) < 10000) {
-					// drawLines of Box
-//					drawContours(coloredImage, contour, i, new Scalar(0,0,0,3));
-					drawContours(coloredImage, contour, i, new Scalar(0,0,0,3), 3, CV_AA, null, 1, new opencv_core.Point());
-					// Counter for checking points in center box
-//				}
-			
-		}
 		return coloredImage;
 	}
 
@@ -1005,46 +762,50 @@ public class PictureProcessingHelper {
 
 		return cvtImg;
 	}
-
-	public Mat erodeAndDilate(Mat thresh)
+	
+	public IplImage erodeAndDilate(IplImage img)
 	{
-
+		
+		Mat thresh = cvarrToMat(img);		
 		Mat erodeElement = getStructuringElement(MORPH_RECT, new Size(3, 3));
 		//dilate with larger element so make sure object is nicely visible
 		Mat dilateElement = getStructuringElement(MORPH_RECT, new Size(8, 8));
-
+	
 		erode(thresh, thresh, erodeElement);
 		erode(thresh, thresh, erodeElement);
-
+	
 		dilate(thresh, thresh, dilateElement);
 		dilate(thresh, thresh, dilateElement);
 
-		return thresh;
-
+		img = new IplImage(thresh);
+		
+		
+		return img;
+		
 	}
-
+	
 	public double calcAngles(IplImage coloredImage, CvSeq points)
 	{
+	
+	double angle = 0;
+	ArrayList<CvPoint> listen = new ArrayList<CvPoint>();
+	
+	// skal gøre det for hver unik figur
+	for (int i = 0; i < 5; i++)
+	{
+		listen.add(new CvPoint(cvGetSeqElem(points, i)));
+	}
 
-		double angle = 0;
-		ArrayList<CvPoint> listen = new ArrayList<CvPoint>();
-
-		// skal gï¿½re det for hver unik figur
-		for (int i = 0; i < 5; i++)
-		{
-			listen.add(new CvPoint(cvGetSeqElem(points, i)));
-		}
-
-		// find the maximum cosine of the angle between joint edges
+    // find the maximum cosine of the angle between joint edges
 
 		for (int j = 0; j < listen.size() - 1; j++)
-		{
-
+		 {
+			
 			angle = Math.atan2(listen.get(j + 1).y() - listen.get(j).y(), listen.get(j + 1).x() - listen.get(j).x()) * 180.0 / CV_PI;                     
-			System.out.println(angle);
-			break;
-		}
-
+		    System.out.println(angle);
+		    break;
+		 }
+		
 		return angle;
 	}
 }
