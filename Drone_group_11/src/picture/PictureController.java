@@ -1,18 +1,46 @@
 package picture;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.bytedeco.javacpp.opencv_core.IplImage;
+import javax.imageio.ImageIO;
+
+import static org.bytedeco.javacpp.helper.opencv_core.*;
+
 import org.bytedeco.javacpp.opencv_videoio.CvCapture;
 import org.bytedeco.javacv.Frame;
+import static org.bytedeco.javacpp.helper.opencv_imgproc.*;
+import static org.bytedeco.javacpp.opencv_imgcodecs.*;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameGrabber;
 import org.bytedeco.javacv.VideoInputFrameGrabber;
+
+import com.google.zxing.BinaryBitmap;
+import com.google.zxing.LuminanceSource;
+import com.google.zxing.MultiFormatReader;
+import com.google.zxing.NotFoundException;
+import com.google.zxing.Result;
+import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
+import com.google.zxing.common.HybridBinarizer;
+
+import static org.bytedeco.javacpp.opencv_imgproc.*;
+
+import org.bytedeco.javacpp.*;
+import org.bytedeco.javacpp.opencv_core.*;
+import org.bytedeco.javacpp.indexer.FloatIndexer;
+
+import static org.bytedeco.javacpp.helper.opencv_imgproc.*;
+import static org.bytedeco.javacpp.opencv_imgproc.*;
+import static org.bytedeco.javacpp.opencv_video.*;
+import static org.bytedeco.javacpp.opencv_imgcodecs.*;
+import org.bytedeco.javacv.*;
+import static org.bytedeco.javacpp.opencv_core.*;
 
 import app.DroneCommunicator;
 import app.DroneInterface;
@@ -31,12 +59,14 @@ import javafx.scene.image.ImageView;
 
 public class PictureController {
 
-	private OpticalFlowCalculator OFC = new OpticalFlowCalculator();
+	private PictureProcessingHelper OFC = new PictureProcessingHelper();
 	private DroneInterface droneCommunicator;
 	private IARDrone drone;
 	private Video video;
 	private OFVideo ofvideo;
 	private ScheduledExecutorService timer;
+	private Result qrCodeResult;
+
 
 	public static int colorInt = 2;
 
@@ -64,10 +94,12 @@ public class PictureController {
 
 	@FXML
 	protected void startCamera() {
-		setDimension(polyFrame, 600);
-		setDimension(filterFrame, 600);
+		 setDimension(polyFrame, 800);
+			setDimension(filterFrame, 800);
+			setDimension(qrFrame, 800);
 		try {
 			grabFromVideo();
+			
 		} catch (org.bytedeco.javacv.FrameGrabber.Exception e) {
 			e.printStackTrace();
 		}
@@ -79,6 +111,7 @@ public class PictureController {
 			setDimension(filterFrame, 800);
 			setDimension(qrFrame, 800);
 		 grabFromDrone();
+		 land();
 //		OpticalFlowCalculator OFC = new OpticalFlowCalculator();
 //		OFC.testWarp();
 	}
@@ -128,17 +161,29 @@ public class PictureController {
 		OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
 		
 		// Works with Tobias CAM - adjust grabFromCam accordingly
-		//OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(0);
+		// grabber = new OpenCVFrameGrabber(0);
 		
 		// Works with Mathias CAM - adjust grabFromCam accordingly
 		 FrameGrabber grabber = new VideoInputFrameGrabber(0);
 		grabber.start();
-
+		
+		
 
 		Runnable frameGrabber = new Runnable() {
+			boolean isFirst = true;
+			IplImage camImage = null;
 			@Override
 			public void run() {
-				IplImage camImage = grabFromCam(converter, grabber);
+				IplImage camImageOld = null;
+				
+				
+				if(!isFirst){
+					camImageOld= IplImage.create(camImage.width(), camImage.height(), IPL_DEPTH_8U, 1);
+					cvCvtColor(camImage, camImageOld, CV_BGR2GRAY);
+				}		
+				
+				camImage = grabFromCam(converter, grabber);
+				
 				
 				IplImage filteredImage = null;
 				
@@ -156,19 +201,49 @@ public class PictureController {
 					filteredImage = OFC.findContoursBlue(camImage);
 					break;
 				}
-				
+
+				//POLY
 				filteredImage = OFC.erodeAndDilate(filteredImage);
 				IplImage polyImage = OFC.findPolygons(camImage,filteredImage,4);
-				//IplImage qrImage = OFC.extractQRImage(camImage);
 				BufferedImage bufferedImage = IplImageToBufferedImage(polyImage);
-				BufferedImage bufferedImageFilter = IplImageToBufferedImage(filteredImage);
-				//BufferedImage bufferedImageQr = IplImageToBufferedImage(qrImage);
-				Image imageFilter = SwingFXUtils.toFXImage(bufferedImageFilter, null);
 				Image imagePoly = SwingFXUtils.toFXImage(bufferedImage, null);
-				//Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
 				polyFrame.setImage(imagePoly);
+				
+//				QR
+//				IplImage qrImage = OFC.extractQRImage(camImage);
+//				BufferedImage bufferedImageQr = IplImageToBufferedImage(qrImage);
+//				Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
+//				LuminanceSource source = new BufferedImageLuminanceSource(bufferedImageQr);
+//				BinaryBitmap bm = new BinaryBitmap(new HybridBinarizer(source));
+//				qrFrame.setImage(imageQr);
+				
+//				try {
+//					qrCodeResult = new MultiFormatReader().decode(bm);
+//					System.out.println(qrCodeResult.getText());
+//					Thread.sleep(2000);
+//				} catch (NotFoundException e) {
+//				} catch (InterruptedException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+				
+				//Filter
+				BufferedImage bufferedImageFilter = IplImageToBufferedImage(filteredImage);
+				Image imageFilter = SwingFXUtils.toFXImage(bufferedImageFilter, null);
 				filterFrame.setImage(imageFilter);
-				//qrFrame.setImage(imageQr);
+				
+				//Optical Flow
+//				if(!isFirst){
+//				IplImage opticalImage = OFC.opticalFlowOnDrones(camImageOld, camImage);
+//				BufferedImage bufferedImageOptical = IplImageToBufferedImage(opticalImage);
+//				Image imageOptical = SwingFXUtils.toFXImage(bufferedImageOptical, null);
+//				polyFrame.setImage(imageOptical);
+//				}
+				
+				
+				
+				isFirst = false;
+				
 			}
 		};
 		timer = Executors.newSingleThreadScheduledExecutor();
@@ -214,6 +289,13 @@ public class PictureController {
 	public void land() {
 		droneCommunicator.freeze();
 		droneCommunicator.land();
+		
+		
+	}
+	
+	public void takeOff() {
+		System.out.println("TAKEOFF");
+		droneCommunicator.takeOff();
 	}
 
 }

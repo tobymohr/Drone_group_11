@@ -22,8 +22,9 @@
       <children>
                   <Button mnemonicParsing="false" onAction="#emergencyStop" text="Emergency" />
                   <HBox alignment="CENTER" />
-                  <Button mnemonicParsing="false" onAction="#trackGreen" text="Green" />
                   <Button mnemonicParsing="false" onAction="#land" text="Land" />
+                  <Button mnemonicParsing="false" onAction="#takeOff" text="Take off" />
+                  <Button mnemonicParsing="false" onAction="#trackGreen" text="Green" />
                   <Button mnemonicParsing="false" onAction="#trackRed" text="Red" />
                   <Button mnemonicParsing="false" onAction="#trackBlack" text="Black" />
       </children>

@@ -22,7 +22,7 @@ public class OFVideo implements Runnable {
 	BufferedImage arg0;
 
 
-	OpticalFlowCalculator OFC = new OpticalFlowCalculator();
+	PictureProcessingHelper OFC = new PictureProcessingHelper();
 
 	public OFVideo(ImageView filterFrame, ImageView polyFrame, ImageView qrFrame, BufferedImage arg0) {
 		this.arg0 = arg0;
