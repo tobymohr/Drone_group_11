@@ -178,8 +178,8 @@ public class PictureController {
 
 		Runnable frameGrabber = new Runnable() {
 			boolean isFirst = true;
-//			IplImage camImage = null;
 			Mat camMat = null;
+			Mat camImageOld = null;
 			@Override
 			public void run() {
 				
@@ -199,7 +199,7 @@ public class PictureController {
 				
 				switch(colorInt){
 				case 1:
-//					filteredImage = OFC.findContoursBlack(camImage);
+					filteredMat = OFC.findContoursBlackMat(camMat);
 					break;
 				case 2: 
 					filteredMat = OFC.findContoursRedMat(camMat);
@@ -211,30 +211,6 @@ public class PictureController {
 //					filteredImage = OFC.findContoursBlue(camImage);
 					break;
 				}
-
-				//POLY
-//				filteredImage = OFC.erodeAndDilate(filteredImage);
-//				IplImage polyImage = OFC.findPolygons(camImage,filteredImage,4);
-//				BufferedImage bufferedImage = IplImageToBufferedImage(polyImage);
-//				Image imagePoly = SwingFXUtils.toFXImage(bufferedImage, null);
-//				polyFrame.setImage(imagePoly);
-				
-//				QR
-//				IplImage qrImage = OFC.extractQRImage(camImage);
-//				BufferedImage bufferedImageQr = IplImageToBufferedImage(qrImage);
-//				Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
-
-//				qrFrame.setImage(imageQr);
-				
-//				try {
-//					qrCodeResult = new MultiFormatReader().decode(bm);
-//					System.out.println(qrCodeResult.getText());
-//					Thread.sleep(2000);
-//				} catch (NotFoundException e) {
-//				} catch (InterruptedException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
 				
 			
 				//Filter
@@ -258,7 +234,11 @@ public class PictureController {
 //				polyFrame.setImage(imageOptical);
 //				}
 				
-				
+//				QR
+				Mat qrImage = OFC.extractQRImage(camMat);
+				BufferedImage bufferedImageQr = MatToBufferedImage(qrImage);
+				Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
+				qrFrame.setImage(imageQr);
 				
 				isFirst = false;
 				
