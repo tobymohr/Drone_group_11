@@ -513,10 +513,7 @@ public class PictureProcessingHelper {
 	
 	public Mat findContoursRedMat(Mat img) {
 
-		hueLower = null;
-		hueUpper = null;
-		MatVector matContour = new MatVector(), matContour2;
-		double areaMax = 1000, areaC = 0;
+		MatVector matContour = new MatVector();
 
 		Mat mathsv3 = new Mat(img.arraySize(), CV_8U, 3);//cvCreateImage(cvGetSize(img), 8, 3);
 		Mat mathueLower = new Mat(img.arraySize(), CV_8U, 1);
@@ -536,25 +533,34 @@ public class PictureProcessingHelper {
 		
 		findContours(imgbin3, matContour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());	
 		
-		matContour2 = matContour;
 
 		for (int i = 0; i < matContour.size(); i++) {
-
-			areaC = contourArea(matContour.get(i), true);
-			if (areaC > areaMax)
-				areaMax = areaC;
-		}
-
-		for (int i = 0; i < matContour2.size(); i++) {
-
-			areaC = contourArea(matContour2.get(i), true);
-			if (areaC < areaMax) {
-				drawContours(imgbin3, matContour2, 1, new Scalar(0,0,0,0));
-			}
+				drawContours(imgbin3, matContour, i, new Scalar(0,0,0,0), 3, CV_FILLED, null, 1, new opencv_core.Point());
 		}
 		return imgbin3;
 	}
 
+	public Mat findContoursGreenMat(Mat img) {
+
+		MatVector matContour = new MatVector();
+
+		Mat imghsv = new Mat(img.arraySize(), 8, 3);
+		Mat imgbin = new Mat(img.arraySize(),8,1);
+		cvtColor(img, imghsv, CV_BGR2HSV);
+		
+		Mat scalar1 = new Mat(new Scalar(35,75,6,0));
+		Mat scalar2 = new Mat(new Scalar(75,255,255,0));
+		// Two ranges to get full color spectrum
+		inRange(imghsv, scalar1, scalar2, imgbin);
+		
+		findContours(imgbin, matContour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());	
+		
+
+		for (int i = 0; i < matContour.size(); i++) {
+				drawContours(imgbin, matContour, i, new Scalar(0,0,0,0), 3, CV_FILLED, null, 1, new opencv_core.Point());
+		}
+		return imgbin;
+	}
 
 	public IplImage findContoursGreen(IplImage img) {
 
@@ -742,7 +748,7 @@ public class PictureProcessingHelper {
 	
 	
 	public synchronized Mat findPolygonsMat(Mat coloredImage, Mat filteredImage, int edgeNumber) {
-		cvClearMemStorage(storage);
+
 		MatVector contour = new MatVector();
 		findContours(filteredImage, contour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
 		
@@ -764,8 +770,7 @@ public class PictureProcessingHelper {
 //			
 //		
 		}	
-		// Counter for checking points in center box
-		
+	
 		return coloredImage;
 	}
 

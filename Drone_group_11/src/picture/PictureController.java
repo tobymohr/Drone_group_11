@@ -66,9 +66,9 @@ public class PictureController {
 	private OFVideo ofvideo;
 	private ScheduledExecutorService timer;
 	private Result qrCodeResult;
+	FrameGrabber grabber = new OpenCVFrameGrabber(0);
 
-
-	public static int colorInt = 0;
+	public static int colorInt = 3;
 
 	// CAMERA
 	@FXML
@@ -102,6 +102,13 @@ public class PictureController {
 			
 		} catch (org.bytedeco.javacv.FrameGrabber.Exception e) {
 			e.printStackTrace();
+			try {
+				grabber.restart();
+			} catch (org.bytedeco.javacv.FrameGrabber.Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+				System.err.println("Couldn't restart grabber");
+			}
 		}
 	}
 
@@ -136,8 +143,8 @@ public class PictureController {
 		});
 		drone.start();
 		droneCommunicator = new DroneCommunicator(drone);
-		droneCommunicator.setFrontCamera();
-//		droneCommunicator.setBottomCamera();
+	//	droneCommunicator.setFrontCamera();
+		droneCommunicator.setBottomCamera();
 	}
 
 	public void grabFromDrone() {
@@ -155,14 +162,13 @@ public class PictureController {
 			}
 		});
 		drone.getCommandManager().setVideoBitrate(100000);
+		
 	}
 
 	public void grabFromVideo() throws org.bytedeco.javacv.FrameGrabber.Exception {
 		OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
 		OpenCVFrameConverter.ToMat converterMat = new OpenCVFrameConverter.ToMat();
-		// Works with Tobias CAM - adjust grabFromCam accordingly
-//		OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(0);
-		
+
 		// Works with Mathias CAM - adjust grabFromCam accordingly
 		 FrameGrabber grabber = new VideoInputFrameGrabber(0);
 		grabber.start();
@@ -195,13 +201,12 @@ public class PictureController {
 //					filteredImage = OFC.findContoursBlack(camImage);
 					break;
 				case 2: 
-//					filteredImage = OFC.findContoursRed(camImage);
+					filteredMat = OFC.findContoursRedMat(camMat);
 					break;
 				case 3: 
-//					filteredImage = OFC.findContoursGreen(camImage);
+					filteredMat = OFC.findContoursGreenMat(camMat);
 					break;
 				default: 
-					filteredMat = OFC.findContoursRedMat(camMat);
 //					filteredImage = OFC.findContoursBlue(camImage);
 					break;
 				}
@@ -269,6 +274,13 @@ public class PictureController {
 			
 		} catch (org.bytedeco.javacv.FrameGrabber.Exception e) {
 			e.printStackTrace();
+			try {
+				grabber.start();
+			} catch (org.bytedeco.javacv.FrameGrabber.Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+				System.err.println("Couldn't restart grabber");
+			}
 		}
 		
 		return newImg;
@@ -282,6 +294,7 @@ public class PictureController {
 			
 		} catch (org.bytedeco.javacv.FrameGrabber.Exception e) {
 			e.printStackTrace();
+			
 		}
 		
 		return newImg;
