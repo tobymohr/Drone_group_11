@@ -159,7 +159,7 @@ public class PictureController {
 
 	public void grabFromVideo() throws org.bytedeco.javacv.FrameGrabber.Exception {
 		OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
-		
+		OpenCVFrameConverter.ToMat converterMat = new OpenCVFrameConverter.ToMat();
 		// Works with Tobias CAM - adjust grabFromCam accordingly
 		OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(0);
 		
@@ -171,34 +171,38 @@ public class PictureController {
 
 		Runnable frameGrabber = new Runnable() {
 			boolean isFirst = true;
-			IplImage camImage = null;
+//			IplImage camImage = null;
+			Mat camMat = null;
 			@Override
 			public void run() {
-				IplImage camImageOld = null;
 				
 				
 				if(!isFirst){
-					camImageOld= IplImage.create(camImage.width(), camImage.height(), IPL_DEPTH_8U, 1);
-					cvCvtColor(camImage, camImageOld, CV_BGR2GRAY);
+					camMat  = new Mat();
+//					camImageOld= IplImage.create(camImage.width(), camImage.height(), IPL_DEPTH_8U, 1);
+//					cvCvtColor(camImage, camImageOld, CV_BGR2GRAY);
 				}		
 				
-				camImage = grabFromCam(converter, grabber);
+				camMat = grabMatFromCam(converterMat, grabber);
+//				camImage = grabFromCam(converter, grabber);
 				
 				
-				IplImage filteredImage = null;
+//				IplImage filteredImage = null;
+				Mat filteredMat = null;
 				
 				switch(colorInt){
 				case 1:
-					filteredImage = OFC.findContoursBlack(camImage);
+//					filteredImage = OFC.findContoursBlack(camImage);
 					break;
 				case 2: 
-					filteredImage = OFC.findContoursRed(camImage);
+//					filteredImage = OFC.findContoursRed(camImage);
 					break;
 				case 3: 
-					filteredImage = OFC.findContoursGreen(camImage);
+//					filteredImage = OFC.findContoursGreen(camImage);
 					break;
 				default: 
-					filteredImage = OFC.findContoursBlue(camImage);
+					filteredMat = OFC.findContoursRedMat(camMat);
+//					filteredImage = OFC.findContoursBlue(camImage);
 					break;
 				}
 				
@@ -209,12 +213,12 @@ public class PictureController {
 //				polyFrame.setImage(imagePoly);
 //				
 //				QR
-				IplImage qrImage = OFC.extractQRImage(camImage);
-				BufferedImage bufferedImageQr = IplImageToBufferedImage(qrImage);
-				Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
-				LuminanceSource source = new BufferedImageLuminanceSource(bufferedImageQr);
-				BinaryBitmap bm = new BinaryBitmap(new HybridBinarizer(source));
-				qrFrame.setImage(imageQr);
+//				IplImage qrImage = OFC.extractQRImage(camImage);
+//				BufferedImage bufferedImageQr = IplImageToBufferedImage(qrImage);
+//				Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
+////				LuminanceSource source = new BufferedImageLuminanceSource(bufferedImageQr);
+////				BinaryBitmap bm = new BinaryBitmap(new HybridBinarizer(source));
+//				qrFrame.setImage(imageQr);
 				
 //				try {
 //					qrCodeResult = new MultiFormatReader().decode(bm);
@@ -226,18 +230,26 @@ public class PictureController {
 //					e.printStackTrace();
 //				}
 				
+			
 				//Filter
-				BufferedImage bufferedImageFilter = IplImageToBufferedImage(filteredImage);
-				Image imageFilter = SwingFXUtils.toFXImage(bufferedImageFilter, null);
+				BufferedImage bufferedMatImage = MatToBufferedImage(filteredMat);
+				Image imageFilter = SwingFXUtils.toFXImage(bufferedMatImage, null);
 				filterFrame.setImage(imageFilter);
 				
+				//POLY
+				Mat polyImage = OFC.findPolygonsMat(camMat,filteredMat,4);
+				BufferedImage bufferedImage = MatToBufferedImage(polyImage);
+				Image imagePoly = SwingFXUtils.toFXImage(bufferedImage, null);
+				polyFrame.setImage(imagePoly);
+				
+				
 				//Optical Flow
-				if(!isFirst){
-				IplImage opticalImage = OFC.opticalFlowOnDrones(camImageOld, camImage);
-				BufferedImage bufferedImageOptical = IplImageToBufferedImage(opticalImage);
-				Image imageOptical = SwingFXUtils.toFXImage(bufferedImageOptical, null);
-				polyFrame.setImage(imageOptical);
-				}
+//				if(!isFirst){
+//				IplImage opticalImage = OFC.opticalFlowOnDrones(camImageOld, camImage);
+//				BufferedImage bufferedImageOptical = IplImageToBufferedImage(opticalImage);
+//				Image imageOptical = SwingFXUtils.toFXImage(bufferedImageOptical, null);
+//				polyFrame.setImage(imageOptical);
+//				}
 				
 				
 				
@@ -248,6 +260,19 @@ public class PictureController {
 		timer = Executors.newSingleThreadScheduledExecutor();
 		timer.scheduleAtFixedRate(frameGrabber, 0, 33, TimeUnit.MILLISECONDS);
 	}	
+	
+	public Mat grabMatFromCam(OpenCVFrameConverter.ToMat converter, FrameGrabber grabber){
+		Mat newImg = null;
+		try {
+			newImg = converter.convert(grabber.grab());
+			
+		} catch (org.bytedeco.javacv.FrameGrabber.Exception e) {
+			e.printStackTrace();
+		}
+		
+		return newImg;
+		
+	}
 	
 	public IplImage grabFromCam(OpenCVFrameConverter.ToIplImage converter, FrameGrabber grabber){
 		IplImage newImg = null;
@@ -276,6 +301,13 @@ public class PictureController {
 
 	public BufferedImage IplImageToBufferedImage(IplImage src) {
 		OpenCVFrameConverter.ToIplImage grabberConverter = new OpenCVFrameConverter.ToIplImage();
+		Java2DFrameConverter paintConverter = new Java2DFrameConverter();
+		Frame frame = grabberConverter.convert(src);
+		return paintConverter.getBufferedImage(frame, 1);
+	}
+	
+	public BufferedImage MatToBufferedImage(Mat src) {
+		OpenCVFrameConverter.ToMat grabberConverter = new OpenCVFrameConverter.ToMat();
 		Java2DFrameConverter paintConverter = new Java2DFrameConverter();
 		Frame frame = grabberConverter.convert(src);
 		return paintConverter.getBufferedImage(frame, 1);

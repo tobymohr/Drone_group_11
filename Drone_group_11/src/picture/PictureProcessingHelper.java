@@ -504,6 +504,51 @@ dest = new Mat();
 		// cvSmooth(imgbin, imgbin, 3, smoother, 0, 0, 0);
 		return imgbin3;
 	}
+	
+	public Mat findContoursRedMat(Mat img) {
+
+		hueLower = null;
+		hueUpper = null;
+		MatVector matContour = new MatVector(), matContour2;
+		double areaMax = 1000, areaC = 0;
+
+		Mat mathsv3 = new Mat(img.arraySize(), CV_8U, 3);//cvCreateImage(cvGetSize(img), 8, 3);
+		Mat mathueLower = new Mat(img.arraySize(), CV_8U, 1);
+		Mat mathueUpper = new Mat(img.arraySize(), CV_8U, 1);
+		Mat imgbin3 = new Mat(img.arraySize(), CV_8U, 3);
+
+		cvtColor(img, mathsv3, CV_BGR2HSV);
+		
+		Mat scalar1 = new Mat(new Scalar(0,100,100,0));
+		Mat scalar2 = new Mat(new Scalar(10,255,255,0));
+		Mat scalar3 = new Mat(new Scalar(160,100,100,0));
+		Mat scalar4 = new Mat(new Scalar(179,255,255,0));
+		// Two ranges to get full color spectrum
+		inRange(mathsv3, scalar1, scalar2, mathueLower);
+		inRange(mathsv3, scalar3, scalar4, mathueUpper);
+		addWeighted(mathueLower, 1.0, mathueUpper, 1.0,0.0, imgbin3);
+		
+		findContours(imgbin3, matContour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());	
+		
+		matContour2 = matContour;
+
+		for (int i = 0; i < matContour.size(); i++) {
+
+			areaC = contourArea(matContour.get(i), true);
+			if (areaC > areaMax)
+				areaMax = areaC;
+		}
+
+		for (int i = 0; i < matContour2.size(); i++) {
+
+			areaC = contourArea(matContour2.get(i), true);
+			if (areaC < areaMax) {
+				drawContours(imgbin3, matContour2, 1, new Scalar(0,0,0,0));
+			}
+		}
+		return imgbin3;
+	}
+
 
 	public IplImage findContoursGreen(IplImage img) {
 		
@@ -545,6 +590,10 @@ dest = new Mat();
 
 		return imgbin4;
 
+	}
+	
+	public IplImage convertMatToIplImage(Mat mat){
+		return converter.convert(converter.convert(mat));
 	}
 
 	public IplImage opticalFlowOnDrones(IplImage imgA, IplImage newFrame) {
@@ -667,6 +716,30 @@ dest = new Mat();
 				}
 			}
 			contour = contour.h_next();
+		}
+		return coloredImage;
+	}
+	
+	
+	public synchronized Mat findPolygonsMat(Mat coloredImage, Mat filteredImage, int edgeNumber) {
+		cvClearMemStorage(storage);
+		// coloredImage = balanceWhite(coloredImage);
+		MatVector contour = new MatVector();
+		findContours(filteredImage, contour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
+		
+		// find center points
+		for(int i = 0; i<contour.size(); i++){
+			
+			
+			approxPolyDP(contour.get(i), contour.get(i), 0.02*arcLength(contour.get(i), true), true);
+			
+				if (contourArea(contour.get(i)) > 150 && contourArea(contour.get(i)) < 10000) {
+					// drawLines of Box
+//					drawContours(coloredImage, contour, i, new Scalar(0,0,0,3));
+					drawContours(coloredImage, contour, i, new Scalar(0,0,0,3), 3, CV_AA, null, 1, new opencv_core.Point());
+					// Counter for checking points in center box
+				}
+			
 		}
 		return coloredImage;
 	}
