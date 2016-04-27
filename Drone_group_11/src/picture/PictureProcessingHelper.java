@@ -511,8 +511,6 @@ public class PictureProcessingHelper {
 	
 	public Mat findContoursRedMat(Mat img) {
 
-		hueLower = null;
-		hueUpper = null;
 		MatVector matContour = new MatVector(), matContour2;
 		double areaMax = 1000, areaC = 0;
 
@@ -740,7 +738,6 @@ public class PictureProcessingHelper {
 	
 	
 	public synchronized Mat findPolygonsMat(Mat coloredImage, Mat filteredImage, int edgeNumber) {
-		cvClearMemStorage(storage);
 		// coloredImage = balanceWhite(coloredImage);
 		MatVector contour = new MatVector();
 		findContours(filteredImage, contour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
