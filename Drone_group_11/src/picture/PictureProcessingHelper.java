@@ -512,7 +512,6 @@ public class PictureProcessingHelper {
 	public Mat findContoursRedMat(Mat img) {
 
 		MatVector matContour = new MatVector();
-		double areaMax = 1000, areaC = 0;
 
 		Mat mathsv3 = new Mat(img.arraySize(), CV_8U, 3);//cvCreateImage(cvGetSize(img), 8, 3);
 		Mat mathueLower = new Mat(img.arraySize(), CV_8U, 1);
@@ -534,16 +533,32 @@ public class PictureProcessingHelper {
 		
 
 		for (int i = 0; i < matContour.size(); i++) {
-
-			areaC = contourArea(matContour.get(i), true);
-//			if (areaC < areaMax) {
 				drawContours(imgbin3, matContour, i, new Scalar(0,0,0,0), 3, CV_FILLED, null, 1, new opencv_core.Point());
-				//drawContours(imgbin3, matContour, i, new Scalar(0,0,0,0));
-//			}
 		}
 		return imgbin3;
 	}
 
+	public Mat findContoursGreenMat(Mat img) {
+
+		MatVector matContour = new MatVector();
+
+		Mat imghsv = new Mat(img.arraySize(), 8, 3);
+		Mat imgbin = new Mat(img.arraySize(),8,1);
+		cvtColor(img, imghsv, CV_BGR2HSV);
+		
+		Mat scalar1 = new Mat(new Scalar(35,75,6,0));
+		Mat scalar2 = new Mat(new Scalar(75,255,255,0));
+		// Two ranges to get full color spectrum
+		inRange(imghsv, scalar1, scalar2, imgbin);
+		
+		findContours(imgbin, matContour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());	
+		
+
+		for (int i = 0; i < matContour.size(); i++) {
+				drawContours(imgbin, matContour, i, new Scalar(0,0,0,0), 3, CV_FILLED, null, 1, new opencv_core.Point());
+		}
+		return imgbin;
+	}
 
 	public IplImage findContoursGreen(IplImage img) {
 
@@ -738,8 +753,7 @@ public class PictureProcessingHelper {
 		// find center points
 		for(int i = 0; i<contour.size(); i++){
 			approxPolyDP(contour.get(i), contour.get(i), 0.02*arcLength(contour.get(i), true), true);
-					drawContours(coloredImage, contour, -1, new Scalar(0,0,0,0), 3, CV_AA, null, 1, new opencv_core.Point());
-			
+			drawContours(coloredImage, contour, i, new Scalar(0,0,0,0), 3, CV_AA, null, 1, new opencv_core.Point());
 		}
 		return coloredImage;
 	}
