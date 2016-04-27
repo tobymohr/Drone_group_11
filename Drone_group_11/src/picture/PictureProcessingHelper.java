@@ -754,7 +754,7 @@ public class PictureProcessingHelper {
 //				if (contourArea(contour.get(i)) > 150 && contourArea(contour.get(i)) < 10000) {
 					// drawLines of Box
 //					drawContours(coloredImage, contour, i, new Scalar(0,0,0,3));
-					drawContours(coloredImage, contour, i, new Scalar(0,0,0,3), 3, CV_AA, null, 1, new opencv_core.Point());
+					drawContours(coloredImage, contour, -1, new Scalar(0,0,0,0), 3, CV_AA, null, 1, new opencv_core.Point());
 					// Counter for checking points in center box
 //				}
 			

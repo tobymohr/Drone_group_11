@@ -262,7 +262,7 @@ public class PictureController {
 		timer.scheduleAtFixedRate(frameGrabber, 0, 33, TimeUnit.MILLISECONDS);
 	}	
 	
-	public Mat grabMatFromCam(OpenCVFrameConverter.ToMat converter, FrameGrabber grabber){
+	public Mat grabMatFromCam(OpenCVFrameConverter.ToMat converter, OpenCVFrameGrabber grabber){
 		Mat newImg = null;
 		try {
 			newImg = converter.convert(grabber.grab());
