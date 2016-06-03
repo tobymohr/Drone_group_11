@@ -1,4 +1,4 @@
-package picture;
+package zDeprecated;
 
 import static org.bytedeco.javacpp.helper.opencv_core.*;
 

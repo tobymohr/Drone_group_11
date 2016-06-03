@@ -22,4 +22,5 @@ public interface DroneInterface {
 	public void setBottomCamera();
 	public void setFrontCamera();
 	public VideoChannel getVideoChannel();
+	public void hover();
 }
