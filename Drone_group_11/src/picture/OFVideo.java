@@ -25,14 +25,16 @@ public class OFVideo implements Runnable {
 	private ImageView polyFrame;
 	private ImageView qrFrame;
 	private Label qrCode;
+	private Label qrDist;
 	BufferedImage arg0;
 	PictureProcessingHelper OFC = new PictureProcessingHelper();
 
-	public OFVideo(ImageView filterFrame, ImageView polyFrame, ImageView qrFrame, Label qrCode, BufferedImage arg0) {
+	public OFVideo(ImageView filterFrame, ImageView polyFrame, ImageView qrFrame, Label qrCode, Label qrDist, BufferedImage arg0) {
 		this.arg0 = arg0;
 		this.filterFrame = filterFrame;
 		this.polyFrame = polyFrame;
 		this.qrFrame = qrFrame;
+		this.qrDist = qrDist;
 		this.qrCode = qrCode;
 		converter = new OpenCVFrameConverter.ToIplImage();
 		converterMat = new ToMat();
@@ -80,11 +82,13 @@ public class OFVideo implements Runnable {
 					Image imagePoly = SwingFXUtils.toFXImage(bufferedImage, null);
 					Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
 					
-//					Platform.runLater(new Runnable() {
-//			            @Override public void run() {
-//			            	qrCode.setText("QR Code Found: " + OFC.getQrCode());
-//			            }
-//			        });
+					Platform.runLater(new Runnable() {
+			            @Override public void run() {
+			            	qrCode.setText("QR Code: " + OFC.getQrCode());
+			            	qrDist.setText("Dist: " + OFC.getDistance());
+			            	
+			            }
+			        });
 					polyFrame.setImage(imagePoly);
 					filterFrame.setImage(imageFilter);
 					qrFrame.setImage(imageQr);
