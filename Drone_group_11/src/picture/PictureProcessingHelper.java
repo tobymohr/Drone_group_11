@@ -494,19 +494,16 @@ public class PictureProcessingHelper {
 		Canny(img1, img1, 100, 200);
 		MatVector matContour = new MatVector();
 		
-		bitwise_not(img1, img1);
-		findContours(img1, matContour, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);
+		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 		Mat crop = new Mat(img0.rows(), img0.cols(), CV_8UC3, Scalar.WHITE);
 		Mat mask = new Mat(img1.rows(), img1.cols(), CV_8UC1, Scalar.BLACK);
 		
 		for (int i = 0; i < matContour.size(); i++) {
-				drawContours(mask, matContour, i, Scalar.WHITE, 3, CV_FILLED, null, -1, new opencv_core.Point());
+				drawContours(mask, matContour, i, Scalar.WHITE, CV_FILLED, 8, null, -1,null);
 		}
-//		crop.setTo(new Mat(new Scalar(0, 255, 0, 0)));
-//		img0.copyTo(crop, mask);
-//		
-//		normalize(mask.clone(), mask);
-		bitwise_not(mask,img1);
+		crop.setTo(new Mat(new Scalar(0, 255, 0, 0)));
+		img0.copyTo(crop, mask);
+		normalize(mask.clone(), mask);
 		return img1;
 	}
 
