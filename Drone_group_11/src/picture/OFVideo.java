@@ -46,8 +46,10 @@ public class OFVideo implements Runnable {
 	@Override
 	public void run() {
 		try {
+			IplImage cam;
 			Mat newImg = null;
 			while (true) {
+					cam = converter.convert(converter1.convert(arg0));
 					newImg = converterMat.convert(converter1.convert(arg0));
 					Mat filteredImage = null;
 					
@@ -67,19 +69,19 @@ public class OFVideo implements Runnable {
 					}
 					
 					Mat polyImage = OFC.findPolygonsMat(newImg,filteredImage, 4);
-				//	IplImage qrImage = OFC.extractQRImage(newImg);
+					IplImage qrImage = OFC.extractQRImage(cam);
 
 					BufferedImage bufferedImage = MatToBufferedImage(polyImage);
 					BufferedImage bufferedImageFilter = MatToBufferedImage(filteredImage);
-					//BufferedImage bufferedImageQr = MatToBufferedImage(qrImage);
+					BufferedImage bufferedImageQr = IplImageToBufferedImage(qrImage);
 
 					Image imageFilter = SwingFXUtils.toFXImage(bufferedImageFilter, null);
 					Image imagePoly = SwingFXUtils.toFXImage(bufferedImage, null);
-				//	Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
+					Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
 
 					polyFrame.setImage(imagePoly);
 					filterFrame.setImage(imageFilter);
-					//qrFrame.setImage(imageQr);
+					qrFrame.setImage(imageQr);
 		}
 		} catch (Exception e) {
 			e.printStackTrace();

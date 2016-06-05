@@ -495,6 +495,8 @@ public class OpticalFlowCalculator {
 		
 		posX = (int) (mom10 / area);
 		posY = (int) (mom01 / area);
+		
+	
 
 		while (contour != null && !contour.isNull()) {
 			if (contour.elem_size() > 0) {

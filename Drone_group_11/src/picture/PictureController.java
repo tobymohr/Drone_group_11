@@ -94,9 +94,9 @@ public class PictureController {
 
 	@FXML
 	protected void startCamera() {
-		 setDimension(polyFrame, 800);
-			setDimension(filterFrame, 800);
-			setDimension(qrFrame, 800);
+//		 setDimension(polyFrame, 800);
+//			setDimension(filterFrame, 800);
+//			setDimension(qrFrame, 800);
 		try {
 			grabFromVideo();
 			
@@ -114,9 +114,9 @@ public class PictureController {
 
 	public void startDrone() {
 		 initDrone();
-		 setDimension(polyFrame, 800);
-			setDimension(filterFrame, 800);
-			setDimension(qrFrame, 800);
+//		 setDimension(polyFrame, 800);
+//			setDimension(filterFrame, 800);
+//			setDimension(qrFrame, 800);
 		 grabFromDrone();
 		 land();
 //		OpticalFlowCalculator OFC = new OpticalFlowCalculator();
@@ -143,8 +143,8 @@ public class PictureController {
 		});
 		drone.start();
 		droneCommunicator = new DroneCommunicator(drone);
-	//	droneCommunicator.setFrontCamera();
-		droneCommunicator.setBottomCamera();
+		droneCommunicator.setFrontCamera();
+//		droneCommunicator.setBottomCamera();
 	}
 
 	public void grabFromDrone() {
@@ -177,20 +177,21 @@ public class PictureController {
 
 		Runnable frameGrabber = new Runnable() {
 			boolean isFirst = true;
+			IplImage camImage;
 			Mat camMat = null;
 			Mat camImageOld = null;
 			@Override
 			public void run() {
 				
 				
-				if(!isFirst){
-					camMat  = new Mat();
-//					camImageOld= IplImage.create(camImage.width(), camImage.height(), IPL_DEPTH_8U, 1);
-//					cvCvtColor(camImage, camImageOld, CV_BGR2GRAY);
-				}		
+//				if(!isFirst){
+//					camMat  = new Mat();
+//					camImageOld= new Mat(camMat);
+////					CvtColor(camImageOld, camImageOld, CV_BGR2GRAY);
+//				}		
 				
 				camMat = grabMatFromCam(converterMat, grabber);
-//				camImage = grabFromCam(converter, grabber);
+				camImage = grabFromCam(converter, grabber);
 				
 				
 //				IplImage filteredImage = null;
@@ -225,7 +226,7 @@ public class PictureController {
 				polyFrame.setImage(imagePoly);
 				
 				
-				//Optical Flow
+//				//Optical Flow
 //				if(!isFirst){
 //				IplImage opticalImage = OFC.opticalFlowOnDrones(camImageOld, camImage);
 //				BufferedImage bufferedImageOptical = IplImageToBufferedImage(opticalImage);
@@ -234,8 +235,8 @@ public class PictureController {
 //				}
 				
 //				QR
-				Mat qrImage = OFC.extractQRImage(camMat);
-				BufferedImage bufferedImageQr = MatToBufferedImage(qrImage);
+				IplImage qrImage = OFC.extractQRImage(camImage);
+				BufferedImage bufferedImageQr =  IplImageToBufferedImage(qrImage);
 				Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
 				qrFrame.setImage(imageQr);
 				

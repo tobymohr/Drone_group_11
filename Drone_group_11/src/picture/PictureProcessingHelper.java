@@ -2,7 +2,6 @@ package picture;
 
 import static org.bytedeco.javacpp.helper.opencv_core.*;
 
-
 import picture.PictureController;
 import static org.bytedeco.javacpp.helper.opencv_imgproc.*;
 import static org.bytedeco.javacpp.helper.opencv_imgproc.cvDrawContours;
@@ -70,11 +69,12 @@ public class PictureProcessingHelper {
 	QRCodeReader reader = new QRCodeReader();
 	LuminanceSource source;
 	BinaryBitmap bitmap;
-	List<Point2f> corners = new ArrayList<Point2f>();
+	List<CvPoint> corners = new ArrayList<CvPoint>();
 	IplImage mask;
 	IplImage crop;
 	IplImage imgWarped;
 	IplImage imgSharpened;
+	
 
 	CvSeq squares = cvCreateSeq(0, Loader.sizeof(CvSeq.class), Loader.sizeof(CvPoint.class), storage);
 	CanvasFrame canvas = new CanvasFrame("Warped Image");
@@ -85,7 +85,6 @@ public class PictureProcessingHelper {
 	private CvPoint pointClosest;
 	private CvBox2D markerMiddle;
 	private IplImage img1;
-
 
 	public PictureProcessingHelper() {
 		canvas.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -100,7 +99,7 @@ public class PictureProcessingHelper {
 
 			@Override
 			public void componentResized(ComponentEvent e) {
-				System.out.println(canvas.getWidth()+ " "+  canvas.getHeight());
+				System.out.println(canvas.getWidth() + " " + canvas.getHeight());
 			}
 
 			@Override
@@ -117,7 +116,6 @@ public class PictureProcessingHelper {
 		});
 	}
 
-
 	double angle(CvPoint pt1, CvPoint pt2, CvPoint pt0) {
 		double dx1 = pt1.x() - pt0.x();
 		double dy1 = pt1.y() - pt0.y();
@@ -127,56 +125,53 @@ public class PictureProcessingHelper {
 		return (dx1 * dx2 + dy1 * dy2) / Math.sqrt((dx1 * dx1 + dy1 * dy1) * (dx2 * dx2 + dy2 * dy2) + 1e-10);
 	}
 
-	
-	
-
-//	public IplImage warpImage(IplImage crop, CvSeq points) {
-//		canvas1.showImage(converter.convert(crop));
-//		crop = sharpenImage(crop);
-//		corners.clear();
-//		for (int i = 0; i < 4; i++) {
-//			CvPoint p = new CvPoint(cvGetSeqElem(points, i));
-//			corners.add(p);
-//		}
-//
-//		float[] aImg = { 
-//				corners.get(0).x(), corners.get(0).y(), 
-//				corners.get(1).x(), corners.get(1).y(), 
-//				corners.get(2).x(), corners.get(2).y(), 
-//				corners.get(3).x(), corners.get(3).y()
-//		};
-//
-//		int qrHeight = corners.get(1).y() - corners.get(0).y();
-//		int qrWidth = corners.get(3).x() - corners.get(0).x();
-//		if (qrHeight <= 0 || qrWidth <= 0 || ((int)qrHeight/qrWidth) == 0) {
-//			return crop;
-//		}
-//		float aspect = qrHeight / qrWidth;
-//		int height = 146;
-//		int width = 98;
-//		//		System.out.println("Aspect " + aspect + " width " + width + " height " + height );
-//		float[] aWorld = { 
-//				0.0f, 			0.0f,
-//				0.0f, 			height*4,
-//				width*4, 			height*4,
-//				width*4,		 	0.0f 
-//		};
-//
-//		homography = cvCreateMat(3,3, opencv_core.CV_32FC1);
-//		opencv_imgproc.cvGetPerspectiveTransform(aImg, aWorld, homography);
-//
-//		imgWarped = cvCreateImage(new CvSize(width*4, height*4), 8, 3);
-//		cvResize(imgWarped, imgWarped, 1/4);
-//		cvWarpPerspective(crop, imgWarped, homography, opencv_imgproc.CV_INTER_LINEAR, CvScalar.ZERO);
-//		cvSmooth(imgWarped, imgWarped, 2, 21, 0, 0, 0);
-//		canvas.showImage(converter.convert(imgWarped));
-//		return imgWarped;
-//	}
+	// public IplImage warpImage(IplImage crop, CvSeq points) {
+	// canvas1.showImage(converter.convert(crop));
+	// crop = sharpenImage(crop);
+	// corners.clear();
+	// for (int i = 0; i < 4; i++) {
+	// CvPoint p = new CvPoint(cvGetSeqElem(points, i));
+	// corners.add(p);
+	// }
+	//
+	// float[] aImg = {
+	// corners.get(0).x(), corners.get(0).y(),
+	// corners.get(1).x(), corners.get(1).y(),
+	// corners.get(2).x(), corners.get(2).y(),
+	// corners.get(3).x(), corners.get(3).y()
+	// };
+	//
+	// int qrHeight = corners.get(1).y() - corners.get(0).y();
+	// int qrWidth = corners.get(3).x() - corners.get(0).x();
+	// if (qrHeight <= 0 || qrWidth <= 0 || ((int)qrHeight/qrWidth) == 0) {
+	// return crop;
+	// }
+	// float aspect = qrHeight / qrWidth;
+	// int height = 146;
+	// int width = 98;
+	// // System.out.println("Aspect " + aspect + " width " + width + " height "
+	// + height );
+	// float[] aWorld = {
+	// 0.0f, 0.0f,
+	// 0.0f, height*4,
+	// width*4, height*4,
+	// width*4, 0.0f
+	// };
+	//
+	// homography = cvCreateMat(3,3, opencv_core.CV_32FC1);
+	// opencv_imgproc.cvGetPerspectiveTransform(aImg, aWorld, homography);
+	//
+	// imgWarped = cvCreateImage(new CvSize(width*4, height*4), 8, 3);
+	// cvResize(imgWarped, imgWarped, 1/4);
+	// cvWarpPerspective(crop, imgWarped, homography,
+	// opencv_imgproc.CV_INTER_LINEAR, CvScalar.ZERO);
+	// cvSmooth(imgWarped, imgWarped, 2, 21, 0, 0, 0);
+	// canvas.showImage(converter.convert(imgWarped));
+	// return imgWarped;
+	// }
 
 	public void transformForDistance() {
 	}
-
-	
 
 	private int closestPoint(List<CvSeq> pointsList, CvSeq markerMiddle) {
 		double qrMarkerSize = cvContourArea(markerMiddle);
@@ -194,45 +189,47 @@ public class PictureProcessingHelper {
 
 	public Mat findContoursBlackMat(Mat img) {
 		MatVector contour1 = new MatVector();
-		Mat grayImageMat = new Mat(img.arraySize(), 8,1);//IplImage.create(img.width(), img.height(), IPL_DEPTH_8U, 1);
+		Mat grayImageMat = new Mat(img.arraySize(), 8, 1);// IplImage.create(img.width(),
+															// img.height(),
+															// IPL_DEPTH_8U, 1);
 		cvtColor(img, grayImageMat, CV_BGR2GRAY);
 
-		threshold(grayImageMat, grayImageMat, 0,130, CV_THRESH_BINARY_INV);
+		threshold(grayImageMat, grayImageMat, 0, 130, CV_THRESH_BINARY_INV);
 		findContours(grayImageMat, contour1, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
 
-
-
 		for (int i = 0; i < contour1.size(); i++) {
-			drawContours(grayImageMat, contour1, i, new Scalar(0,0,0,0), 3, CV_FILLED, null, 1, new opencv_core.Point());
+			drawContours(grayImageMat, contour1, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 1,
+					new opencv_core.Point());
 		}
 		return grayImageMat;
 	}
-	
+
 	public Mat findContoursRedMat(Mat img) {
 
 		MatVector matContour = new MatVector();
 
-		Mat mathsv3 = new Mat(img.arraySize(), CV_8U, 3);//cvCreateImage(cvGetSize(img), 8, 3);
+		Mat mathsv3 = new Mat(img.arraySize(), CV_8U, 3);// cvCreateImage(cvGetSize(img),
+															// 8, 3);
 		Mat mathueLower = new Mat(img.arraySize(), CV_8U, 1);
 		Mat mathueUpper = new Mat(img.arraySize(), CV_8U, 1);
 		Mat imgbin3 = new Mat(img.arraySize(), CV_8U, 3);
 
 		cvtColor(img, mathsv3, CV_BGR2HSV);
-		
-		Mat scalar1 = new Mat(new Scalar(0,100,100,0));
-		Mat scalar2 = new Mat(new Scalar(10,255,255,0));
-		Mat scalar3 = new Mat(new Scalar(160,100,100,0));
-		Mat scalar4 = new Mat(new Scalar(179,255,255,0));
+
+		Mat scalar1 = new Mat(new Scalar(0, 100, 100, 0));
+		Mat scalar2 = new Mat(new Scalar(10, 255, 255, 0));
+		Mat scalar3 = new Mat(new Scalar(160, 100, 100, 0));
+		Mat scalar4 = new Mat(new Scalar(179, 255, 255, 0));
 		// Two ranges to get full color spectrum
 		inRange(mathsv3, scalar1, scalar2, mathueLower);
 		inRange(mathsv3, scalar3, scalar4, mathueUpper);
-		addWeighted(mathueLower, 1.0, mathueUpper, 1.0,0.0, imgbin3);
-		
-		findContours(imgbin3, matContour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());	
-		
+		addWeighted(mathueLower, 1.0, mathueUpper, 1.0, 0.0, imgbin3);
+
+		findContours(imgbin3, matContour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
 
 		for (int i = 0; i < matContour.size(); i++) {
-				drawContours(imgbin3, matContour, i, new Scalar(0,0,0,0), 3, CV_FILLED, null, 1, new opencv_core.Point());
+			drawContours(imgbin3, matContour, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 1,
+					new opencv_core.Point());
 		}
 		return imgbin3;
 	}
@@ -242,181 +239,377 @@ public class PictureProcessingHelper {
 		MatVector matContour = new MatVector();
 
 		Mat imghsv = new Mat(img.arraySize(), 8, 3);
-		Mat imgbin = new Mat(img.arraySize(),8,1);
+		Mat imgbin = new Mat(img.arraySize(), 8, 1);
 		cvtColor(img, imghsv, CV_BGR2HSV);
-		
-		Mat scalar1 = new Mat(new Scalar(35,75,6,0));
-		Mat scalar2 = new Mat(new Scalar(75,220,220,0));
+
+		Mat scalar1 = new Mat(new Scalar(35, 75, 6, 0));
+		Mat scalar2 = new Mat(new Scalar(75, 220, 220, 0));
 		// Two ranges to get full color spectrum
 		inRange(imghsv, scalar1, scalar2, imgbin);
-		
-		findContours(imgbin, matContour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());	
-		
+
+		findContours(imgbin, matContour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
 
 		for (int i = 0; i < matContour.size(); i++) {
-				drawContours(imgbin, matContour, i, new Scalar(0,0,0,0), 3, CV_FILLED, null, 1, new opencv_core.Point());
+			drawContours(imgbin, matContour, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 1, new opencv_core.Point());
 		}
 		return imgbin;
 	}
-	
+
 	public Mat warpImage(Mat crop, Mat points) {
 		canvas1.showImage(converter.convert(crop));
-//		crop = sharpenImage(crop);
+		// crop = sharpenImage(crop);
 		corners.clear();
-//		for (int i = 0; i < 4; i++) {
-//			Point2f p = new Point2f(crop);
-//			corners.add(p);
-//		}
-//		float[] aImg = { 
-//				corners.get(0).x(), corners.get(0).y(), 
-//				corners.get(1).x(), corners.get(1).y(), 
-//				corners.get(2).x(), corners.get(2).y(), 
-//				corners.get(3).x(), corners.get(3).y()
-//		};
-		int qrHeight = (int)(corners.get(1).y() - corners.get(0).y());
-		int qrWidth = (int)(corners.get(3).x() - corners.get(0).x());
-		if (qrHeight <= 0 || qrWidth <= 0 || ((int)qrHeight/qrWidth) == 0) {
+		// for (int i = 0; i < 4; i++) {
+		// Point2f p = new Point2f(crop);
+		// corners.add(p);
+		// }
+		// float[] aImg = {
+		// corners.get(0).x(), corners.get(0).y(),
+		// corners.get(1).x(), corners.get(1).y(),
+		// corners.get(2).x(), corners.get(2).y(),
+		// corners.get(3).x(), corners.get(3).y()
+		// };
+		int qrHeight = (int) (corners.get(1).y() - corners.get(0).y());
+		int qrWidth = (int) (corners.get(3).x() - corners.get(0).x());
+		if (qrHeight <= 0 || qrWidth <= 0 || ((int) qrHeight / qrWidth) == 0) {
 			return crop;
 		}
 		float aspect = qrHeight / qrWidth;
 		int height = 146;
 		int width = 98;
-		//		System.out.println("Aspect " + aspect + " width " + width + " height " + height );
-//		float[] aWorld = { 
-//				0.0f, 			0.0f,
-//				0.0f, 			height*4,
-//				width*4, 			height*4,
-//				width*4,		 	0.0f 
-//		};
+		// System.out.println("Aspect " + aspect + " width " + width + " height
+		// " + height );
+		// float[] aWorld = {
+		// 0.0f, 0.0f,
+		// 0.0f, height*4,
+		// width*4, height*4,
+		// width*4, 0.0f
+		// };
 		Mat homography = new Mat();
-		homography = getPerspectiveTransform(crop, new Mat(0.0f, 			0.0f,
-				0.0f, 			height*4,
-				width*4, 			height*4,
-				width*4,		 	0.0f ));
+		homography = getPerspectiveTransform(crop,
+				new Mat(0.0f, 0.0f, 0.0f, height * 4, width * 4, height * 4, width * 4, 0.0f));
 		Mat imgWarped = new Mat();
-		warpPerspective(crop, imgWarped, homography, new Size(crop.size()),0,0, new Scalar(0,0,0,0));
-//		cvSmooth(imgWarped, imgWarped, 2, 21, 0, 0, 0);
+		warpPerspective(crop, imgWarped, homography, new Size(crop.size()), 0, 0, new Scalar(0, 0, 0, 0));
+		// cvSmooth(imgWarped, imgWarped, 2, 21, 0, 0, 0);
 		canvas.showImage(converter.convert(imgWarped));
 		return imgWarped;
 	}
 	
-		public Mat extractQRImage(Mat img0) {
+	public IplImage warpImage(IplImage crop, CvSeq points) {
+		corners.clear();
+		for (int i = 0; i < 4; i++) {
+			CvPoint p = new CvPoint(cvGetSeqElem(points, i));
+			corners.add(p);
+		}
 		
+		float[] aImg = { 
+				corners.get(0).x(), corners.get(0).y(), 
+				corners.get(1).x(), corners.get(1).y(), 
+				corners.get(2).x(), corners.get(2).y(), 
+				corners.get(3).x(), corners.get(3).y()
+		};
+
+
+		int height = corners.get(1).y() - corners.get(0).y();
+		int width = corners.get(3).x() - corners.get(0).x();
+		if (height <= 0 || width <= 0 || ((int)height/width) == 0) {
+			return crop;
+		}
+		float aspect = height / width;
+		
+		float[] aWorld = { 
+				0.0f, 			0.0f,
+				0.0f, 			crop.height() * aspect,
+				crop.width(), 	crop.height() * aspect,
+				crop.width(), 	0.0f 
+				};
+
+		CvMat homography = cvCreateMat(3, 3, opencv_core.CV_32FC1);
+		opencv_imgproc.cvGetPerspectiveTransform(aImg, aWorld, homography);
+
+		imgWarped = cvCreateImage(new CvSize(crop.width(), (int) (crop.height() * aspect)), 8, 3);
+		opencv_imgproc.cvWarpPerspective(crop, imgWarped, homography, opencv_imgproc.CV_INTER_LINEAR, CvScalar.ZERO);
+		
+		Mat kernel = new Mat(3, 3, CV_32F, new Scalar(0));
+		  // Indexer is used to access value in the matrix
+		FloatIndexer ki = kernel.createIndexer();
+		ki.put(1, 1, 5);
+		ki.put(0, 1, -1);
+		ki.put(2, 1, -1);
+		ki.put(1, 0, -1);
+		ki.put(1, 2, -1);
+		  
+		Mat dest = cvarrToMat(imgWarped);
+		filter2D(cvarrToMat(imgWarped), dest, imgWarped.depth(), kernel);
+
+		imgSharpened = new IplImage(dest);
+		
+		canvas.showImage(converter.convert(imgWarped));
+		canvas1.showImage(converter.convert(imgSharpened));
+		
+		return imgSharpened;
+	}
+
+
+	public IplImage extractQRImage(IplImage img0) {
+		cvClearMemStorage(storage);
 		float known_distance = 200;
 		float known_width = 28;
 		float focalLength = (113 * known_distance) / known_width;
 		float distance_between_points = 150;
-		Mat img1 = new Mat(img0.arraySize(), CV_8U, 1);
-		cvtColor(img0, img1, CV_RGB2GRAY);
-		
-		
-		Canny(img0, img1, 100,200);
-		
-		
-		MatVector matContour = new MatVector();
-		
-		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);	
-		
-//		List<Mat> pointsList = new ArrayList<>();
+
+		img1 = cvCreateImage(cvGetSize(img0), IPL_DEPTH_8U, 1);
+		cvCvtColor(img0, img1, CV_RGB2GRAY);
+
+		cvCanny(img1, img1, 100, 200);
+		CvSeq contour = new CvSeq(null);
+		cvFindContours(img1, storage, contour, Loader.sizeof(CvContour.class), CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+
+		List<CvBox2D> markers = new ArrayList<>();
+		List<CvSeq> pointsList = new ArrayList<>();
 		String code = "";
 		int foundIndex = 0;
-		Mat crop2 = new Mat(img1.rows(), img1.cols(), CV_8UC1, Scalar.BLACK);
-		Mat mask2 = new Mat(img1.rows(), img1.cols(), CV_8UC1, Scalar.BLACK);
-		for (int i = 0; i < matContour.size(); i++) {
-			if (matContour.get(i).total() == 4) {
-				drawContours(mask2, matContour, i, Scalar.WHITE, 3, CV_FILLED, null, 1, new opencv_core.Point());				
-			}
-		}
 		
-		img0.copyTo(crop2, mask2);
 		
-//		Mat mask = new Mat(img1.rows(), img1.cols(), CV_8UC1);
-//		boolean found = false;
-////		BufferedImage qrCode;
-//		for(int i = 0; i<matContour.size();i++){
-//			
-//			approxPolyDP(matContour.get(i), matContour.get(i), 0.02*arcLength(matContour.get(i), true), true);
-//			mask = new Mat(img1.arraySize(), CV_8U, 1);
-//			Mat crop = new Mat(img1.arraySize(), CV_8U, 1);
-//				if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > 150 && contourArea(matContour.get(i)) < 10000) {
-//					mask = new Mat(img1.arraySize(), CV_8U, 1);
-//					Mat crop = new Mat(img1.arraySize(), CV_8U, 1);
-//					
+		IplImage crop2 = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
+		IplImage mask2 = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
+		cvSetZero(crop2);
+		cvSetZero(mask2);
+		boolean found = false;
+		BufferedImage qrCode;
+
+		while (contour != null && !contour.isNull()) {
+			if (contour.elem_size() > 0) {
+				CvSeq points = cvApproxPoly(contour, Loader.sizeof(CvContour.class), storage, CV_POLY_APPROX_DP,
+						cvContourPerimeter(contour) * 0.02, 0);
+				if (points.total() == 4 && cvContourArea(points) > 150 && cvContourArea(points) < 10000) {
+					mask = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img1.nChannels());
+					crop = cvCreateImage(cvGetSize(img1), IPL_DEPTH_8U, img0.nChannels());
+					cvSetZero(crop);
+					cvSetZero(mask);
+					cvDrawContours(mask, points, CvScalar.WHITE, CV_RGB(248, 18, 18), 1, -1, 8);
+					cvCopy(img0, crop, mask);
+					cvDrawContours(mask2, points, CvScalar.WHITE, CV_RGB(248, 18, 18), 1, -1, 8);
+					cvCopy(img0, crop2, mask2);
 					
-//					drawContours(img1, matContour, i, new Scalar(0,0,0,0), 3, CV_FILLED, null, 1, new opencv_core.Point());
-//					img0.copyTo(crop,mask);
-//					drawContours(mask, matContour, i, new Scalar(0,0,0,0), 3, CV_FILLED, null, 1, new opencv_core.Point());
-					
-//					img0.copyTo(crop2,mask2);
 					// Draw red point
-//					pointsList.add(matContour.get(i));
-//					crop = warpImage(crop, matContour.get(i));
-//					qrCode = converter1.convert(converter.convert(crop));
-//					source = new BufferedImageLuminanceSource(qrCode);
-//					bitmap = new BinaryBitmap(new HybridBinarizer(source));
-//					try {
-//						Result detectionResult = reader.decode(bitmap);
-//						code = detectionResult.getText();
-//						found = true;
-//					} catch (NotFoundException e) {
-//						//						e.printStackTrace();
-//					} catch (ChecksumException e) {
-//						//						e.printStackTrace();
-//					} catch (FormatException e) {
-//						//						e.printStackTrace();
-//					}
-//					if (!found)foundIndex++;
-//				}
-//			}
-		
-//		if (found && pointsList.size() >= 3) {
-//			RotatedRect markerRight = new RotatedRect();
-//			RotatedRect markerLeft = new RotatedRect();
-//			Mat pointsMiddle = pointsList.get(foundIndex);
-//			RotatedRect markerMiddle = minAreaRect(pointsMiddle);
-//			Point2f pointMiddle = markerMiddle.center();
-//			pointsList.remove(foundIndex);
-//			int indexOne = closestPoint(pointsList, pointsMiddle);
-//			Mat pointsClosest = pointsList.get(indexOne);
-//			
-//			Point2f pointClosest = minAreaRect(pointsClosest).center();
-//			if (pointClosest.x() < pointMiddle.x()) {
-//				markerLeft = minAreaRect(pointsClosest);
-//			} else {
-//				markerRight = minAreaRect(pointsClosest);
-//			}
-//			pointsList.remove(indexOne);
-//			indexOne = closestPoint(pointsList, pointsMiddle);
-//			pointsClosest = pointsList.get(indexOne);
-//			pointClosest = minAreaRect(pointsClosest).center();
-//			if (pointClosest.x() < pointMiddle.x()) {
-//				markerLeft = minAreaRect(pointsClosest);
-//			} else {
-//				markerRight = minAreaRect(pointsClosest);
-//			}
-//			double distanceOne = (known_width * focalLength) / markerLeft.get(2);
-//			double distanceTwo = (known_width * focalLength) / markerMiddle.get(2);
-//			double distanceThree = (known_width * focalLength) / markerRight.get(2);
-//			System.out.println("--------------------------------");
-//			System.out.println(distanceOne + "|" + distanceTwo + "|" + distanceThree);
-//			double angleA = Point.calculateAngle(distanceOne, distance_between_points);
-//			double angleB = Point.calculateAngle(distanceThree, distance_between_points);
-//			Point P1 = Point.parseQRTextLeft(code);
-//			Point P2 = Point.parseQRText(code);
-//			Point P3 = Point.parseQRTextRight(code);
-//			System.out.println("(" + P1.getX() + "," + P1.getY() + ")" + "(" + P2.getX() + "," + P2.getY() + ")" + "(" + P3.getX() + "," + P3.getY() + ")");
-//			Circle C1 = new Circle(Circle.calculateCenter(P1, P2, distance_between_points, angleA), 
-//					Circle.calculateRadius(distance_between_points, angleA));
-//			Circle C2 = new Circle(Circle.calculateCenter(P2, P3, distance_between_points, angleB), 
-//					Circle.calculateRadius(distance_between_points, angleB));
-//			Point[] points = Circle.intersection(C1, C2);
-//			for (Point p : points) {
-//				System.out.println(Math.round(p.getX()) + "|" + Math.round(p.getY()));
-//			}			
-//			System.out.println("--------------------------------");
-//		}
-		return mask2;
+					pointsList.add(points);
+					
+					crop = warpImage(crop, points);
+					qrCode = converter1.convert(converter.convert(crop));
+					source = new BufferedImageLuminanceSource(qrCode);
+					bitmap = new BinaryBitmap(new HybridBinarizer(source));
+					try {
+						Result detectionResult = reader.decode(bitmap);
+						code = detectionResult.getText();
+						found = true;
+					} catch (NotFoundException e) {
+//						e.printStackTrace();
+					} catch (ChecksumException e) {
+//						e.printStackTrace();
+					} catch (FormatException e) {
+//						e.printStackTrace();
+					}
+					if (!found)foundIndex++;
+				}
+			}
+			contour = contour.h_next();
+		}
+		if (found && pointsList.size() >= 3) {
+			markerRight = new CvBox2D();
+			markerLeft = new CvBox2D();
+			
+			CvSeq pointsMiddle = pointsList.get(foundIndex);
+			markerMiddle = cvMinAreaRect2(pointsMiddle, storage);
+			pointMiddle = new CvPoint(cvGetSeqElem(pointsList.get(foundIndex), 0));
+			pointsList.remove(foundIndex);
+			
+			int indexOne = closestPoint(pointsList, pointsMiddle);
+			CvSeq pointsClosest = pointsList.get(indexOne);
+			pointClosest = new CvPoint(cvGetSeqElem(pointsClosest, 0));
+			if (pointClosest.x() < pointMiddle.x()) {
+				markerLeft = cvMinAreaRect2(pointsClosest, storage);
+			} else {
+				markerRight = cvMinAreaRect2(pointsClosest, storage);
+			}
+			pointsList.remove(indexOne);
+			
+			indexOne = closestPoint(pointsList, pointsMiddle);
+			pointsClosest = pointsList.get(indexOne);
+			pointClosest = new CvPoint(cvGetSeqElem(pointsClosest, 0));
+			if (pointClosest.x() < pointMiddle.x()) {
+				markerLeft = cvMinAreaRect2(pointsClosest, storage);
+			} else {
+				markerRight = cvMinAreaRect2(pointsClosest, storage);
+			}
+			
+			double distanceOne = (known_width * focalLength) / markerLeft.get(2);
+			double distanceTwo = (known_width * focalLength) / markerMiddle.get(2);
+			double distanceThree = (known_width * focalLength) / markerRight.get(2);
+			System.out.println("--------------------------------");
+			System.out.println(distanceOne + "|" + distanceTwo + "|" + distanceThree);
+			double angleA = Point.calculateAngle(distanceOne, distance_between_points);
+			double angleB = Point.calculateAngle(distanceThree, distance_between_points);
+			Point P1 = Point.parseQRTextLeft(code);
+			Point P2 = Point.parseQRText(code);
+			Point P3 = Point.parseQRTextRight(code);
+			System.out.println("(" + P1.getX() + "," + P1.getY() + ")" + "(" + P2.getX() + "," + P2.getY() + ")" + "(" + P3.getX() + "," + P3.getY() + ")");
+			Circle C1 = new Circle(Circle.calculateCenter(P1, P2, distance_between_points, angleA), 
+					Circle.calculateRadius(distance_between_points, angleA));
+			Circle C2 = new Circle(Circle.calculateCenter(P2, P3, distance_between_points, angleB), 
+					Circle.calculateRadius(distance_between_points, angleB));
+			Point[] points = Circle.intersection(C1, C2);
+			for (Point p : points) {
+				System.out.println(Math.round(p.getX()) + "|" + Math.round(p.getY()));
+			}			
+			System.out.println("--------------------------------");
+		}
+		return crop2;
 	}
+
+	public Mat extractQRImage(Mat img0) {
+
+		float known_distance = 200;
+		float known_width = 28;
+		float focalLength = (113 * known_distance) / known_width;
+		float distance_between_points = 150;
+		
+		
+		img0 = imread("apple.jpg", 1);
+		Mat img1 = new Mat(img0.arraySize(), CV_8UC1, 1);
+		
+		cvtColor(img0, img1, CV_RGB2GRAY);
+		Canny(img1, img1, 100, 200);
+		MatVector matContour = new MatVector();
+
+		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+
+		// List<Mat> pointsList = new ArrayList<>();
+		String code = "";
+		int foundIndex = 0;
+		
+//		img1.get
+//
+//		Mat crop2 = new Mat(img0.rows(), img0.cols(), CV_8UC3, Scalar.WHITE);
+//		Mat mask2 = new Mat(img1.rows(), img1.cols(), CV_8UC1, Scalar.BLACK);
+//		
+////		for (int i = 0; i < matContour.size(); i++) {
+////			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
+////			System.out.println(matContour.get(i).total());
+////			if ( contourArea(matContour.get(i)) > 60 ) {
+//				drawContours(mask2, matContour, -1, Scalar.WHITE, 3, CV_FILLED, null, 1, new opencv_core.Point());
+////			}
+////		}
+//		crop2.setTo(new Mat(new Scalar(0, 255, 0, 0)));
+//
+//		img0.copyTo(crop2, mask2);
+		
+//		normalize(mask2.clone(), mask2, 0.0, 255.0, CV_MINMAX, CV_8UC1, img1);
+
+		//// Mat mask = new Mat(img1.rows(), img1.cols(), CV_8UC1);
+		//// boolean found = false;
+		////// BufferedImage qrCode;
+		//// for(int i = 0; i<matContour.size();i++){
+		////
+		//// approxPolyDP(matContour.get(i), matContour.get(i),
+		//// 0.02*arcLength(matContour.get(i), true), true);
+		//// mask = new Mat(img1.arraySize(), CV_8U, 1);
+		//// Mat crop = new Mat(img1.arraySize(), CV_8U, 1);
+		//// if (matContour.get(i).total() == 4 &&
+		//// contourArea(matContour.get(i)) > 150 &&
+		//// contourArea(matContour.get(i)) < 10000) {
+		//// mask = new Mat(img1.arraySize(), CV_8U, 1);
+		//// Mat crop = new Mat(img1.arraySize(), CV_8U, 1);
+		////
+		//
+		//// drawContours(img1, matContour, i, new Scalar(0,0,0,0), 3,
+		//// CV_FILLED, null, 1, new opencv_core.Point());
+		//// img0.copyTo(crop,mask);
+		//// drawContours(mask, matContour, i, new Scalar(0,0,0,0), 3,
+		//// CV_FILLED, null, 1, new opencv_core.Point());
+		//
+		//// img0.copyTo(crop2,mask2);
+		// // Draw red point
+		//// pointsList.add(matContour.get(i));
+		//// crop = warpImage(crop, matContour.get(i));
+		//// qrCode = converter1.convert(converter.convert(crop));
+		//// source = new BufferedImageLuminanceSource(qrCode);
+		//// bitmap = new BinaryBitmap(new HybridBinarizer(source));
+		//// try {
+		//// Result detectionResult = reader.decode(bitmap);
+		//// code = detectionResult.getText();
+		//// found = true;
+		//// } catch (NotFoundException e) {
+		//// // e.printStackTrace();
+		//// } catch (ChecksumException e) {
+		//// // e.printStackTrace();
+		//// } catch (FormatException e) {
+		//// // e.printStackTrace();
+		//// }
+		//// if (!found)foundIndex++;
+		//// }
+		//// }
+		//
+		//// if (found && pointsList.size() >= 3) {
+		//// RotatedRect markerRight = new RotatedRect();
+		//// RotatedRect markerLeft = new RotatedRect();
+		//// Mat pointsMiddle = pointsList.get(foundIndex);
+		//// RotatedRect markerMiddle = minAreaRect(pointsMiddle);
+		//// Point2f pointMiddle = markerMiddle.center();
+		//// pointsList.remove(foundIndex);
+		//// int indexOne = closestPoint(pointsList, pointsMiddle);
+		//// Mat pointsClosest = pointsList.get(indexOne);
+		////
+		//// Point2f pointClosest = minAreaRect(pointsClosest).center();
+		//// if (pointClosest.x() < pointMiddle.x()) {
+		//// markerLeft = minAreaRect(pointsClosest);
+		//// } else {
+		//// markerRight = minAreaRect(pointsClosest);
+		//// }
+		//// pointsList.remove(indexOne);
+		//// indexOne = closestPoint(pointsList, pointsMiddle);
+		//// pointsClosest = pointsList.get(indexOne);
+		//// pointClosest = minAreaRect(pointsClosest).center();
+		//// if (pointClosest.x() < pointMiddle.x()) {
+		//// markerLeft = minAreaRect(pointsClosest);
+		//// } else {
+		//// markerRight = minAreaRect(pointsClosest);
+		//// }
+		//// double distanceOne = (known_width * focalLength) /
+		//// markerLeft.get(2);
+		//// double distanceTwo = (known_width * focalLength) /
+		//// markerMiddle.get(2);
+		//// double distanceThree = (known_width * focalLength) /
+		//// markerRight.get(2);
+		//// System.out.println("--------------------------------");
+		//// System.out.println(distanceOne + "|" + distanceTwo + "|" +
+		//// distanceThree);
+		//// double angleA = Point.calculateAngle(distanceOne,
+		//// distance_between_points);
+		//// double angleB = Point.calculateAngle(distanceThree,
+		//// distance_between_points);
+		//// Point P1 = Point.parseQRTextLeft(code);
+		//// Point P2 = Point.parseQRText(code);
+		//// Point P3 = Point.parseQRTextRight(code);
+		//// System.out.println("(" + P1.getX() + "," + P1.getY() + ")" + "(" +
+		//// P2.getX() + "," + P2.getY() + ")" + "(" + P3.getX() + "," +
+		//// P3.getY() + ")");
+		//// Circle C1 = new Circle(Circle.calculateCenter(P1, P2,
+		//// distance_between_points, angleA),
+		//// Circle.calculateRadius(distance_between_points, angleA));
+		//// Circle C2 = new Circle(Circle.calculateCenter(P2, P3,
+		//// distance_between_points, angleB),
+		//// Circle.calculateRadius(distance_between_points, angleB));
+		//// Point[] points = Circle.intersection(C1, C2);
+		//// for (Point p : points) {
+		//// System.out.println(Math.round(p.getX()) + "|" +
+		//// Math.round(p.getY()));
+		//// }
+		//// System.out.println("--------------------------------");
+		//// }
+		return img0;
+	}
+
 	private int closestPoint(List<Mat> pointsList, Mat markerMiddle) {
 		double qrMarkerSize = contourArea(markerMiddle);
 		double distance = Math.abs(contourArea(pointsList.get(0)) - qrMarkerSize);
@@ -430,12 +623,10 @@ public class PictureProcessingHelper {
 		}
 		return index;
 	}
-	
 
 	public IplImage findContoursGreen(IplImage img) {
 
 		IplImage imghsv, imgbin;
-
 
 		// Green
 		CvScalar minc = cvScalar(35, 75, 6, 0), maxc = cvScalar(75, 255, 255, 0);
@@ -449,11 +640,8 @@ public class PictureProcessingHelper {
 		cvCvtColor(img, imghsv, CV_BGR2HSV);
 		cvInRangeS(imghsv, minc, maxc, imgbin);
 
-
-
 		cvFindContours(imgbin, storage, contour1, Loader.sizeof(CvContour.class), CV_RETR_LIST, CV_LINK_RUNS,
 				cvPoint(0, 0));
-
 
 		contour2 = contour1;
 
@@ -463,99 +651,104 @@ public class PictureProcessingHelper {
 
 		}
 
-//		while (contour2 != null && !contour2.isNull()) {
-//			areaC = cvContourArea(contour2, CV_WHOLE_SEQ, 1);
-//			if (areaC < areaMax) {
-//				cvDrawContours(imgbin, contour2, CV_RGB(0, 0, 0), CV_RGB(0, 0, 0), 0, CV_FILLED, 8, cvPoint(0, 0));
-//			}
-//
-//			contour2 = contour2.h_next();
-//		}
+		// while (contour2 != null && !contour2.isNull()) {
+		// areaC = cvContourArea(contour2, CV_WHOLE_SEQ, 1);
+		// if (areaC < areaMax) {
+		// cvDrawContours(imgbin, contour2, CV_RGB(0, 0, 0), CV_RGB(0, 0, 0), 0,
+		// CV_FILLED, 8, cvPoint(0, 0));
+		// }
+		//
+		// contour2 = contour2.h_next();
+		// }
 
 		return imgbin;
 
-
 	}
-	
-	public IplImage convertMatToIplImage(Mat mat){
+
+	public IplImage convertMatToIplImage(Mat mat) {
 		return converter.convert(converter.convert(mat));
 	}
 
 	public IplImage opticalFlowOnDrones(IplImage imgA, IplImage newFrame) {
-//		// Load two images and allocate other structures
-//		CvSize cvSize = cvSize(imgA.width(), imgA.height());
-//
-//		imgB = cvCreateImage(cvSize, newFrame.depth(), 1);
-//		cvCvtColor(newFrame, imgB, CV_BGR2GRAY);
-//
-//		imgC = cvCreateImage(cvSize, newFrame.depth(), 1);
-//		cvCopy(imgA, imgC);
-//
-//		cvThreshold(imgC, imgC, 100, 255, CV_THRESH_TOZERO);
-//
-//		CvSize img_sz = cvGetSize(imgA);
-//		int win_size = 15;
-//
-//		eig_image = cvCreateImage(img_sz, IPL_DEPTH_32F, 1);
-//		tmp_image = cvCreateImage(img_sz, IPL_DEPTH_32F, 1);
-//
-//		IntPointer corner_count = new IntPointer(1).put(MAX_CORNERS);
-//		CvPoint2D32f cornersA = new CvPoint2D32f(MAX_CORNERS);
-//
-//		CvArr mask = null;
-//		cvGoodFeaturesToTrack(imgA, eig_image, tmp_image, cornersA, corner_count, 0.05, 5.0, mask, 3, 0, 0.04);
-//
-//		cvFindCornerSubPix(imgA, cornersA, corner_count.get(), cvSize(win_size, win_size), cvSize(-1, -1),
-//				cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.03));
-//
-//		// Call Lucas Kanade algorithm
-//		BytePointer features_found = new BytePointer(MAX_CORNERS);
-//		FloatPointer feature_errors = new FloatPointer(MAX_CORNERS);
-//
-//		CvSize pyr_sz = cvSize(imgA.width() + 8, imgB.height() / 3);
-//
-//		pyrA = cvCreateImage(pyr_sz, IPL_DEPTH_32F, 1);
-//		pyrB = cvCreateImage(pyr_sz, IPL_DEPTH_32F, 1);
-//
-//		CvPoint2D32f cornersB = new CvPoint2D32f(MAX_CORNERS);
-//
-//		cvCalcOpticalFlowPyrLK(imgA, imgB, pyrA, pyrB, cornersA, cornersB, corner_count.get(),
-//				cvSize(win_size, win_size), 5, features_found, feature_errors,
-//				cvTermCriteria(CV_TERMCRIT_NUMBER | CV_TERMCRIT_NUMBER, 20, 0.3), 0);
-//
-//		// Put lines on the screen along with dots
-//		for (int i = 0; i < corner_count.get(); i++) {
-//			if (features_found.get(i) == 0 || feature_errors.get(i) > 550) {
-//				continue;
-//			}
-//			cornersA.position(i);
-//			cornersB.position(i);
-//			CvPoint p0 = cvPoint(Math.round(cornersA.x()), Math.round(cornersA.y()));
-//			CvPoint p1 = cvPoint(Math.round(cornersB.x()), Math.round(cornersB.y()));
-//			cvLine(imgC, p0, p1, CV_RGB(255, 255, 255), 3, CV_AA, 0);
-//
-//			if (!p0.toString().equals(p1.toString())) {
-//				Vector v0 = convertToVector(p0.toString());
-//				Vector v1 = convertToVector(p1.toString());
-//				Vector newVector = v0.subtract(v1);
-//
-//				if(newVector.y < -10){
-//					System.out.println("Moving Down");
-//				}
-//
-//				if(newVector.y > 10){
-//					System.out.println("Moving Up");
-//				}
-//
-//				if(newVector.x > 10){
-//					System.out.println("Moving Left");
-//				}
-//
-//				if(newVector.x < -10){
-//					System.out.println("Moving Right");
-//				}
-//			}
-//		}
+		// // Load two images and allocate other structures
+		// CvSize cvSize = cvSize(imgA.width(), imgA.height());
+		//
+		// imgB = cvCreateImage(cvSize, newFrame.depth(), 1);
+		// cvCvtColor(newFrame, imgB, CV_BGR2GRAY);
+		//
+		// imgC = cvCreateImage(cvSize, newFrame.depth(), 1);
+		// cvCopy(imgA, imgC);
+		//
+		// cvThreshold(imgC, imgC, 100, 255, CV_THRESH_TOZERO);
+		//
+		// CvSize img_sz = cvGetSize(imgA);
+		// int win_size = 15;
+		//
+		// eig_image = cvCreateImage(img_sz, IPL_DEPTH_32F, 1);
+		// tmp_image = cvCreateImage(img_sz, IPL_DEPTH_32F, 1);
+		//
+		// IntPointer corner_count = new IntPointer(1).put(MAX_CORNERS);
+		// CvPoint2D32f cornersA = new CvPoint2D32f(MAX_CORNERS);
+		//
+		// CvArr mask = null;
+		// cvGoodFeaturesToTrack(imgA, eig_image, tmp_image, cornersA,
+		// corner_count, 0.05, 5.0, mask, 3, 0, 0.04);
+		//
+		// cvFindCornerSubPix(imgA, cornersA, corner_count.get(),
+		// cvSize(win_size, win_size), cvSize(-1, -1),
+		// cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.03));
+		//
+		// // Call Lucas Kanade algorithm
+		// BytePointer features_found = new BytePointer(MAX_CORNERS);
+		// FloatPointer feature_errors = new FloatPointer(MAX_CORNERS);
+		//
+		// CvSize pyr_sz = cvSize(imgA.width() + 8, imgB.height() / 3);
+		//
+		// pyrA = cvCreateImage(pyr_sz, IPL_DEPTH_32F, 1);
+		// pyrB = cvCreateImage(pyr_sz, IPL_DEPTH_32F, 1);
+		//
+		// CvPoint2D32f cornersB = new CvPoint2D32f(MAX_CORNERS);
+		//
+		// cvCalcOpticalFlowPyrLK(imgA, imgB, pyrA, pyrB, cornersA, cornersB,
+		// corner_count.get(),
+		// cvSize(win_size, win_size), 5, features_found, feature_errors,
+		// cvTermCriteria(CV_TERMCRIT_NUMBER | CV_TERMCRIT_NUMBER, 20, 0.3), 0);
+		//
+		// // Put lines on the screen along with dots
+		// for (int i = 0; i < corner_count.get(); i++) {
+		// if (features_found.get(i) == 0 || feature_errors.get(i) > 550) {
+		// continue;
+		// }
+		// cornersA.position(i);
+		// cornersB.position(i);
+		// CvPoint p0 = cvPoint(Math.round(cornersA.x()),
+		// Math.round(cornersA.y()));
+		// CvPoint p1 = cvPoint(Math.round(cornersB.x()),
+		// Math.round(cornersB.y()));
+		// cvLine(imgC, p0, p1, CV_RGB(255, 255, 255), 3, CV_AA, 0);
+		//
+		// if (!p0.toString().equals(p1.toString())) {
+		// Vector v0 = convertToVector(p0.toString());
+		// Vector v1 = convertToVector(p1.toString());
+		// Vector newVector = v0.subtract(v1);
+		//
+		// if(newVector.y < -10){
+		// System.out.println("Moving Down");
+		// }
+		//
+		// if(newVector.y > 10){
+		// System.out.println("Moving Up");
+		// }
+		//
+		// if(newVector.x > 10){
+		// System.out.println("Moving Left");
+		// }
+		//
+		// if(newVector.x < -10){
+		// System.out.println("Moving Right");
+		// }
+		// }
+		// }
 		return null;
 	}
 
@@ -581,13 +774,12 @@ public class PictureProcessingHelper {
 
 		// Find red point
 
-
 		while (contour != null && !contour.isNull()) {
 			if (contour.elem_size() > 0) {
 				CvSeq points = cvApproxPoly(contour, Loader.sizeof(CvContour.class), storage, CV_POLY_APPROX_DP,
 						cvContourPerimeter(contour) * 0.02, 0);
-				if ((points.total() > 2 && points.total() < 6) && cvContourArea(points) > 1200 && cvContourArea(points) < 50000) {
-					
+				if ((points.total() > 2 && points.total() < 6) && cvContourArea(points) > 1200
+						&& cvContourArea(points) < 50000) {
 
 					int posX = 0;
 					int posY = 0;
@@ -602,45 +794,46 @@ public class PictureProcessingHelper {
 
 					// skal g�re det for hver unik figur
 
-					CvPoint p0 = cvPoint(posX, posY);						
+					CvPoint p0 = cvPoint(posX, posY);
 					cvLine(coloredImage, p0, p0, CV_RGB(255, 0, 0), 16, CV_AA, 0);
-					//							System.out.println(posX);
-					//							System.out.println(posY);
+					// System.out.println(posX);
+					// System.out.println(posY);
 					cvDrawContours(coloredImage, points, CvScalar.WHITE, CvScalar.WHITE, -2, 2, CV_AA);
 
 				}
 			}
 			contour = contour.h_next();
 		}
-		//System.out.println(polygonCount);
+		// System.out.println(polygonCount);
 		return coloredImage;
 	}
-	
-	
+
 	public synchronized Mat findPolygonsMat(Mat coloredImage, Mat filteredImage, int edgeNumber) {
 
 		MatVector contour = new MatVector();
 		findContours(filteredImage, contour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
-		
+
+//		System.out.println(contour.size() + "");
 		// find center points
-		for(int i = 0; i<contour.size(); i++){
-			approxPolyDP(contour.get(i), contour.get(i), 0.02*arcLength(contour.get(i), true), true);
-			if (contour.get(i).total() == 4 && contourArea(contour.get(i)) > 150) 
-			{
+		for (int i = 0; i < contour.size(); i++) {
+			approxPolyDP(contour.get(i), contour.get(i), 0.02 * arcLength(contour.get(i), true), true);
+			if (contour.get(i).total() == 4 && contourArea(contour.get(i)) > 150) {
 				Point2f centerPoint = minAreaRect(contour.get(i)).center();
-				opencv_core.Point p = new opencv_core.Point((int)centerPoint.x(), (int)centerPoint.y());
+				opencv_core.Point p = new opencv_core.Point((int) centerPoint.x(), (int) centerPoint.y());
 				line(coloredImage, p, p, new Scalar(255, 0, 0, 0), 16, CV_AA, 0);
-				drawContours(coloredImage, contour, i, new Scalar(0,0,0,0), 3, CV_AA, null, 1, new opencv_core.Point());
-				
+				drawContours(coloredImage, contour, i, new Scalar(0, 0, 0, 0), 3, CV_AA, null, 1,
+						new opencv_core.Point());
+
 			}
-			
-//				if (contourArea(contour.get(i)) > 150 && contourArea(contour.get(i)) < 10000) {
-					// drawLines of Box
-//					drawContours(coloredImage, contour, i, new Scalar(0,0,0,3))
-//			
-//		
-		}	
-	
+
+			// if (contourArea(contour.get(i)) > 150 &&
+			// contourArea(contour.get(i)) < 10000) {
+			// drawLines of Box
+			// drawContours(coloredImage, contour, i, new Scalar(0,0,0,3))
+			//
+			//
+		}
+
 		return coloredImage;
 	}
 
@@ -888,41 +1081,34 @@ public class PictureProcessingHelper {
 		return cvtImg;
 	}
 
-	public Mat erodeAndDilate(Mat thresh)
-	{
+	public Mat erodeAndDilate(Mat thresh) {
 
 		Mat erodeElement = getStructuringElement(MORPH_RECT, new Size(3, 3));
-		//dilate with larger element so make sure object is nicely visible
 		Mat dilateElement = getStructuringElement(MORPH_RECT, new Size(8, 8));
-
 		erode(thresh, thresh, erodeElement);
 		erode(thresh, thresh, erodeElement);
-
 		dilate(thresh, thresh, dilateElement);
 		dilate(thresh, thresh, dilateElement);
-
 		return thresh;
 
 	}
 
-	public double calcAngles(IplImage coloredImage, CvSeq points)
-	{
+	public double calcAngles(IplImage coloredImage, CvSeq points) {
 
 		double angle = 0;
 		ArrayList<CvPoint> listen = new ArrayList<CvPoint>();
 
 		// skal g�re det for hver unik figur
-		for (int i = 0; i < 5; i++)
-		{
+		for (int i = 0; i < 5; i++) {
 			listen.add(new CvPoint(cvGetSeqElem(points, i)));
 		}
 
 		// find the maximum cosine of the angle between joint edges
 
-		for (int j = 0; j < listen.size() - 1; j++)
-		{
+		for (int j = 0; j < listen.size() - 1; j++) {
 
-			angle = Math.atan2(listen.get(j + 1).y() - listen.get(j).y(), listen.get(j + 1).x() - listen.get(j).x()) * 180.0 / CV_PI;                     
+			angle = Math.atan2(listen.get(j + 1).y() - listen.get(j).y(), listen.get(j + 1).x() - listen.get(j).x())
+					* 180.0 / CV_PI;
 			System.out.println(angle);
 			break;
 		}
