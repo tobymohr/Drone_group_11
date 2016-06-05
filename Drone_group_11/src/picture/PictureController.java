@@ -228,11 +228,11 @@ public class PictureController {
 				Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
 				qrFrame.setImage(imageQr);
 				
-				Platform.runLater(new Runnable() {
-		            @Override public void run() {
-		            	qrCode.setText("QR Code Found: " + OFC.getQrCode());
-		            }
-		        });
+//				Platform.runLater(new Runnable() {
+//		            @Override public void run() {
+//		            	qrCode.setText("QR Code Found: " + OFC.getQrCode());
+//		            }
+//		        });
 				
 				isFirst = false;
 				
