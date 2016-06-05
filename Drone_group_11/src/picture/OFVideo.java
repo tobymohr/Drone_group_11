@@ -70,21 +70,21 @@ public class OFVideo implements Runnable {
 					}
 					
 					Mat polyImage = OFC.findPolygonsMat(newImg,filteredImage, 4);
-					IplImage qrImage = OFC.extractQRImage(cam);
+					Mat qrImage = OFC.extractQRImage(newImg);
 
 					BufferedImage bufferedImage = MatToBufferedImage(polyImage);
 					BufferedImage bufferedImageFilter = MatToBufferedImage(filteredImage);
-					BufferedImage bufferedImageQr = IplImageToBufferedImage(qrImage);
+					BufferedImage bufferedImageQr = MatToBufferedImage(qrImage);
 
 					Image imageFilter = SwingFXUtils.toFXImage(bufferedImageFilter, null);
 					Image imagePoly = SwingFXUtils.toFXImage(bufferedImage, null);
 					Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
 					
-					Platform.runLater(new Runnable() {
-			            @Override public void run() {
-			            	qrCode.setText("QR Code Found: " + OFC.getQrCode());
-			            }
-			        });
+//					Platform.runLater(new Runnable() {
+//			            @Override public void run() {
+//			            	qrCode.setText("QR Code Found: " + OFC.getQrCode());
+//			            }
+//			        });
 					polyFrame.setImage(imagePoly);
 					filterFrame.setImage(imageFilter);
 					qrFrame.setImage(imageQr);

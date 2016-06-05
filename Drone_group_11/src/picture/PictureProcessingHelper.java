@@ -269,45 +269,7 @@ public class PictureProcessingHelper {
 		return imgbin;
 	}
 
-	public Mat warpImage(Mat crop, Mat points) {
-		canvas1.showImage(converter.convert(crop));
-		// crop = sharpenImage(crop);
-		corners.clear();
-		// for (int i = 0; i < 4; i++) {
-		// Point2f p = new Point2f(crop);
-		// corners.add(p);
-		// }
-		// float[] aImg = {
-		// corners.get(0).x(), corners.get(0).y(),
-		// corners.get(1).x(), corners.get(1).y(),
-		// corners.get(2).x(), corners.get(2).y(),
-		// corners.get(3).x(), corners.get(3).y()
-		// };
-		int qrHeight = (int) (corners.get(1).y() - corners.get(0).y());
-		int qrWidth = (int) (corners.get(3).x() - corners.get(0).x());
-		if (qrHeight <= 0 || qrWidth <= 0 || ((int) qrHeight / qrWidth) == 0) {
-			return crop;
-		}
-		float aspect = qrHeight / qrWidth;
-		int height = 146;
-		int width = 98;
-		// System.out.println("Aspect " + aspect + " width " + width + " height
-		// " + height );
-		// float[] aWorld = {
-		// 0.0f, 0.0f,
-		// 0.0f, height*4,
-		// width*4, height*4,
-		// width*4, 0.0f
-		// };
-		Mat homography = new Mat();
-		homography = getPerspectiveTransform(crop,
-				new Mat(0.0f, 0.0f, 0.0f, height * 4, width * 4, height * 4, width * 4, 0.0f));
-		Mat imgWarped = new Mat();
-		warpPerspective(crop, imgWarped, homography, new Size(crop.size()), 0, 0, new Scalar(0, 0, 0, 0));
-		// cvSmooth(imgWarped, imgWarped, 2, 21, 0, 0, 0);
-		canvas.showImage(converter.convert(imgWarped));
-		return imgWarped;
-	}
+	
 	
 	
 	
@@ -360,8 +322,8 @@ public class PictureProcessingHelper {
 
 		imgSharpened = new IplImage(dest);
 		
-		canvas.showImage(converter.convert(imgWarped));
-		canvas1.showImage(converter.convert(imgSharpened));
+//		canvas.showImage(converter.convert(imgWarped));
+//		canvas1.showImage(converter.convert(imgSharpened));
 		
 		return imgSharpened;
 	}
@@ -391,8 +353,6 @@ public class PictureProcessingHelper {
 		cvSetZero(mask2);
 		boolean found = false;
 		BufferedImage qrCode;
-		
-		
 
 		while (contour != null && !contour.isNull()) {
 			if (contour.elem_size() > 0) {
@@ -484,27 +444,54 @@ public class PictureProcessingHelper {
 		return crop2;
 	}
 
+	
+	public Mat warpImage(Mat crop) {
+		corners.clear();
+		 for (int i = 0; i < 4; i++) {
+		 CvPoint p = new CvPoint(crop);
+		 corners.add(p);
+		 }
+		int qrHeight = (int) (corners.get(1).y() - corners.get(0).y());
+		int qrWidth = (int) (corners.get(3).x() - corners.get(0).x());
+		if (qrHeight <= 0 || qrWidth <= 0 || ((int) qrHeight / qrWidth) == 0) {
+			return crop;
+		}
+		float aspect = qrHeight / qrWidth;
+		int height = 146;
+		int width = 98;
+		Mat homography = new Mat();
+		homography = getPerspectiveTransform(crop,
+				new Mat(0.0f, 0.0f, 0.0f, height * 4, width * 4, height * 4, width * 4, 0.0f));
+		Mat imgWarped = new Mat();
+		warpPerspective(crop, imgWarped, homography, new Size(crop.size()), 0, 0, new Scalar(0, 0, 0, 0));
+		canvas1.showImage(converter.convert(imgWarped));
+		return imgWarped;
+	}
 
 	public Mat extractQRImage(Mat img0) {
 
-		img0 = imread("apple.jpg", 1);
 		Mat img1 = new Mat(img0.arraySize(), CV_8UC1, 1);
 		
 		cvtColor(img0, img1, CV_RGB2GRAY);
 		Canny(img1, img1, 100, 200);
 		MatVector matContour = new MatVector();
 		
-		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
-		Mat crop = new Mat(img0.rows(), img0.cols(), CV_8UC3, Scalar.WHITE);
+		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+		Mat crop = new Mat(img0.rows(), img0.cols(), CV_8UC3, Scalar.BLACK);
 		Mat mask = new Mat(img1.rows(), img1.cols(), CV_8UC1, Scalar.BLACK);
 		
 		for (int i = 0; i < matContour.size(); i++) {
-				drawContours(mask, matContour, i, Scalar.WHITE, CV_FILLED, 8, null, -1,null);
+			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
+			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > 150) {
+				drawContours(mask, matContour, i, Scalar.WHITE, CV_FILLED, 8, null, 1, null);
+			}
 		}
-		crop.setTo(new Mat(new Scalar(0, 255, 0, 0)));
+//		crop.setTo(new Mat(new Scalar(0, 255, 0, 0)));
 		img0.copyTo(crop, mask);
-		normalize(mask.clone(), mask);
-		return img1;
+//		
+//		normalize(mask.clone(), mask);
+		crop = warpImage(crop);
+		return crop;
 	}
 
 	private int closestPoint(List<Mat> pointsList, Mat markerMiddle) {
@@ -665,6 +652,7 @@ public class PictureProcessingHelper {
 		xright = (int) (coloredImage.width() / factor) * (factor - 1);
 		ytop = 0;
 		ybot = coloredImage.height();
+		
 		// center of centerpoints y
 		yCenterBottom = (coloredImage.height() / 3) * 2;
 		yCenterTop = (coloredImage.height() / 3);
