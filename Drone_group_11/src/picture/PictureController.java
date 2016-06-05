@@ -223,8 +223,8 @@ public class PictureController {
 //				}
 				
 //				QR
-				IplImage qrImage = OFC.extractQRImage(camImage);
-				BufferedImage bufferedImageQr =  IplImageToBufferedImage(qrImage);
+				Mat qrImage = OFC.extractQRImage(camMat);
+				BufferedImage bufferedImageQr =  MatToBufferedImage(qrImage);
 				Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
 				qrFrame.setImage(imageQr);
 				

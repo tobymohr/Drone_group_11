@@ -37,6 +37,7 @@ import org.bytedeco.javacpp.opencv_core.*;
 import org.bytedeco.javacpp.opencv_imgproc.CvMoments;
 import org.bytedeco.javacpp.indexer.FloatIndexer;
 import org.bytedeco.javacv.CanvasFrame;
+import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 
@@ -45,6 +46,9 @@ import static org.bytedeco.javacpp.opencv_core.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorConvertOp;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -305,6 +309,8 @@ public class PictureProcessingHelper {
 		return imgWarped;
 	}
 	
+	
+	
 	public IplImage warpImage(IplImage crop, CvSeq points) {
 		corners.clear();
 		for (int i = 0; i < 4; i++) {
@@ -359,8 +365,7 @@ public class PictureProcessingHelper {
 		
 		return imgSharpened;
 	}
-
-
+	
 	public IplImage extractQRImage(IplImage img0) {
 		cvClearMemStorage(storage);
 		float known_distance = 200;
@@ -482,145 +487,27 @@ public class PictureProcessingHelper {
 
 	public Mat extractQRImage(Mat img0) {
 
-		float known_distance = 200;
-		float known_width = 28;
-		float focalLength = (113 * known_distance) / known_width;
-		float distance_between_points = 150;
-		
-		
 		img0 = imread("apple.jpg", 1);
 		Mat img1 = new Mat(img0.arraySize(), CV_8UC1, 1);
 		
 		cvtColor(img0, img1, CV_RGB2GRAY);
 		Canny(img1, img1, 100, 200);
 		MatVector matContour = new MatVector();
-
-		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
-
-		// List<Mat> pointsList = new ArrayList<>();
-		String code = "";
-		int foundIndex = 0;
 		
-//		img1.get
-//
-//		Mat crop2 = new Mat(img0.rows(), img0.cols(), CV_8UC3, Scalar.WHITE);
-//		Mat mask2 = new Mat(img1.rows(), img1.cols(), CV_8UC1, Scalar.BLACK);
+		bitwise_not(img1, img1);
+		findContours(img1, matContour, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);
+		Mat crop = new Mat(img0.rows(), img0.cols(), CV_8UC3, Scalar.WHITE);
+		Mat mask = new Mat(img1.rows(), img1.cols(), CV_8UC1, Scalar.BLACK);
+		
+		for (int i = 0; i < matContour.size(); i++) {
+				drawContours(mask, matContour, i, Scalar.WHITE, 3, CV_FILLED, null, -1, new opencv_core.Point());
+		}
+//		crop.setTo(new Mat(new Scalar(0, 255, 0, 0)));
+//		img0.copyTo(crop, mask);
 //		
-////		for (int i = 0; i < matContour.size(); i++) {
-////			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
-////			System.out.println(matContour.get(i).total());
-////			if ( contourArea(matContour.get(i)) > 60 ) {
-//				drawContours(mask2, matContour, -1, Scalar.WHITE, 3, CV_FILLED, null, 1, new opencv_core.Point());
-////			}
-////		}
-//		crop2.setTo(new Mat(new Scalar(0, 255, 0, 0)));
-//
-//		img0.copyTo(crop2, mask2);
-		
-//		normalize(mask2.clone(), mask2, 0.0, 255.0, CV_MINMAX, CV_8UC1, img1);
-
-		//// Mat mask = new Mat(img1.rows(), img1.cols(), CV_8UC1);
-		//// boolean found = false;
-		////// BufferedImage qrCode;
-		//// for(int i = 0; i<matContour.size();i++){
-		////
-		//// approxPolyDP(matContour.get(i), matContour.get(i),
-		//// 0.02*arcLength(matContour.get(i), true), true);
-		//// mask = new Mat(img1.arraySize(), CV_8U, 1);
-		//// Mat crop = new Mat(img1.arraySize(), CV_8U, 1);
-		//// if (matContour.get(i).total() == 4 &&
-		//// contourArea(matContour.get(i)) > 150 &&
-		//// contourArea(matContour.get(i)) < 10000) {
-		//// mask = new Mat(img1.arraySize(), CV_8U, 1);
-		//// Mat crop = new Mat(img1.arraySize(), CV_8U, 1);
-		////
-		//
-		//// drawContours(img1, matContour, i, new Scalar(0,0,0,0), 3,
-		//// CV_FILLED, null, 1, new opencv_core.Point());
-		//// img0.copyTo(crop,mask);
-		//// drawContours(mask, matContour, i, new Scalar(0,0,0,0), 3,
-		//// CV_FILLED, null, 1, new opencv_core.Point());
-		//
-		//// img0.copyTo(crop2,mask2);
-		// // Draw red point
-		//// pointsList.add(matContour.get(i));
-		//// crop = warpImage(crop, matContour.get(i));
-		//// qrCode = converter1.convert(converter.convert(crop));
-		//// source = new BufferedImageLuminanceSource(qrCode);
-		//// bitmap = new BinaryBitmap(new HybridBinarizer(source));
-		//// try {
-		//// Result detectionResult = reader.decode(bitmap);
-		//// code = detectionResult.getText();
-		//// found = true;
-		//// } catch (NotFoundException e) {
-		//// // e.printStackTrace();
-		//// } catch (ChecksumException e) {
-		//// // e.printStackTrace();
-		//// } catch (FormatException e) {
-		//// // e.printStackTrace();
-		//// }
-		//// if (!found)foundIndex++;
-		//// }
-		//// }
-		//
-		//// if (found && pointsList.size() >= 3) {
-		//// RotatedRect markerRight = new RotatedRect();
-		//// RotatedRect markerLeft = new RotatedRect();
-		//// Mat pointsMiddle = pointsList.get(foundIndex);
-		//// RotatedRect markerMiddle = minAreaRect(pointsMiddle);
-		//// Point2f pointMiddle = markerMiddle.center();
-		//// pointsList.remove(foundIndex);
-		//// int indexOne = closestPoint(pointsList, pointsMiddle);
-		//// Mat pointsClosest = pointsList.get(indexOne);
-		////
-		//// Point2f pointClosest = minAreaRect(pointsClosest).center();
-		//// if (pointClosest.x() < pointMiddle.x()) {
-		//// markerLeft = minAreaRect(pointsClosest);
-		//// } else {
-		//// markerRight = minAreaRect(pointsClosest);
-		//// }
-		//// pointsList.remove(indexOne);
-		//// indexOne = closestPoint(pointsList, pointsMiddle);
-		//// pointsClosest = pointsList.get(indexOne);
-		//// pointClosest = minAreaRect(pointsClosest).center();
-		//// if (pointClosest.x() < pointMiddle.x()) {
-		//// markerLeft = minAreaRect(pointsClosest);
-		//// } else {
-		//// markerRight = minAreaRect(pointsClosest);
-		//// }
-		//// double distanceOne = (known_width * focalLength) /
-		//// markerLeft.get(2);
-		//// double distanceTwo = (known_width * focalLength) /
-		//// markerMiddle.get(2);
-		//// double distanceThree = (known_width * focalLength) /
-		//// markerRight.get(2);
-		//// System.out.println("--------------------------------");
-		//// System.out.println(distanceOne + "|" + distanceTwo + "|" +
-		//// distanceThree);
-		//// double angleA = Point.calculateAngle(distanceOne,
-		//// distance_between_points);
-		//// double angleB = Point.calculateAngle(distanceThree,
-		//// distance_between_points);
-		//// Point P1 = Point.parseQRTextLeft(code);
-		//// Point P2 = Point.parseQRText(code);
-		//// Point P3 = Point.parseQRTextRight(code);
-		//// System.out.println("(" + P1.getX() + "," + P1.getY() + ")" + "(" +
-		//// P2.getX() + "," + P2.getY() + ")" + "(" + P3.getX() + "," +
-		//// P3.getY() + ")");
-		//// Circle C1 = new Circle(Circle.calculateCenter(P1, P2,
-		//// distance_between_points, angleA),
-		//// Circle.calculateRadius(distance_between_points, angleA));
-		//// Circle C2 = new Circle(Circle.calculateCenter(P2, P3,
-		//// distance_between_points, angleB),
-		//// Circle.calculateRadius(distance_between_points, angleB));
-		//// Point[] points = Circle.intersection(C1, C2);
-		//// for (Point p : points) {
-		//// System.out.println(Math.round(p.getX()) + "|" +
-		//// Math.round(p.getY()));
-		//// }
-		//// System.out.println("--------------------------------");
-		//// }
-		return img0;
+//		normalize(mask.clone(), mask);
+		bitwise_not(mask,img1);
+		return img1;
 	}
 
 	private int closestPoint(List<Mat> pointsList, Mat markerMiddle) {
