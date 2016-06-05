@@ -157,17 +157,6 @@ public class DroneCommunicator implements DroneInterface {
 			});
 		}
 	}
-	@Override
-	public void hover(){
-		if (connectedToDrone && droneFlying) {
-			commandManager.schedule(0, new Runnable() {
-				@Override
-				public void run() {
-					commandManager.hover();
-				}
-			});
-		}
-	}
 	
 	@Override
 	public void setSpeed(int speed) {
@@ -201,5 +190,16 @@ public class DroneCommunicator implements DroneInterface {
 		return videoChannel;
 	}
 	
+	@Override
+	public void hover(){
+		if (connectedToDrone && droneFlying) {
+			commandManager.schedule(0, new Runnable() {
+				@Override
+				public void run() {
+					commandManager.hover();
+				}
+			});
+		}
+	}
 	
 }
