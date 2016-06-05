@@ -10,6 +10,16 @@ import static org.bytedeco.javacpp.opencv_imgproc.*;
 import static org.bytedeco.javacpp.opencv_imgproc.cvDrawContours;
 import static org.bytedeco.javacpp.opencv_imgproc.cvFindContours;
 import static org.bytedeco.javacpp.opencv_video.*;
+import static org.bytedeco.javacpp.helper.opencv_core.*;
+
+import picture.PictureController;
+import static org.bytedeco.javacpp.helper.opencv_imgproc.*;
+import static org.bytedeco.javacpp.helper.opencv_imgproc.cvDrawContours;
+import static org.bytedeco.javacpp.helper.opencv_imgproc.cvFindContours;
+import static org.bytedeco.javacpp.opencv_imgproc.*;
+import static org.bytedeco.javacpp.opencv_imgproc.cvDrawContours;
+import static org.bytedeco.javacpp.opencv_imgproc.cvFindContours;
+import static org.bytedeco.javacpp.opencv_video.*;
 import static org.bytedeco.javacpp.opencv_imgcodecs.*;
 
 import com.google.zxing.BinaryBitmap;
@@ -58,7 +68,7 @@ public class PictureProcessingHelper {
 	static int minGreen = 0;
 	static int minBlue = 134;
 	static int smoother = 11;
-	private int minThresh = 30;
+	public String code = "";
 	private int i = 0;
 	CvPoint2D32f c1 = new CvPoint2D32f(4);
 	CvPoint2D32f c2 = new CvPoint2D32f(4);
@@ -367,7 +377,6 @@ public class PictureProcessingHelper {
 
 		List<CvBox2D> markers = new ArrayList<>();
 		List<CvSeq> pointsList = new ArrayList<>();
-		String code = "";
 		int foundIndex = 0;
 		
 		
@@ -377,6 +386,8 @@ public class PictureProcessingHelper {
 		cvSetZero(mask2);
 		boolean found = false;
 		BufferedImage qrCode;
+		
+		
 
 		while (contour != null && !contour.isNull()) {
 			if (contour.elem_size() > 0) {
@@ -402,6 +413,7 @@ public class PictureProcessingHelper {
 					try {
 						Result detectionResult = reader.decode(bitmap);
 						code = detectionResult.getText();
+						System.out.println(code + "HALLO");
 						found = true;
 					} catch (NotFoundException e) {
 //						e.printStackTrace();
@@ -466,6 +478,7 @@ public class PictureProcessingHelper {
 		}
 		return crop2;
 	}
+
 
 	public Mat extractQRImage(Mat img0) {
 
@@ -969,6 +982,10 @@ public class PictureProcessingHelper {
 			contour = contour.h_next();
 		}
 		return image;
+	}
+	
+	public String getQrCode(){
+		return code;
 	}
 
 	private int checkPositionInCenter(int posx, int posy) {

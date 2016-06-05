@@ -6,11 +6,8 @@ import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
 import javax.imageio.ImageIO;
-
 import static org.bytedeco.javacpp.helper.opencv_core.*;
-
 import org.bytedeco.javacpp.opencv_videoio.CvCapture;
 import org.bytedeco.javacv.Frame;
 import static org.bytedeco.javacpp.helper.opencv_imgproc.*;
@@ -21,27 +18,15 @@ import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameGrabber;
 import org.bytedeco.javacv.VideoInputFrameGrabber;
 
-import com.google.zxing.BinaryBitmap;
-import com.google.zxing.LuminanceSource;
-import com.google.zxing.MultiFormatReader;
-import com.google.zxing.NotFoundException;
 import com.google.zxing.Result;
-import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
-import com.google.zxing.common.HybridBinarizer;
-
-import static org.bytedeco.javacpp.opencv_imgproc.*;
 
 import org.bytedeco.javacpp.*;
 import org.bytedeco.javacpp.opencv_core.*;
 import org.bytedeco.javacpp.indexer.FloatIndexer;
-
-import static org.bytedeco.javacpp.helper.opencv_imgproc.*;
 import static org.bytedeco.javacpp.opencv_imgproc.*;
 import static org.bytedeco.javacpp.opencv_video.*;
-import static org.bytedeco.javacpp.opencv_imgcodecs.*;
 import org.bytedeco.javacv.*;
 import static org.bytedeco.javacpp.opencv_core.*;
-
 import app.DroneCommunicator;
 import app.DroneInterface;
 import de.yadrone.base.ARDrone;
@@ -51,8 +36,10 @@ import de.yadrone.base.exception.ARDroneException;
 import de.yadrone.base.exception.IExceptionListener;
 import de.yadrone.base.video.ImageListener;
 import de.yadrone.base.video.VideoManager;
+import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -62,10 +49,10 @@ public class PictureController {
 	private PictureProcessingHelper OFC = new PictureProcessingHelper();
 	private DroneInterface droneCommunicator;
 	private IARDrone drone;
-	private Video video;
 	private OFVideo ofvideo;
 	private ScheduledExecutorService timer;
 	private Result qrCodeResult;
+	public static String qrCodeText = "";
 	FrameGrabber grabber = new OpenCVFrameGrabber(0);
 
 	public static int colorInt = 3;
@@ -81,6 +68,10 @@ public class PictureController {
 	private static Slider minimumThresh;
 	@FXML
 	private static Slider maximumThresh;
+	@FXML
+	private Label qrCode;
+	@FXML
+	private Label qrDist;
 	
 
 	public PictureController() throws Exception {
@@ -155,7 +146,7 @@ public class PictureController {
 			@Override
 			public void imageUpdated(BufferedImage arg0) {
 				if (isFirst) {
-					new Thread(ofvideo = new OFVideo(filterFrame, polyFrame, qrFrame, arg0)).start();
+					new Thread(ofvideo = new OFVideo(filterFrame, polyFrame, qrFrame,qrCode, arg0)).start();
 					isFirst = false;
 				}
 				ofvideo.setArg0(arg0);
@@ -169,11 +160,8 @@ public class PictureController {
 		OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
 		OpenCVFrameConverter.ToMat converterMat = new OpenCVFrameConverter.ToMat();
 
-		// Works with Mathias CAM - adjust grabFromCam accordingly
 		 FrameGrabber grabber = new VideoInputFrameGrabber(0);
 		grabber.start();
-		
-		
 
 		Runnable frameGrabber = new Runnable() {
 			boolean isFirst = true;
@@ -239,6 +227,12 @@ public class PictureController {
 				BufferedImage bufferedImageQr =  IplImageToBufferedImage(qrImage);
 				Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
 				qrFrame.setImage(imageQr);
+				
+				Platform.runLater(new Runnable() {
+		            @Override public void run() {
+		            	qrCode.setText("QR Code Found: " + OFC.getQrCode());
+		            }
+		        });
 				
 				isFirst = false;
 				
@@ -315,8 +309,6 @@ public class PictureController {
 	public void land() {
 		droneCommunicator.freeze();
 		droneCommunicator.land();
-		
-		
 	}
 	
 	public void takeOff() {

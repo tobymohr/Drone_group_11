@@ -10,7 +10,9 @@ import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
 import org.bytedeco.javacv.OpenCVFrameGrabber;
 
+import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
@@ -22,17 +24,16 @@ public class OFVideo implements Runnable {
 	private ImageView filterFrame;
 	private ImageView polyFrame;
 	private ImageView qrFrame;
-	
+	private Label qrCode;
 	BufferedImage arg0;
-
-
 	PictureProcessingHelper OFC = new PictureProcessingHelper();
 
-	public OFVideo(ImageView filterFrame, ImageView polyFrame, ImageView qrFrame, BufferedImage arg0) {
+	public OFVideo(ImageView filterFrame, ImageView polyFrame, ImageView qrFrame, Label qrCode, BufferedImage arg0) {
 		this.arg0 = arg0;
 		this.filterFrame = filterFrame;
 		this.polyFrame = polyFrame;
 		this.qrFrame = qrFrame;
+		this.qrCode = qrCode;
 		converter = new OpenCVFrameConverter.ToIplImage();
 		converterMat = new ToMat();
 		converter1 = new Java2DFrameConverter();		
@@ -78,7 +79,12 @@ public class OFVideo implements Runnable {
 					Image imageFilter = SwingFXUtils.toFXImage(bufferedImageFilter, null);
 					Image imagePoly = SwingFXUtils.toFXImage(bufferedImage, null);
 					Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
-
+					
+					Platform.runLater(new Runnable() {
+			            @Override public void run() {
+			            	qrCode.setText("QR Code Found: " + OFC.getQrCode());
+			            }
+			        });
 					polyFrame.setImage(imagePoly);
 					filterFrame.setImage(imageFilter);
 					qrFrame.setImage(imageQr);
