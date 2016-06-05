@@ -189,19 +189,19 @@ public class PictureProcessingHelper {
 
 	public Mat findContoursBlackMat(Mat img) {
 		MatVector contour1 = new MatVector();
-		Mat grayImageMat = new Mat(img.arraySize(), 8, 1);// IplImage.create(img.width(),
-															// img.height(),
-															// IPL_DEPTH_8U, 1);
-		cvtColor(img, grayImageMat, CV_BGR2GRAY);
+		//cvtColor(img, grayImageMat, CV_BGR2GRAY);
+                Mat matHSV = new Mat(img.arraySize(), img.arrayDepth(),img.arrayChannels());
+                cvtColor(img, matHSV, CV_RGB2HSV);
+                Mat scalar1 = new Mat(new Scalar(0,0,0,0));
+		Mat scalar2 = new Mat(new Scalar(180,255,38,0));
 
-		threshold(grayImageMat, grayImageMat, 0, 130, CV_THRESH_BINARY_INV);
-		findContours(grayImageMat, contour1, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
+                inRange(matHSV, scalar1, scalar2, matHSV);
+		findContours(matHSV, contour1, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
 
 		for (int i = 0; i < contour1.size(); i++) {
-			drawContours(grayImageMat, contour1, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 1,
-					new opencv_core.Point());
+			drawContours(matHSV, contour1, i, new Scalar(0,0,0,0), 3, CV_FILLED, null, 1, new opencv_core.Point());
 		}
-		return grayImageMat;
+		return matHSV;
 	}
 
 	public Mat findContoursRedMat(Mat img) {

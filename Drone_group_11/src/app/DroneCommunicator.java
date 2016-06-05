@@ -10,7 +10,7 @@ public class DroneCommunicator implements DroneInterface {
 	private boolean connectedToDrone = false;
 	private boolean droneFlying = false;
 	private CommandManager commandManager = null;
-	private int speed = 30;
+	private int speed = 10;
 	private VideoChannel videoChannel;
 	
 	public DroneCommunicator(IARDrone drone){
@@ -153,6 +153,17 @@ public class DroneCommunicator implements DroneInterface {
 				@Override
 				public void run() {
 					commandManager.spinRight(speed).doFor(duration);
+				}
+			});
+		}
+	}
+	@Override
+	public void hover(){
+		if (connectedToDrone && droneFlying) {
+			commandManager.schedule(0, new Runnable() {
+				@Override
+				public void run() {
+					commandManager.hover();
 				}
 			});
 		}

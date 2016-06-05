@@ -1,4 +1,4 @@
-package picture;
+package zDeprecated;
 
 import static org.bytedeco.javacpp.helper.opencv_core.*;
 
@@ -495,8 +495,6 @@ public class OpticalFlowCalculator {
 		
 		posX = (int) (mom10 / area);
 		posY = (int) (mom01 / area);
-		
-	
 
 		while (contour != null && !contour.isNull()) {
 			if (contour.elem_size() > 0) {
