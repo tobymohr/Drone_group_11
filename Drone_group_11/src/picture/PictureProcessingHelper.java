@@ -83,6 +83,7 @@ public class PictureProcessingHelper {
 	private CvScalar rgba_max = cvScalar(maxRed, maxGreen, maxBlue, 0);
 	private int xleft, xright, ytop, ybot, yCenterTop, yCenterBottom;
 	QRCodeReader reader = new QRCodeReader();
+	private Result qrCodeResult;
 	LuminanceSource source;
 	BinaryBitmap bitmap;
 	List<CvPoint> corners = new ArrayList<CvPoint>();
@@ -250,15 +251,13 @@ public class PictureProcessingHelper {
 	}
 
 	public Mat extractQRImage(Mat img0) {
-		
-		img0 = imread("k.jpg");
 		float knownDistance = 103;
 		float focalLength = 219 * knownDistance;
 		Mat img1 = new Mat(img0.arraySize(), CV_8UC1, 1);
 		cvtColor(img0, img1, CV_RGB2GRAY);
 		Canny(img1, img1, 75, 200);
 		MatVector matContour = new MatVector();
-		
+		System.out.println("---------");
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 		Mat crop = new Mat(img0.rows(), img0.cols(), CV_8UC3, Scalar.BLACK);
 		Mat mask = new Mat(img1.rows(), img1.cols(), CV_8UC1, Scalar.BLACK);
@@ -274,17 +273,42 @@ public class PictureProcessingHelper {
 				source = new BufferedImageLuminanceSource(qrCode);
 				bitmap = new BinaryBitmap(new HybridBinarizer(source));
 				try {
-					Result detectionResult = reader.decode(bitmap);
-					code = detectionResult.getText();
 					distance = focalLength/rect.size().height();
 					System.out.println(distance);
+					Result detectionResult = reader.decode(bitmap);
+					code = detectionResult.getText();
+					System.out.println(code);
 				} catch (Exception e) {
 				}
 			}
-			
 		}
+		System.out.println("---------");
 		
 		return crop;
+	}
+	
+	public Boolean CheckdecodedQR(IplImage img0){
+		String OURQR = "AF.01";
+		
+		try {
+			 qrCodeResult = reader.decode(bitmap);
+			
+//			found = true;
+		} catch (NotFoundException e) {
+			//						e.printStackTrace();
+		} catch (ChecksumException e) {
+			//						e.printStackTrace();
+		} catch (FormatException e) {
+			//						e.printStackTrace();
+		}
+		
+		if(qrCodeResult.equals( OURQR)){
+			System.out.println(OURQR);
+			return true;
+		}
+		else
+			
+			return false;
 	}
 
 	private int closestPoint(List<Mat> pointsList, Mat markerMiddle) {
