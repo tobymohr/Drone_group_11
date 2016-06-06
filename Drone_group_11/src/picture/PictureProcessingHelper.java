@@ -378,7 +378,7 @@ public class PictureProcessingHelper {
 			return true;
 		}
 		else
-			System.out.println();
+			
 			return false;
 	}
 
