@@ -3,6 +3,8 @@ package picture;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.util.ResourceBundle;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -38,13 +40,19 @@ import de.yadrone.base.video.ImageListener;
 import de.yadrone.base.video.VideoManager;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.stage.Stage;
 
-public class PictureController {
+public class PictureController  {
 
 	private PictureProcessingHelper OFC = new PictureProcessingHelper();
 	private DroneInterface droneCommunicator;
@@ -58,6 +66,10 @@ public class PictureController {
 	public static int colorInt = 3;
 
 	// CAMERA
+	@FXML
+	private HBox Hbox;
+	@FXML
+	private BorderPane borderpane;
 	@FXML
 	private ImageView polyFrame;
 	@FXML
@@ -75,7 +87,7 @@ public class PictureController {
 	
 
 	public PictureController() throws Exception {
-	
+		
 	}
 
 	private void setDimension(ImageView image, int dimension) {
@@ -83,8 +95,10 @@ public class PictureController {
 		image.setPreserveRatio(true);
 	}
 
+	
 	@FXML
 	protected void startCamera() {
+		
 //		 setDimension(polyFrame, 800);
 //			setDimension(filterFrame, 800);
 //			setDimension(qrFrame, 800);
@@ -179,7 +193,7 @@ public class PictureController {
 //				}		
 				
 				camMat = grabMatFromCam(converterMat, grabber);
-				camImage = grabFromCam(converter, grabber);
+//				camImage = grabFromCam(converter, grabber);
 				
 				
 //				IplImage filteredImage = null;
@@ -200,6 +214,11 @@ public class PictureController {
 					break;
 				}
 				
+//				QR
+				Mat qrImage = OFC.center(camMat.clone(), filteredMat.clone());
+				BufferedImage bufferedImageQr =  MatToBufferedImage(qrImage);
+				Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
+				qrFrame.setImage(imageQr);
 			
 				//Filter
 				BufferedImage bufferedMatImage = MatToBufferedImage(filteredMat);
@@ -222,11 +241,7 @@ public class PictureController {
 //				polyFrame.setImage(imageOptical);
 //				}
 				
-//				QR
-				Mat qrImage = OFC.extractQRImage(camMat);
-				BufferedImage bufferedImageQr =  MatToBufferedImage(qrImage);
-				Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
-				qrFrame.setImage(imageQr);
+				
 				
 //				Platform.runLater(new Runnable() {
 //		            @Override public void run() {

@@ -11,11 +11,11 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.*?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="618.9998779296875" prefWidth="1049.0000999999975" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="picture.PictureController">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="618.9998779296875" prefWidth="1049.0000999999975" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="picture.PictureController" fx:id="borderpane">
   <bottom>
     <VBox alignment="CENTER" prefHeight="119.0" prefWidth="1050.0" spacing="15.0">
       <children>
-        <HBox alignment="CENTER">
+        <HBox alignment="CENTER" >
           <children>
             <Button fx:id="cameraButton" alignment="CENTER" onAction="#startCamera" text="Start camera" />
             <Button alignment="CENTER" onAction="#startDrone" text="Start drone" />
@@ -38,7 +38,7 @@
     </VBox>
   </bottom>
   <center>
-    <HBox alignment="CENTER" minHeight="221.0" prefHeight="221.0" prefWidth="1050.0" spacing="5.0">
+    <HBox alignment="CENTER" minHeight="221.0" prefHeight="221.0" prefWidth="1050.0" spacing="5.0" fx:id="Hbox">
       <children>
         <ImageView fx:id="filterFrame" fitHeight="350.0" fitWidth="350.0" pickOnBounds="true" preserveRatio="true" />
         <ImageView fx:id="polyFrame" fitHeight="350.0" fitWidth="350.0" pickOnBounds="true" preserveRatio="true" />

@@ -164,9 +164,7 @@ public class PictureProcessingHelper {
 		inRange(mathsv3, scalar1, scalar2, mathueLower);
 		inRange(mathsv3, scalar3, scalar4, mathueUpper);
 		addWeighted(mathueLower, 1.0, mathueUpper, 1.0, 0.0, imgbin3);
-
 		findContours(imgbin3, matContour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
-
 		for (int i = 0; i < matContour.size(); i++) {
 			drawContours(imgbin3, matContour, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 1,
 					new opencv_core.Point());
@@ -247,6 +245,7 @@ public class PictureProcessingHelper {
 		cvSetImageROI(dest, cvRect(fromX, fromY, toWidth, toHeight));
 		IplImage dest2 = cvCloneImage(dest);
 		cvCopy(dest, dest2);
+		
 		return dest2;
 	}
 
@@ -257,7 +256,6 @@ public class PictureProcessingHelper {
 		cvtColor(img0, img1, CV_RGB2GRAY);
 		Canny(img1, img1, 75, 200);
 		MatVector matContour = new MatVector();
-		System.out.println("---------");
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 		Mat crop = new Mat(img0.rows(), img0.cols(), CV_8UC3, Scalar.BLACK);
 		Mat mask = new Mat(img1.rows(), img1.cols(), CV_8UC1, Scalar.BLACK);
@@ -274,17 +272,107 @@ public class PictureProcessingHelper {
 				bitmap = new BinaryBitmap(new HybridBinarizer(source));
 				try {
 					distance = focalLength/rect.size().height();
-					System.out.println(distance);
 					Result detectionResult = reader.decode(bitmap);
 					code = detectionResult.getText();
-					System.out.println(code);
 				} catch (Exception e) {
 				}
 			}
 		}
-		System.out.println("---------");
 		
 		return crop;
+	}
+
+	public Mat center(Mat img, Mat filter) {
+		MatVector matContour = new MatVector();
+		findContours(filter, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+
+		int factor = 5;
+
+		// find center points
+		xleft = (int) img.arrayWidth() / factor;
+		xright = (int) (img.arrayWidth() / factor) * (factor - 1);
+		ytop = 0;
+		ybot = img.arrayHeight();
+		// center of centerpoints y
+		yCenterBottom = (img.arrayHeight() / 3) * 2;
+		yCenterTop = (img.arrayHeight() / 3);
+
+		// System.out.println(img.arrayHeight() + "h");
+		// System.out.println(img.arrayWidth() + "w");
+		// Make center points
+		Point pointTopLeft = new Point(xleft, ytop);
+		Point pointBottomLeft = new Point(xleft, ybot);
+		Point pointTopRight = new Point(xright, ytop);
+		Point pointRightBottom = new Point(xright, ybot);
+
+		// Make upper line points in center
+		Point pointCenterUpperLeft = new Point(xleft, yCenterTop);
+		Point pointCenterUpperRight = new Point(xright, yCenterTop);
+		// Make bottom line points in center
+		Point pointCenterBottomLeft = new Point(xleft, yCenterBottom);
+		Point pointCenterBottomRight = new Point(xright, yCenterBottom);
+
+		// Find red point
+		int posX = 0;
+		int posY = 0;
+
+		Moments moments = moments(filter);
+		double mom10 = moments.m10();
+		double mom01 = moments.m01();
+		double mom00 = moments.m00();
+
+		posX = (int) (mom10 / mom00);
+		posY = (int) (mom01 / mom00);
+
+		// Draw Center
+		line(img, pointTopLeft, pointTopRight, new Scalar(255, 0, 255, 0));
+		line(img, pointTopRight, pointRightBottom, new Scalar(255, 0, 255, 0));
+		line(img, pointRightBottom, pointBottomLeft, new Scalar(255, 0, 255, 0));
+		line(img, pointBottomLeft, pointTopLeft, new Scalar(255, 0, 255, 0));
+		// Draw upper line
+		line(img, pointCenterUpperLeft, pointCenterUpperRight, new Scalar(0, 0, 255, 0));
+		line(img, pointCenterBottomLeft, pointCenterBottomRight, new Scalar(0, 255, 0, 0));
+		int counter = 0;
+		for (int i = 0; i < matContour.size(); i++) {
+
+			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
+			if (contourArea(matContour.get(i)) > 150) {
+				Point2f centerPoint = minAreaRect(matContour.get(i)).center();
+				opencv_core.Point p = new opencv_core.Point((int) centerPoint.x(), (int) centerPoint.y());
+				line(img, p, p, Scalar.BLACK, 16, CV_AA, 0);
+				drawContours(img, matContour, i, new Scalar(0, 0, 0, 0), 3, CV_AA, null, 1, new opencv_core.Point());
+
+				for (int j = 0; j < matContour.get(i).total(); j++) {
+					Point2f centerPointTemp = minAreaRect(matContour.get(i)).center();
+					opencv_core.Point ptemp = new opencv_core.Point((int) centerPointTemp.x(), (int) centerPointTemp.y());
+					line(img, ptemp, ptemp, Scalar.BLACK, 16, CV_AA, 0);
+					if (checkBoxForCenter(ptemp.x(), ptemp.y())) {
+						counter++;
+					}
+				}
+
+				if (counter == matContour.get(i).total()) {
+					// check in which part of center box is.
+					switch (checkPositionInCenter(p.x(), p.y())) {
+					case 1:
+						line(img, p, p, Scalar.BLUE, 16, CV_AA, 0);
+						break;
+					case 2:
+						line(img, p, p, Scalar.RED, 16, CV_AA, 0);
+						break;
+					case 3:
+						line(img, p, p, Scalar.GREEN, 16, CV_AA, 0);
+						break;
+					default:
+						break;
+
+					}
+
+				}
+			}
+		}
+
+		return img;
 	}
 	
 	public Boolean CheckdecodedQR(IplImage img0){
@@ -682,6 +770,7 @@ public class PictureProcessingHelper {
 	}
 
 	private int checkPositionInCenter(int posx, int posy) {
+		
 		boolean bottomCenterCondition = posy > yCenterBottom;
 		boolean upperCenterCondition = posy < yCenterTop;
 		if (upperCenterCondition) {
@@ -707,7 +796,6 @@ public class PictureProcessingHelper {
 		if (horizontalCondition && verticalCondition) {
 			return true;
 		} else {
-			// System.out.println("not centered");
 			return false;
 		}
 
