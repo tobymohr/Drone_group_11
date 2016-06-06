@@ -48,6 +48,7 @@ import java.awt.event.ComponentListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorConvertOp;
 import java.awt.image.ConvolveOp;
+import java.awt.image.ImageProducer;
 import java.awt.image.Kernel;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -92,17 +93,11 @@ public class PictureProcessingHelper {
 	
 
 	CvSeq squares = cvCreateSeq(0, Loader.sizeof(CvSeq.class), Loader.sizeof(CvPoint.class), storage);
-	private CvBox2D markerRight;
-	private CvBox2D markerLeft;
-	private CvPoint pointMiddle;
-	private CvPoint pointClosest;
-	private CvBox2D markerMiddle;
-	private IplImage img1;
-	CanvasFrame canvas = new CanvasFrame("Warped Image");
+//	CanvasFrame canvas = new CanvasFrame("Warped Image");
 
 
 	public PictureProcessingHelper() {
-		canvas.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//		canvas.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 
 	double angle(CvPoint pt1, CvPoint pt2, CvPoint pt0) {
@@ -197,96 +192,26 @@ public class PictureProcessingHelper {
 			drawContours(imgbin, matContour, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 1, new opencv_core.Point());
 		}
 		return imgbin;
-	}
+	}	
 
 	
-	
-	
-	
-	public IplImage warpImage(IplImage crop, CvSeq points) {
-		corners.clear();
-		for (int i = 0; i < 4; i++) {
-			CvPoint p = new CvPoint(cvGetSeqElem(points, i));
-			corners.add(p);
-		}
+	public Mat warpImage(Mat crop, RotatedRect rect) {
+		Point2f vertices = new Point2f(4);
+		rect.points(vertices);
+		Point tl = new Point((int)vertices.position(1).x(), (int)vertices.position(1).y());
+		Point tr = new Point((int)vertices.position(2).x(), (int)vertices.position(2).y());
+		Point br = new Point((int)vertices.position(3).x(), (int)vertices.position(3).y());
+		Point bl = new Point((int)vertices.position(0).x(), (int)vertices.position(0).y());
 		
-		float[] aImg = { 
-				corners.get(0).x(), corners.get(0).y(), 
-				corners.get(1).x(), corners.get(1).y(), 
-				corners.get(2).x(), corners.get(2).y(), 
-				corners.get(3).x(), corners.get(3).y()
-		};
-
-
-		int height = corners.get(1).y() - corners.get(0).y();
-		int width = corners.get(3).x() - corners.get(0).x();
-		if (height <= 0 || width <= 0 || ((int)height/width) == 0) {
-			return crop;
-		}
-		float aspect = height / width;
+		int height = (int) rect.size().height();
+		int width = (int) rect.size().width();
 		
-		float[] aWorld = { 
-				0.0f, 			0.0f,
-				0.0f, 			crop.height() * aspect,
-				crop.width(), 	crop.height() * aspect,
-				crop.width(), 	0.0f 
-				};
-
-		CvMat homography = cvCreateMat(3, 3, opencv_core.CV_32FC1);
-		opencv_imgproc.cvGetPerspectiveTransform(aImg, aWorld, homography);
-
-		imgWarped = cvCreateImage(new CvSize(crop.width(), (int) (crop.height() * aspect)), 8, 3);
-		opencv_imgproc.cvWarpPerspective(crop, imgWarped, homography, opencv_imgproc.CV_INTER_LINEAR, CvScalar.ZERO);
-		
-		Mat kernel = new Mat(3, 3, CV_32F, new Scalar(0));
-		  // Indexer is used to access value in the matrix
-		FloatIndexer ki = kernel.createIndexer();
-		ki.put(1, 1, 5);
-		ki.put(0, 1, -1);
-		ki.put(2, 1, -1);
-		ki.put(1, 0, -1);
-		ki.put(1, 2, -1);
-		  
-		Mat dest = cvarrToMat(imgWarped);
-		filter2D(cvarrToMat(imgWarped), dest, imgWarped.depth(), kernel);
-
-		imgSharpened = new IplImage(dest);
-		
-//		canvas.showImage(converter.convert(imgWarped));
-//		canvas1.showImage(converter.convert(imgSharpened));
-		
-		return imgSharpened;
-	}
-	
-	
-
-	
-	public Mat warpImage(Mat crop, Rect rect) {
-		Point tl = rect.tl();
-		Point tr = new Point(tl.x() + rect.width(), tl.y());
-		Point br = rect.br();
-		Point bl = new Point(tl.x(), br.y());
-		
-		System.out.println("BL(" + bl.x() + "," + bl.y() + ") BR(" + br.x() + "," +br.y() + ") TR(" + tr.x() + "," + tr.y() + ") TL(" + tl.x() + "," + tl.y() +  ")");
-		
-		
-		int resultWidth = tr.x() - tl.x();
-		int bottomWidth = br.x() - bl.x();
-		if (bottomWidth > resultWidth) {
-			resultWidth = bottomWidth;
-		}
-		int resultHeight = (int) bl.y() - tl.y();
-		int bottomHeight = (int) br.y() - tr.y();
-		if (bottomHeight > resultHeight) {
-			resultHeight = bottomHeight;
-		}
 		float[] sourcePoints = {tl.x(), tl.y(), tr.x(), tr.y(), bl.x(), bl.y(), br.x(), br.y()};
-//		float[] destinationPoints = {0, 0, resultWidth, 0, 0, resultHeight, resultWidth, resultHeight};
 		float[] destinationPoints = { 
-				0.0f, 			0.0f,
-				rect.width(), 	0.0f,
-				rect.width(), 	rect.height(),
-				0.0f,	 	rect.height() 
+				0.0f, 					0.0f,
+				width, 	0.0f,
+				0.0f, 					height,
+				width,	height 
 				};
 		CvMat homography = cvCreateMat(3, 3, CV_32FC1);
 		cvGetPerspectiveTransform(sourcePoints, destinationPoints, homography);
@@ -294,20 +219,31 @@ public class PictureProcessingHelper {
 		IplImage dest = convertMatToIplImage(copy);
 		IplImage warp = convertMatToIplImage(copy);
 		cvWarpPerspective(warp, dest, homography, CV_INTER_LINEAR, CvScalar.ZERO);
-		dest = cropImage(dest, 0, 0, resultWidth, resultHeight);
+		dest = cropImage(dest, 0, 0, width, height);
 		Mat m = cvarrToMat(dest);
-//		circle(crop, tl, 3, Scalar.RED);
-//		circle(crop, tr, 3, Scalar.RED);
-//		circle(crop, br, 3, Scalar.RED);
-//		circle(crop, bl, 3, Scalar.RED);
-		canvas.showImage(converter.convert(m));
+		try {
+			tl.close();
+			tr.close();
+			br.close();
+			bl.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		cvClearMemStorage(storage);
 		return m;
 		
 	}
 	
+	public IplImage cleanImageSmoothingForOCR(IplImage srcImage){
+		IplImage destImage = cvCreateImage(cvGetSize(srcImage), IPL_DEPTH_8U, 1);
+		cvCvtColor(srcImage, destImage, CV_BGR2GRAY);
+		cvThreshold(destImage,destImage,0,255,CV_THRESH_OTSU);
+		return destImage;
+	}
+	
 
-	private IplImage cropImage(IplImage dest, int j, int k, int resultWidth, int resultHeight) {
-		cvSetImageROI(dest, cvRect(j, k, resultWidth, resultHeight));
+	private IplImage cropImage(IplImage dest, int fromX, int fromY, int toWidth, int toHeight) {
+		cvSetImageROI(dest, cvRect(fromX, fromY, toWidth, toHeight));
 		IplImage dest2 = cvCloneImage(dest);
 		cvCopy(dest, dest2);
 		return dest2;
@@ -315,27 +251,24 @@ public class PictureProcessingHelper {
 
 	public Mat extractQRImage(Mat img0) {
 		
+		img0 = imread("k.jpg");
 		float knownDistance = 103;
 		float focalLength = 219 * knownDistance;
 		Mat img1 = new Mat(img0.arraySize(), CV_8UC1, 1);
 		cvtColor(img0, img1, CV_RGB2GRAY);
-//		GaussianBlur(img1, img1, new Size(5,5), 0.0,0.0, BORDER_DEFAULT);
-//		erode(img1, img1, null);
-//		dilate(img1, img1, img1);
 		Canny(img1, img1, 75, 200);
 		MatVector matContour = new MatVector();
 		
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 		Mat crop = new Mat(img0.rows(), img0.cols(), CV_8UC3, Scalar.BLACK);
 		Mat mask = new Mat(img1.rows(), img1.cols(), CV_8UC1, Scalar.BLACK);
-//		System.out.println("---------");
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
 			if (matContour.get(i).total() == 4  && contourArea(matContour.get(i)) > 1000 && contourArea(matContour.get(i)) < 10000) {
 				drawContours(mask, matContour, i, Scalar.WHITE, CV_FILLED, 8, null, 1, null);
 				img0.copyTo(crop,mask);
 				
-				Rect rect = boundingRect(matContour.get(i));
+				RotatedRect rect = minAreaRect(matContour.get(i));
 				crop = warpImage(crop, rect);
 				BufferedImage qrCode = converter1.convert(converter.convert(crop));
 				source = new BufferedImageLuminanceSource(qrCode);
@@ -343,13 +276,10 @@ public class PictureProcessingHelper {
 				try {
 					Result detectionResult = reader.decode(bitmap);
 					code = detectionResult.getText();
-//					System.out.println(rect.size().height() + "|" + rect.size().width());
 					distance = focalLength/rect.size().height();
-					rectangle(img0, rect, Scalar.BLUE);
+					System.out.println(distance);
 				} catch (Exception e) {
 				}
-				crop = new Mat(img0.rows(), img0.cols(), CV_8UC3, Scalar.BLACK);
-				mask = new Mat(img1.rows(), img1.cols(), CV_8UC1, Scalar.BLACK);
 			}
 			
 		}
