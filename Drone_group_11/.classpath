@@ -3,11 +3,23 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/JavaCV"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/YADrone"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Yadrone"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/javaCV"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/yadrone"/>
 	<classpathentry kind="con" path="org.eclipse.fx.ide.jdt.core.JAVAFX_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/JavaCVDrone"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/YaDrones"/>
+	<classpathentry kind="lib" path="/Users/Mkiza/YaDrone/yadrone_032_fat_lib/lib/reflections/guava-11.0.2.jar"/>
+	<classpathentry kind="lib" path="/Users/Mkiza/YaDrone/yadrone_032_fat_lib/lib/reflections/javassist-3.16.1-GA.jar"/>
+	<classpathentry kind="lib" path="/Users/Mkiza/YaDrone/yadrone_032_fat_lib/lib/reflections/reflections-0.9.9-RC1.jar"/>
+	<classpathentry kind="lib" path="/Users/Mkiza/YaDrone/yadrone_032_fat_lib/lib/commons-net-3.2.jar"/>
+	<classpathentry kind="lib" path="/Users/Mkiza/YaDrone/yadrone_032_fat_lib/lib/core.jar"/>
+	<classpathentry kind="lib" path="/Users/Mkiza/YaDrone/yadrone_032_fat_lib/lib/jcommon-1.0.16.jar"/>
+	<classpathentry kind="lib" path="/Users/Mkiza/YaDrone/yadrone_032_fat_lib/lib/jfreechart-1.0.13.jar"/>
+	<classpathentry kind="lib" path="/Users/Mkiza/YaDrone/yadrone_032_fat_lib/lib/slf4j-api-1.7.2.jar"/>
+	<classpathentry kind="lib" path="/Users/Mkiza/YaDrone/yadrone_032_fat_lib/lib/slf4j-jdk14-1.7.2.jar"/>
+	<classpathentry kind="lib" path="/Users/Mkiza/YaDrone/yadrone_032_fat_lib/lib/xuggle-xuggler-5.4.jar"/>
+	<classpathentry kind="lib" path="/Users/Mkiza/YaDrone/yadrone_032_fat_lib/lib/zxing/core-2.2.jar"/>
+	<classpathentry kind="lib" path="/Users/Mkiza/YaDrone/yadrone_032_fat_lib/lib/zxing/javase-2.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

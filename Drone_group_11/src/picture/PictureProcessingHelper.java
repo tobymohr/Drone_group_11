@@ -77,6 +77,7 @@ public class PictureProcessingHelper {
 	private CvScalar rgba_max = cvScalar(maxRed, maxGreen, maxBlue, 0);
 	private int xleft, xright, ytop, ybot, yCenterTop, yCenterBottom;
 	QRCodeReader reader = new QRCodeReader();
+	private Result qrCodeResult;
 	LuminanceSource source;
 	BinaryBitmap bitmap;
 	List<CvPoint> corners = new ArrayList<CvPoint>();
@@ -621,6 +622,30 @@ public class PictureProcessingHelper {
 		//// System.out.println("--------------------------------");
 		//// }
 		return img0;
+	}
+	
+	public Boolean CheckdecodedQR(IplImage img0){
+		String OURQR = "AF.01";
+		
+		try {
+			 qrCodeResult = reader.decode(bitmap);
+			
+//			found = true;
+		} catch (NotFoundException e) {
+			//						e.printStackTrace();
+		} catch (ChecksumException e) {
+			//						e.printStackTrace();
+		} catch (FormatException e) {
+			//						e.printStackTrace();
+		}
+		
+		if(qrCodeResult.equals( OURQR)){
+			System.out.println(OURQR);
+			return true;
+		}
+		else
+			System.out.println();
+			return false;
 	}
 
 	private int closestPoint(List<Mat> pointsList, Mat markerMiddle) {
