@@ -2,7 +2,7 @@ package coordinateSystem;
 
 import java.util.ArrayList;
 
-import helper.Point;
+import helper.CustomPoint;
 
 public class Coordinates {
 	ArrayList<Cord> cordList;
@@ -20,7 +20,7 @@ public class Coordinates {
 		cordList.add(new Cord(x,y,green));
 	}
 	
-	public void addCords(ArrayList<Cord> tempList, double altitude, Point currentPos){
+	public void addCords(ArrayList<Cord> tempList, double altitude, CustomPoint currentPos){
 		// get altitude
 		double altScale = altitude * 0.23; //0.23 skal rettes til whatever
 		
