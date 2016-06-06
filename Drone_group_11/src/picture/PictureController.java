@@ -146,7 +146,7 @@ public class PictureController {
 			@Override
 			public void imageUpdated(BufferedImage arg0) {
 				if (isFirst) {
-					new Thread(ofvideo = new OFVideo(filterFrame, polyFrame, qrFrame,qrCode, arg0)).start();
+					new Thread(ofvideo = new OFVideo(filterFrame, polyFrame, qrFrame,qrCode, qrDist, arg0)).start();
 					isFirst = false;
 				}
 				ofvideo.setArg0(arg0);
@@ -223,16 +223,16 @@ public class PictureController {
 //				}
 				
 //				QR
-				IplImage qrImage = OFC.extractQRImage(camImage);
-				BufferedImage bufferedImageQr =  IplImageToBufferedImage(qrImage);
+				Mat qrImage = OFC.extractQRImage(camMat);
+				BufferedImage bufferedImageQr =  MatToBufferedImage(qrImage);
 				Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
 				qrFrame.setImage(imageQr);
 				
-				Platform.runLater(new Runnable() {
-		            @Override public void run() {
-		            	qrCode.setText("QR Code Found: " + OFC.getQrCode());
-		            }
-		        });
+//				Platform.runLater(new Runnable() {
+//		            @Override public void run() {
+//		            	qrCode.setText("QR Code Found: " + OFC.getQrCode());
+//		            }
+//		        });
 				
 				isFirst = false;
 				
