@@ -73,6 +73,7 @@ public class OFVideo implements Runnable {
 						break;
 					}
 					
+					
 					showQr(newImg.clone());
 					showLanding(newImg.clone(), filteredImage.clone());
 					showPolygons(newImg.clone(), filteredImage.clone());
