@@ -235,6 +235,7 @@ public class PictureProcessingHelper {
 		Mat m = cvarrToMat(dest.clone());
 		
 		
+		
 		cvRelease(dest);
 		cvClearMemStorage(storage);
 		
