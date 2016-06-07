@@ -276,6 +276,7 @@ public class PictureProcessingHelper {
 				crop = warpImage(crop, rect);
 				scanQrCode(crop);
 				distance = calcDistance(rect);
+				checkAngles(rect);
 				
 				drawContours(img0, matContour, i, Scalar.WHITE, 2, 8, null, 1, null);
 				putText(img0, "" + (int) distance, new Point((int)rect.center().x() - 25, (int)rect.center().y() + 60), 1, 2, Scalar.RED, 2, 8, false);
@@ -285,6 +286,33 @@ public class PictureProcessingHelper {
 			}
 		}
 		return img0;
+	}
+	
+	public void checkAngles(RotatedRect rect) {
+		Point2f vertices = new Point2f(4);
+		rect.points(vertices);
+		int angle = Math.abs((int) rect.angle());
+		Point tl = null;
+		Point tr = null;
+		Point br = null;
+		Point bl = null;
+		if (angle >= 0 && angle < 10) {
+			tl = new Point((int) vertices.position(1).x(), (int) vertices.position(1).y());
+			tr = new Point((int) vertices.position(2).x(), (int) vertices.position(2).y());
+			br = new Point((int) vertices.position(3).x(), (int) vertices.position(3).y());
+			bl = new Point((int) vertices.position(0).x(), (int) vertices.position(0).y());
+		} else {
+			tl = new Point((int) vertices.position(2).x(), (int) vertices.position(2).y());
+			tr = new Point((int) vertices.position(3).x(), (int) vertices.position(3).y());
+			br = new Point((int) vertices.position(0).x(), (int) vertices.position(0).y());
+			bl = new Point((int) vertices.position(1).x(), (int) vertices.position(1).y());
+		}
+		System.out.println("----------");
+		System.out.println(calculateAngle(tl, tr, bl));
+		System.out.println(calculateAngle(tr, tl, br));
+		System.out.println(calculateAngle(bl, tl, br));
+		System.out.println(calculateAngle(br, bl, tr));
+		System.out.println("----------");
 	}
 	
 	public boolean scanQrCode(Mat srcImage){
@@ -945,5 +973,14 @@ public class PictureProcessingHelper {
 		}
 
 		return angle;
+	}
+	
+	public double calculateAngle(Point A, Point B, Point C) {
+		double a = Math.sqrt(Math.pow(C.x()-B.x(), 2) + Math.pow(C.y()-B.y(), 2));
+		double b = Math.sqrt(Math.pow(A.x()-C.x(), 2) + Math.pow(A.y()-C.y(), 2));
+		double c = Math.sqrt(Math.pow(B.x()-A.x(), 2) + Math.pow(B.y()-A.y(), 2));
+		
+		double cosA = (Math.pow(b, 2) + Math.pow(c, 2) - Math.pow(a, 2)) / (2 * b * c);
+		return Math.acos(cosA);
 	}
 }
