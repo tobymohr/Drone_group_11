@@ -83,7 +83,7 @@ public class PictureProcessingHelper {
 
 	private CvScalar rgba_min = cvScalar(minRed, minGreen, minBlue, 0);
 	private CvScalar rgba_max = cvScalar(maxRed, maxGreen, maxBlue, 0);
-	private int xleft, xright, ytop, ybot, yCenterTop, yCenterBottom;
+	private int xleft, xright, ytop, ybot, yCenterTop, yCenterBottom, dist;
 	QRCodeReader reader = new QRCodeReader();
 	private Result qrCodeResult;
 	LuminanceSource source;
@@ -194,13 +194,25 @@ public class PictureProcessingHelper {
 		}
 		return imgbin;
 	}
+	
+	
+
 
 	public Mat warpImage(Mat crop, RotatedRect rect) {
 		vertices = new Point2f(4);
-		
 		CvMemStorage storage = CvMemStorage.create();
 		rect.points(vertices);
 		int angle = Math.abs((int) rect.angle());
+		float w = crop.cols();
+		float x = distance;
+		float y = 28;
+		float z = vertices.position(1).x() - vertices.position(0).x();
+		z = Math.abs(z);
+//		System.out.println("Width in pix " + z);
+		double sum = (w*y)/(2*x*z);
+		double AOV = Math.atan(sum)*2;
+		AOV = Math.toDegrees(AOV);
+//		System.out.println("AOV " + AOV);
 		
 		Point tl = null;
 		Point tr = null;
@@ -233,9 +245,6 @@ public class PictureProcessingHelper {
 		cvWarpPerspective(dest, dest, homography, CV_INTER_LINEAR, CvScalar.ZERO);
 		dest = cropImage(dest, 0, 0, width, height);
 		Mat m = cvarrToMat(dest.clone());
-		
-		
-		
 		cvRelease(dest);
 		cvClearMemStorage(storage);
 		
@@ -271,15 +280,14 @@ public class PictureProcessingHelper {
 		Mat mask = new Mat(img1.rows(), img1.cols(), CV_8UC1, Scalar.BLACK);
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
-			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > 1000
-					) {
+			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > 1000) {
 				drawContours(mask, matContour, i, Scalar.WHITE, CV_FILLED, 8, null, 1, null);
 				img0.copyTo(crop, mask);
 				RotatedRect rect = minAreaRect(matContour.get(i));
 				crop = warpImage(crop, rect);
 				scanQrCode(crop);
 				distance = calcDistance(rect);
-				
+				checkAngles(rect);
 				drawContours(img0, matContour, i, Scalar.WHITE, 2, 8, null, 1, null);
 				putText(img0, "" + (int) distance, new Point((int)rect.center().x() - 25, (int)rect.center().y() + 60), 1, 2, Scalar.RED, 2, 8, false);
 				putText(img0, code, new Point((int)rect.center().x() - 25, (int)rect.center().y() + 80), 1, 2, Scalar.GREEN, 2, 8, false);
@@ -288,6 +296,33 @@ public class PictureProcessingHelper {
 			}
 		}
 		return img0;
+	}
+	
+	public void checkAngles(RotatedRect rect) {
+		Point2f vertices = new Point2f(4);
+		rect.points(vertices);
+		int angle = Math.abs((int) rect.angle());
+		Point tl = null;
+		Point tr = null;
+		Point br = null;
+		Point bl = null;
+		if (angle >= 0 && angle < 10) {
+			tl = new Point((int) vertices.position(1).x(), (int) vertices.position(1).y());
+			tr = new Point((int) vertices.position(2).x(), (int) vertices.position(2).y());
+			br = new Point((int) vertices.position(3).x(), (int) vertices.position(3).y());
+			bl = new Point((int) vertices.position(0).x(), (int) vertices.position(0).y());
+		} else {
+			tl = new Point((int) vertices.position(2).x(), (int) vertices.position(2).y());
+			tr = new Point((int) vertices.position(3).x(), (int) vertices.position(3).y());
+			br = new Point((int) vertices.position(0).x(), (int) vertices.position(0).y());
+			bl = new Point((int) vertices.position(1).x(), (int) vertices.position(1).y());
+		}
+		System.out.println("----------");
+		System.out.println(calculateAngle(tl, tr, bl));
+		System.out.println(calculateAngle(tr, tl, br));
+		System.out.println(calculateAngle(bl, tl, br));
+		System.out.println(calculateAngle(br, bl, tr));
+		System.out.println("----------");
 	}
 	
 	public boolean scanQrCode(Mat srcImage){
@@ -321,7 +356,9 @@ public class PictureProcessingHelper {
 
 	
 	public Mat center(Mat img, Mat filter) {
+		
 		MatVector matContour = new MatVector();
+
 		
 		Mat img1 = new Mat(img.arraySize(), CV_8UC1, 1);
 		
@@ -329,6 +366,7 @@ public class PictureProcessingHelper {
 		Canny(img1, img1, 75, 200);
 		
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+
 
 		int factor = 5;
 
@@ -376,27 +414,30 @@ public class PictureProcessingHelper {
 				Point2f centerPoint = minAreaRect(matContour.get(i)).center();
 				opencv_core.Point p = new opencv_core.Point((int) centerPoint.x(), (int) centerPoint.y());
 				line(img, p, p, Scalar.BLACK, 16, CV_AA, 0);
+
 				drawContours(img1, matContour, i, Scalar.WHITE, CV_FILLED, 8, null, 1, null);
 				
 				
+
 				for (int j = 0; j < matContour.get(i).total(); j++) {
 					Point2f centerPointTemp = minAreaRect(matContour.get(i)).center();
 					opencv_core.Point ptemp = new opencv_core.Point((int) centerPointTemp.x(),
 							(int) centerPointTemp.y());
 					line(img, ptemp, ptemp, Scalar.BLACK, 16, CV_AA, 0);
-					if (checkBoxForCenter(ptemp.x(), ptemp.y())) {
+					if (checkBoxForCenter(ptemp.x(), ptemp.y(),dist)) {
 						counter++;
 					}
 				}
 
 				if (counter == matContour.get(i).total()) {
 					// check in which part of center box is.
-					switch (checkPositionInCenter(p.x(), p.y())) {
+					switch (checkPositionInCenter(p.x(), p.y(),dist)) {
 					case 1:
 						line(img, p, p, Scalar.BLUE, 16, CV_AA, 0);
 						break;
 					case 2:
 						line(img, p, p, Scalar.RED, 16, CV_AA, 0);
+						dist = 0;
 						break;
 					case 3:
 						line(img, p, p, Scalar.GREEN, 16, CV_AA, 0);
@@ -422,28 +463,6 @@ public class PictureProcessingHelper {
 		return img;
 	}
 
-	public Boolean CheckdecodedQR(IplImage img0) {
-		String OURQR = "AF.01";
-
-		try {
-			qrCodeResult = reader.decode(bitmap);
-
-			// found = true;
-		} catch (NotFoundException e) {
-			// e.printStackTrace();
-		} catch (ChecksumException e) {
-			// e.printStackTrace();
-		} catch (FormatException e) {
-			// e.printStackTrace();
-		}
-
-		if (qrCodeResult.equals(OURQR)) {
-			System.out.println(OURQR);
-			return true;
-		} else
-
-			return false;
-	}
 
 	private int closestPoint(List<Mat> pointsList, Mat markerMiddle) {
 		double qrMarkerSize = contourArea(markerMiddle);
@@ -628,7 +647,6 @@ public class PictureProcessingHelper {
 					posX = (int) (mom10 / area);
 					posY = (int) (mom01 / area);
 
-					// skal g�re det for hver unik figur
 
 					CvPoint p0 = cvPoint(posX, posY);
 					cvLine(coloredImage, p0, p0, CV_RGB(255, 0, 0), 16, CV_AA, 0);
@@ -815,36 +833,65 @@ public class PictureProcessingHelper {
 		return distance;
 	}
 
-	private int checkPositionInCenter(int posx, int posy) {
+	private int checkPositionInCenter(int posx, int posy, int dist) {
 
 		boolean bottomCenterCondition = posy > yCenterBottom;
 		boolean upperCenterCondition = posy < yCenterTop;
+		boolean leftCenterCondition = posx < xleft;
+		boolean rightCenterCondition = posx > xright;
+		
 		if (upperCenterCondition) {
+			dist = 0;
 			return 1;
 		}
 
 		if (!bottomCenterCondition && !upperCenterCondition) {
+			dist = 0;
 			return 2;
 		}
 
 		if (bottomCenterCondition) {
+			dist = 0;
 			return 3;
 		}
-
+		if(leftCenterCondition){
+			dist = 0;
+			return 4;
+		}
+		
+		if(rightCenterCondition){
+			dist = 0;
+			return 5;
+		}
 		return 0;
 
 	}
 
-	private boolean checkBoxForCenter(int posx, int posy) {
-
+	private boolean checkBoxForCenter(int posx, int posy, int dist) {
+		
 		boolean verticalCondition = posy > ytop && posy < ybot;
 		boolean horizontalCondition = posx > xleft && posx < xright;
 		if (horizontalCondition && verticalCondition) {
+			dist = 50;
 			return true;
 		} else {
 			return false;
 		}
 
+	}
+	
+	private boolean checkCenterDistance(int posx, int posy, int dist){
+		
+		dist = 50; 
+		
+		checkBoxForCenter(posx, posy, dist);
+		
+		checkPositionInCenter(posx, posy, dist);
+		
+		
+		
+		return false;
+		
 	}
 
 	private boolean checkForCenter(int posx, int posy, int redx, int redy) {
@@ -936,13 +983,13 @@ public class PictureProcessingHelper {
 		return thresh;
 
 	}
-
+	
+	
 	public double calcAngles(IplImage coloredImage, CvSeq points) {
 
 		double angle = 0;
 		ArrayList<CvPoint> listen = new ArrayList<CvPoint>();
 
-		// skal g�re det for hver unik figur
 		for (int i = 0; i < 5; i++) {
 			listen.add(new CvPoint(cvGetSeqElem(points, i)));
 		}
@@ -958,5 +1005,14 @@ public class PictureProcessingHelper {
 		}
 
 		return angle;
+	}
+	
+	public double calculateAngle(Point A, Point B, Point C) {
+		double a = Math.sqrt(Math.pow(C.x()-B.x(), 2) + Math.pow(C.y()-B.y(), 2));
+		double b = Math.sqrt(Math.pow(A.x()-C.x(), 2) + Math.pow(A.y()-C.y(), 2));
+		double c = Math.sqrt(Math.pow(B.x()-A.x(), 2) + Math.pow(B.y()-A.y(), 2));
+		
+		double cosA = (Math.pow(b, 2) + Math.pow(c, 2) - Math.pow(a, 2)) / (2 * b * c);
+		return Math.acos(cosA);
 	}
 }
