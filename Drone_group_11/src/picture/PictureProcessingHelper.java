@@ -91,14 +91,13 @@ public class PictureProcessingHelper {
 	IplImage crop;
 	IplImage imgWarped;
 	IplImage imgSharpened;
-	
 
 	CvSeq squares = cvCreateSeq(0, Loader.sizeof(CvSeq.class), Loader.sizeof(CvPoint.class), storage);
-//	CanvasFrame canvas = new CanvasFrame("Warped Image");
-
+	// CanvasFrame canvas = new CanvasFrame("Warped Image");
+	private int j = 0;
 
 	public PictureProcessingHelper() {
-//		canvas.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		// canvas.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 
 	double angle(CvPoint pt1, CvPoint pt2, CvPoint pt0) {
@@ -129,17 +128,17 @@ public class PictureProcessingHelper {
 
 	public Mat findContoursBlackMat(Mat img) {
 		MatVector contour1 = new MatVector();
-		//cvtColor(img, grayImageMat, CV_BGR2GRAY);
-                Mat matHSV = new Mat(img.arraySize(), img.arrayDepth(),img.arrayChannels());
-                cvtColor(img, matHSV, CV_RGB2HSV);
-                Mat scalar1 = new Mat(new Scalar(0,0,0,0));
-		Mat scalar2 = new Mat(new Scalar(180,255,38,0));
+		// cvtColor(img, grayImageMat, CV_BGR2GRAY);
+		Mat matHSV = new Mat(img.arraySize(), img.arrayDepth(), img.arrayChannels());
+		cvtColor(img, matHSV, CV_RGB2HSV);
+		Mat scalar1 = new Mat(new Scalar(0, 0, 0, 0));
+		Mat scalar2 = new Mat(new Scalar(180, 255, 38, 0));
 
-                inRange(matHSV, scalar1, scalar2, matHSV);
+		inRange(matHSV, scalar1, scalar2, matHSV);
 		findContours(matHSV, contour1, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
 
 		for (int i = 0; i < contour1.size(); i++) {
-			drawContours(matHSV, contour1, i, new Scalar(0,0,0,0), 3, CV_FILLED, null, 1, new opencv_core.Point());
+			drawContours(matHSV, contour1, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 1, new opencv_core.Point());
 		}
 		return matHSV;
 	}
@@ -191,27 +190,36 @@ public class PictureProcessingHelper {
 			drawContours(imgbin, matContour, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 1, new opencv_core.Point());
 		}
 		return imgbin;
-	}	
+	}
 
-	
 	public Mat warpImage(Mat crop, RotatedRect rect) {
 		Point2f vertices = new Point2f(4);
 		rect.points(vertices);
-		Point tl = new Point((int)vertices.position(1).x(), (int)vertices.position(1).y());
-		Point tr = new Point((int)vertices.position(2).x(), (int)vertices.position(2).y());
-		Point br = new Point((int)vertices.position(3).x(), (int)vertices.position(3).y());
-		Point bl = new Point((int)vertices.position(0).x(), (int)vertices.position(0).y());
-		
-		int height = (int) rect.size().height();
-		int width = (int) rect.size().width();
-		
-		float[] sourcePoints = {tl.x(), tl.y(), tr.x(), tr.y(), bl.x(), bl.y(), br.x(), br.y()};
-		float[] destinationPoints = { 
-				0.0f, 					0.0f,
-				width, 	0.0f,
-				0.0f, 					height,
-				width,	height 
-				};
+		int angle = Math.abs((int) rect.angle());
+		Point tl = null;
+		Point tr = null;
+		Point br = null;
+		Point bl = null;
+		int height;
+		int width;
+		if (angle >= 0 && angle < 10) {
+			tl = new Point((int) vertices.position(1).x(), (int) vertices.position(1).y());
+			tr = new Point((int) vertices.position(2).x(), (int) vertices.position(2).y());
+			br = new Point((int) vertices.position(3).x(), (int) vertices.position(3).y());
+			bl = new Point((int) vertices.position(0).x(), (int) vertices.position(0).y());
+			height = (int) rect.size().height();
+			width = (int) rect.size().width();
+		} else {
+			tl = new Point((int) vertices.position(2).x(), (int) vertices.position(2).y());
+			tr = new Point((int) vertices.position(3).x(), (int) vertices.position(3).y());
+			br = new Point((int) vertices.position(0).x(), (int) vertices.position(0).y());
+			bl = new Point((int) vertices.position(1).x(), (int) vertices.position(1).y());
+			height = (int) rect.size().width();
+			width = (int) rect.size().height();
+		}
+
+		float[] sourcePoints = { tl.x(), tl.y(), tr.x(), tr.y(), bl.x(), bl.y(), br.x(), br.y() };
+		float[] destinationPoints = { 0.0f, 0.0f, width, 0.0f, 0.0f, height, width, height };
 		CvMat homography = cvCreateMat(3, 3, CV_32FC1);
 		cvGetPerspectiveTransform(sourcePoints, destinationPoints, homography);
 		Mat copy = new Mat(crop);
@@ -230,59 +238,84 @@ public class PictureProcessingHelper {
 		}
 		cvClearMemStorage(storage);
 		return m;
-		
+
 	}
-	
-	public IplImage cleanImageSmoothingForOCR(IplImage srcImage){
+
+	public IplImage cleanImageSmoothingForOCR(IplImage srcImage) {
 		IplImage destImage = cvCreateImage(cvGetSize(srcImage), IPL_DEPTH_8U, 1);
 		cvCvtColor(srcImage, destImage, CV_BGR2GRAY);
-		cvThreshold(destImage,destImage,0,255,CV_THRESH_OTSU);
+		cvThreshold(destImage, destImage, 0, 255, CV_THRESH_OTSU);
 		return destImage;
 	}
-	
 
 	private IplImage cropImage(IplImage dest, int fromX, int fromY, int toWidth, int toHeight) {
 		cvSetImageROI(dest, cvRect(fromX, fromY, toWidth, toHeight));
 		IplImage dest2 = cvCloneImage(dest);
 		cvCopy(dest, dest2);
-		
+
 		return dest2;
 	}
 
 	public Mat extractQRImage(Mat img0) {
-		float knownDistance = 103;
-		float focalLength = 219 * knownDistance;
+		img0 = imread("img" + j % 245 + ".jpg");
+		j++;
+		
 		Mat img1 = new Mat(img0.arraySize(), CV_8UC1, 1);
 		cvtColor(img0, img1, CV_RGB2GRAY);
 		Canny(img1, img1, 75, 200);
 		MatVector matContour = new MatVector();
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+		
 		Mat crop = new Mat(img0.rows(), img0.cols(), CV_8UC3, Scalar.BLACK);
 		Mat mask = new Mat(img1.rows(), img1.cols(), CV_8UC1, Scalar.BLACK);
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
-			if (matContour.get(i).total() == 4  && contourArea(matContour.get(i)) > 1000 && contourArea(matContour.get(i)) < 10000) {
+			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > 1000
+					&& contourArea(matContour.get(i)) < 10000) {
 				drawContours(mask, matContour, i, Scalar.WHITE, CV_FILLED, 8, null, 1, null);
-				img0.copyTo(crop,mask);
-				
+				img0.copyTo(crop, mask);
 				RotatedRect rect = minAreaRect(matContour.get(i));
-				int angle = Math.abs((int)rect.angle());
-				System.out.println(angle);
 				crop = warpImage(crop, rect);
-				BufferedImage qrCode = converter1.convert(converter.convert(crop));
-				source = new BufferedImageLuminanceSource(qrCode);
-				bitmap = new BinaryBitmap(new HybridBinarizer(source));
-				try {
-					distance = focalLength/rect.size().height();
-					Result detectionResult = reader.decode(bitmap);
-					code = detectionResult.getText();
-				} catch (Exception e) {
+				if(scanQrCode(crop)) {
+					
+					
 				}
-				}
+				distance = calcDistance(rect);
+				crop = new Mat(img0.rows(), img0.cols(), CV_8UC3, Scalar.BLACK);
+				mask = new Mat(img1.rows(), img1.cols(), CV_8UC1, Scalar.BLACK);
+			}
+		}
+		return img0;
+	}
+	
+	public boolean scanQrCode(Mat srcImage){
+		BufferedImage qrCode = converter1.convert(converter.convert(srcImage));
+		source = new BufferedImageLuminanceSource(qrCode);
+		bitmap = new BinaryBitmap(new HybridBinarizer(source));
+		try {
+			Result detectionResult = reader.decode(bitmap);
+			code = detectionResult.getText();
+			return true;
+		} catch (Exception e) {
+			return false;
 		}
 		
-		return crop;
 	}
+	
+	public float calcDistance(RotatedRect rect){
+		float knownDistance = 103;
+		float height = 0;
+		float focalLength = 219 * knownDistance;
+		int angle = Math.abs((int) rect.angle());
+		if (angle >= 0 && angle < 10) {
+			height =  rect.size().height();
+		} else {
+			height =  rect.size().width();
+		}
+		return focalLength/height;
+	}
+	
+	
 
 	public Mat center(Mat img, Mat filter) {
 		MatVector matContour = new MatVector();
@@ -346,7 +379,8 @@ public class PictureProcessingHelper {
 
 				for (int j = 0; j < matContour.get(i).total(); j++) {
 					Point2f centerPointTemp = minAreaRect(matContour.get(i)).center();
-					opencv_core.Point ptemp = new opencv_core.Point((int) centerPointTemp.x(), (int) centerPointTemp.y());
+					opencv_core.Point ptemp = new opencv_core.Point((int) centerPointTemp.x(),
+							(int) centerPointTemp.y());
 					line(img, ptemp, ptemp, Scalar.BLACK, 16, CV_AA, 0);
 					if (checkBoxForCenter(ptemp.x(), ptemp.y())) {
 						counter++;
@@ -376,28 +410,27 @@ public class PictureProcessingHelper {
 
 		return img;
 	}
-	
-	public Boolean CheckdecodedQR(IplImage img0){
+
+	public Boolean CheckdecodedQR(IplImage img0) {
 		String OURQR = "AF.01";
-		
+
 		try {
-			 qrCodeResult = reader.decode(bitmap);
-			
-//			found = true;
+			qrCodeResult = reader.decode(bitmap);
+
+			// found = true;
 		} catch (NotFoundException e) {
-			//						e.printStackTrace();
+			// e.printStackTrace();
 		} catch (ChecksumException e) {
-			//						e.printStackTrace();
+			// e.printStackTrace();
 		} catch (FormatException e) {
-			//						e.printStackTrace();
+			// e.printStackTrace();
 		}
-		
-		if(qrCodeResult.equals( OURQR)){
+
+		if (qrCodeResult.equals(OURQR)) {
 			System.out.println(OURQR);
 			return true;
-		}
-		else
-			
+		} else
+
 			return false;
 	}
 
@@ -559,7 +592,7 @@ public class PictureProcessingHelper {
 		xright = (int) (coloredImage.width() / factor) * (factor - 1);
 		ytop = 0;
 		ybot = coloredImage.height();
-		
+
 		// center of centerpoints y
 		yCenterBottom = (coloredImage.height() / 3) * 2;
 		yCenterTop = (coloredImage.height() / 3);
@@ -605,7 +638,7 @@ public class PictureProcessingHelper {
 		MatVector contour = new MatVector();
 		findContours(filteredImage, contour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
 
-//		System.out.println(contour.size() + "");
+		// System.out.println(contour.size() + "");
 		// find center points
 		for (int i = 0; i < contour.size(); i++) {
 			approxPolyDP(contour.get(i), contour.get(i), 0.02 * arcLength(contour.get(i), true), true);
@@ -762,17 +795,17 @@ public class PictureProcessingHelper {
 		}
 		return image;
 	}
-	
-	public String getQrCode(){
+
+	public String getQrCode() {
 		return code;
 	}
-	
-	public double getDistance(){
+
+	public double getDistance() {
 		return distance;
 	}
 
 	private int checkPositionInCenter(int posx, int posy) {
-		
+
 		boolean bottomCenterCondition = posy > yCenterBottom;
 		boolean upperCenterCondition = posy < yCenterTop;
 		if (upperCenterCondition) {
@@ -892,8 +925,6 @@ public class PictureProcessingHelper {
 		return thresh;
 
 	}
-	
-
 
 	public double calcAngles(IplImage coloredImage, CvSeq points) {
 
