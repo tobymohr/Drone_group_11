@@ -266,6 +266,8 @@ public class PictureProcessingHelper {
 				img0.copyTo(crop,mask);
 				
 				RotatedRect rect = minAreaRect(matContour.get(i));
+				int angle = Math.abs((int)rect.angle());
+				System.out.println(angle);
 				crop = warpImage(crop, rect);
 				BufferedImage qrCode = converter1.convert(converter.convert(crop));
 				source = new BufferedImageLuminanceSource(qrCode);
@@ -276,7 +278,7 @@ public class PictureProcessingHelper {
 					code = detectionResult.getText();
 				} catch (Exception e) {
 				}
-			}
+				}
 		}
 		
 		return crop;

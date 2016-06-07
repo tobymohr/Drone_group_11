@@ -180,9 +180,7 @@ public class PictureController  {
 
 		Runnable frameGrabber = new Runnable() {
 			boolean isFirst = true;
-			IplImage camImage;
 			Mat camMat = null;
-			Mat camImageOld = null;
 			@Override
 			public void run() {
 				camMat = grabMatFromCam(converterMat, grabber);
