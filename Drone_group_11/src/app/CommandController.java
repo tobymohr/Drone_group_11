@@ -5,18 +5,25 @@ import de.yadrone.base.IARDrone;
 
 public class CommandController implements Runnable {
 	public DroneInterface dC;
-	private LinkedBlockingDeque<Integer> q;
-	private int task; //current task
-	private int time;
+	private LinkedBlockingDeque<Task> q;
 	private long startTime = 0;
 	private boolean wait = false;
+	private Task task;
 
+	class Task{
+		public int time;
+		public int task;
+		public Task(int task, int time){
+			this.task = task;
+			this.time = time;
+		}
+	}
 
 
 	public CommandController(IARDrone drone) {
 		dC = new DroneCommunicator(drone);
 		dC.setBottomCamera();
-		q = new LinkedBlockingDeque<Integer>();
+		q = new LinkedBlockingDeque<Task>();
 	}
 
 	@Override
@@ -33,40 +40,40 @@ public class CommandController implements Runnable {
 					}
 
 					task = q.take();
-					switch(task){
+					switch(task.task){
 					//Go commands
 					case 1:
 						startTime = System.currentTimeMillis();
-						dC.goForward(time);
+						dC.goForward(task.time);
 						break;
 					case 2:
 						startTime = System.currentTimeMillis();
-						dC.goBackwards(time);
+						dC.goBackwards(task.time);
 						break;
 					case 3:
 						startTime = System.currentTimeMillis();
-						dC.goLeft(time);
+						dC.goLeft(task.time);
 						break;
 					case 4:
 						startTime = System.currentTimeMillis();
-						dC.goRight(time);
+						dC.goRight(task.time);
 						break;
 					case 5:
 						startTime = System.currentTimeMillis();
-						dC.goUp(time);
+						dC.goUp(task.time);
 						break;
 					case 6:
 						startTime = System.currentTimeMillis();
-						dC.goUp(time);
+						dC.goUp(task.time);
 						break;
 						//Rotate commands
 					case 7:
 						startTime = System.currentTimeMillis();
-						dC.spinLeft(time);
+						dC.spinLeft(task.time);
 						break;
 					case 8:
 						startTime = System.currentTimeMillis();
-						dC.spinRight(time);
+						dC.spinRight(task.time);
 						break;
 						//Take off and land
 					case 9:
@@ -75,7 +82,7 @@ public class CommandController implements Runnable {
 					case 10:
 						dC.land();
 					}
-					wait(time);
+					wait(task.time);
 				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -86,12 +93,9 @@ public class CommandController implements Runnable {
 
 	}
 
-	public void setTime(int time) {
-		this.time = time;
-	}
 
-	public void addCommand(int c){
-		q.offer(c);
+	public void addCommand(int c, int t){
+		q.offer(new Task(c,t));
 	}
 
 	public void emergencyStop(){
@@ -114,8 +118,8 @@ public class CommandController implements Runnable {
 			notify();
 			if(con){
 				
-				if(difference < time){
-					time = (int) difference;
+				if(difference < task.time){
+					task.time = (int) difference;
 					q.offerFirst(task);
 				}
 			}
