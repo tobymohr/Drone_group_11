@@ -257,8 +257,6 @@ public class PictureProcessingHelper {
 	}
 
 	public Mat extractQRImage(Mat img0) {
-		img0 = imread("img" + j % 245 + ".jpg");
-		j++;
 		
 		Mat img1 = new Mat(img0.arraySize(), CV_8UC1, 1);
 		cvtColor(img0, img1, CV_RGB2GRAY);
@@ -271,16 +269,17 @@ public class PictureProcessingHelper {
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
 			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > 1000
-					&& contourArea(matContour.get(i)) < 10000) {
+					) {
 				drawContours(mask, matContour, i, Scalar.WHITE, CV_FILLED, 8, null, 1, null);
 				img0.copyTo(crop, mask);
 				RotatedRect rect = minAreaRect(matContour.get(i));
 				crop = warpImage(crop, rect);
-				if(scanQrCode(crop)) {
-					
-					
-				}
+				scanQrCode(crop);
 				distance = calcDistance(rect);
+				
+				drawContours(img0, matContour, i, Scalar.WHITE, 2, 8, null, 1, null);
+				putText(img0, "" + (int) distance, new Point((int)rect.center().x() - 25, (int)rect.center().y() + 60), 1, 2, Scalar.RED, 2, 8, false);
+				putText(img0, code, new Point((int)rect.center().x() - 25, (int)rect.center().y() + 80), 1, 2, Scalar.GREEN, 2, 8, false);
 				crop = new Mat(img0.rows(), img0.cols(), CV_8UC3, Scalar.BLACK);
 				mask = new Mat(img1.rows(), img1.cols(), CV_8UC1, Scalar.BLACK);
 			}
@@ -303,9 +302,9 @@ public class PictureProcessingHelper {
 	}
 	
 	public float calcDistance(RotatedRect rect){
-		float knownDistance = 103;
+		float knownDistance = 214;
 		float height = 0;
-		float focalLength = 219 * knownDistance;
+		float focalLength = 103 * knownDistance;
 		int angle = Math.abs((int) rect.angle());
 		if (angle >= 0 && angle < 10) {
 			height =  rect.size().height();
