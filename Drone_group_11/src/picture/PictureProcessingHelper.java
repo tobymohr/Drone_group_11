@@ -285,9 +285,10 @@ public class PictureProcessingHelper {
 	}
 
 	public Mat center(Mat img, Mat filter) {
+		
 		MatVector matContour = new MatVector();
 		findContours(filter, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
-
+		
 		int factor = 5;
 
 		// find center points
@@ -336,13 +337,12 @@ public class PictureProcessingHelper {
 		line(img, pointCenterBottomLeft, pointCenterBottomRight, new Scalar(0, 255, 0, 0));
 		int counter = 0;
 		for (int i = 0; i < matContour.size(); i++) {
-
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
-			if (contourArea(matContour.get(i)) > 150) {
+			if (matContour.get(i).total()==4 && contourArea(matContour.get(i))>1000 && contourArea(matContour.get(i)) <10000) {
 				Point2f centerPoint = minAreaRect(matContour.get(i)).center();
 				opencv_core.Point p = new opencv_core.Point((int) centerPoint.x(), (int) centerPoint.y());
 				line(img, p, p, Scalar.BLACK, 16, CV_AA, 0);
-				drawContours(img, matContour, i, new Scalar(0, 0, 0, 0), 3, CV_AA, null, 1, new opencv_core.Point());
+				drawContours(img, matContour, i, Scalar.WHITE, CV_FILLED, 8, null, 1, null);
 
 				for (int j = 0; j < matContour.get(i).total(); j++) {
 					Point2f centerPointTemp = minAreaRect(matContour.get(i)).center();
@@ -377,7 +377,7 @@ public class PictureProcessingHelper {
 		return img;
 	}
 	
-	public Boolean CheckdecodedQR(IplImage img0){
+	public Boolean CheckdecodedQR(Mat img0){
 		String OURQR = "AF.01";
 		
 		try {
