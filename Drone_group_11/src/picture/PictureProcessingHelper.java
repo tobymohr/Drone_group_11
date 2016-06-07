@@ -234,6 +234,7 @@ public class PictureProcessingHelper {
 		dest = cropImage(dest, 0, 0, width, height);
 		Mat m = cvarrToMat(dest.clone());
 		
+		
 		cvRelease(dest);
 		cvClearMemStorage(storage);
 		
