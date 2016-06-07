@@ -277,7 +277,6 @@ public class PictureController  {
 	public void showLanding(Mat camMat, Mat filteredMat){
 
 		Mat qrMat = OFC.extractQRImage(camMat);
-		Boolean check = OFC.CheckdecodedQR(qrMat);
 		Mat landing = OFC.center(camMat.clone(), filteredMat.clone());
 		BufferedImage bufferedImageLanding =  MatToBufferedImage(landing);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);

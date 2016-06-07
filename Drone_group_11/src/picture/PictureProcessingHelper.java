@@ -464,30 +464,6 @@ public class PictureProcessingHelper {
 	}
 
 
-	public Boolean CheckdecodedQR(Mat img0) {
-
-		String OURQR = "AF.01";
-
-		try {
-			qrCodeResult = reader.decode(bitmap);
-
-			// found = true;
-		} catch (NotFoundException e) {
-			// e.printStackTrace();
-		} catch (ChecksumException e) {
-			// e.printStackTrace();
-		} catch (FormatException e) {
-			// e.printStackTrace();
-		}
-
-		if (qrCodeResult.equals(OURQR)) {
-			System.out.println(OURQR);
-			return true;
-		} else
-
-			return false;
-	}
-
 	private int closestPoint(List<Mat> pointsList, Mat markerMiddle) {
 		double qrMarkerSize = contourArea(markerMiddle);
 		double distance = Math.abs(contourArea(pointsList.get(0)) - qrMarkerSize);
@@ -670,8 +646,6 @@ public class PictureProcessingHelper {
 
 					posX = (int) (mom10 / area);
 					posY = (int) (mom01 / area);
-
-					// skal g�re det for hver unik figur
 
 					CvPoint p0 = cvPoint(posX, posY);
 					cvLine(coloredImage, p0, p0, CV_RGB(255, 0, 0), 16, CV_AA, 0);
@@ -1015,7 +989,6 @@ public class PictureProcessingHelper {
 		double angle = 0;
 		ArrayList<CvPoint> listen = new ArrayList<CvPoint>();
 
-		// skal g�re det for hver unik figur
 		for (int i = 0; i < 5; i++) {
 			listen.add(new CvPoint(cvGetSeqElem(points, i)));
 		}
