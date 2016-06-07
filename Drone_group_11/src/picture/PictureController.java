@@ -248,8 +248,8 @@ public class PictureController  {
 					break;
 				}
 				
-				showQr(camMat);
-				showLanding(camMat, filteredMat);
+				showQr(camMat.clone());
+				showLanding(camMat.clone(), filteredMat);
 				showPolygons(camMat, filteredMat);
 				showFilter(filteredMat);
 				
