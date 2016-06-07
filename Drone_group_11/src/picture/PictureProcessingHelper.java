@@ -67,6 +67,8 @@ public class PictureProcessingHelper {
 	private float distance;
 	Java2DFrameConverter converter1 = new Java2DFrameConverter();
 	private CvMemStorage storage = CvMemStorage.create();
+	IplImage dest = null;
+	IplImage warp = null;
 	static int maxRed = 242;
 	static int maxGreen = 99;
 	static int maxBlue = 255;
@@ -81,7 +83,7 @@ public class PictureProcessingHelper {
 
 	private CvScalar rgba_min = cvScalar(minRed, minGreen, minBlue, 0);
 	private CvScalar rgba_max = cvScalar(maxRed, maxGreen, maxBlue, 0);
-	private int xleft, xright, ytop, ybot, yCenterTop, yCenterBottom;
+	private int xleft, xright, ytop, ybot, yCenterTop, yCenterBottom, dist;
 	QRCodeReader reader = new QRCodeReader();
 	private Result qrCodeResult;
 	LuminanceSource source;
@@ -95,6 +97,7 @@ public class PictureProcessingHelper {
 	CvSeq squares = cvCreateSeq(0, Loader.sizeof(CvSeq.class), Loader.sizeof(CvPoint.class), storage);
 	// CanvasFrame canvas = new CanvasFrame("Warped Image");
 	private int j = 0;
+	private Point2f vertices;
 
 	public PictureProcessingHelper() {
 		// canvas.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -193,9 +196,12 @@ public class PictureProcessingHelper {
 	}
 
 	public Mat warpImage(Mat crop, RotatedRect rect) {
-		Point2f vertices = new Point2f(4);
+		vertices = new Point2f(4);
+		
+		CvMemStorage storage = CvMemStorage.create();
 		rect.points(vertices);
 		int angle = Math.abs((int) rect.angle());
+		
 		Point tl = null;
 		Point tr = null;
 		Point br = null;
@@ -222,21 +228,17 @@ public class PictureProcessingHelper {
 		float[] destinationPoints = { 0.0f, 0.0f, width, 0.0f, 0.0f, height, width, height };
 		CvMat homography = cvCreateMat(3, 3, CV_32FC1);
 		cvGetPerspectiveTransform(sourcePoints, destinationPoints, homography);
-		Mat copy = new Mat(crop);
-		IplImage dest = convertMatToIplImage(copy);
-		IplImage warp = convertMatToIplImage(copy);
-		cvWarpPerspective(warp, dest, homography, CV_INTER_LINEAR, CvScalar.ZERO);
+		Mat copy = crop.clone();
+		IplImage dest = new IplImage(copy);
+		cvWarpPerspective(dest, dest, homography, CV_INTER_LINEAR, CvScalar.ZERO);
 		dest = cropImage(dest, 0, 0, width, height);
-		Mat m = cvarrToMat(dest);
-		try {
-			tl.close();
-			tr.close();
-			br.close();
-			bl.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		Mat m = cvarrToMat(dest.clone());
+		
+		
+		
+		cvRelease(dest);
 		cvClearMemStorage(storage);
+		
 		return m;
 
 	}
@@ -256,6 +258,7 @@ public class PictureProcessingHelper {
 		return dest2;
 	}
 
+	@SuppressWarnings("resource")
 	public Mat extractQRImage(Mat img0) {
 		
 		Mat img1 = new Mat(img0.arraySize(), CV_8UC1, 1);
@@ -344,9 +347,19 @@ public class PictureProcessingHelper {
 	
 	
 
+	
 	public Mat center(Mat img, Mat filter) {
+		
 		MatVector matContour = new MatVector();
-		findContours(filter, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+
+		
+		Mat img1 = new Mat(img.arraySize(), CV_8UC1, 1);
+		
+		cvtColor(img, img1, CV_RGB2GRAY);
+		Canny(img1, img1, 75, 200);
+		
+		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+
 
 		int factor = 5;
 
@@ -382,45 +395,42 @@ public class PictureProcessingHelper {
 		double mom10 = moments.m10();
 		double mom01 = moments.m01();
 		double mom00 = moments.m00();
-
 		posX = (int) (mom10 / mom00);
 		posY = (int) (mom01 / mom00);
-
+		
 		// Draw Center
-		line(img, pointTopLeft, pointTopRight, new Scalar(255, 0, 255, 0));
-		line(img, pointTopRight, pointRightBottom, new Scalar(255, 0, 255, 0));
-		line(img, pointRightBottom, pointBottomLeft, new Scalar(255, 0, 255, 0));
-		line(img, pointBottomLeft, pointTopLeft, new Scalar(255, 0, 255, 0));
-		// Draw upper line
-		line(img, pointCenterUpperLeft, pointCenterUpperRight, new Scalar(0, 0, 255, 0));
-		line(img, pointCenterBottomLeft, pointCenterBottomRight, new Scalar(0, 255, 0, 0));
+	
 		int counter = 0;
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
-			if (matContour.get(i).total()==4 && contourArea(matContour.get(i))>1000 && contourArea(matContour.get(i)) <10000) {
+			if (matContour.get(i).total()== 4 && contourArea(matContour.get(i))>1000 && contourArea(matContour.get(i)) <10000) {
 				Point2f centerPoint = minAreaRect(matContour.get(i)).center();
 				opencv_core.Point p = new opencv_core.Point((int) centerPoint.x(), (int) centerPoint.y());
 				line(img, p, p, Scalar.BLACK, 16, CV_AA, 0);
-				drawContours(img, matContour, i, Scalar.WHITE, CV_FILLED, 8, null, 1, null);
+
+				drawContours(img1, matContour, i, Scalar.WHITE, CV_FILLED, 8, null, 1, null);
 				
+				
+
 				for (int j = 0; j < matContour.get(i).total(); j++) {
 					Point2f centerPointTemp = minAreaRect(matContour.get(i)).center();
 					opencv_core.Point ptemp = new opencv_core.Point((int) centerPointTemp.x(),
 							(int) centerPointTemp.y());
 					line(img, ptemp, ptemp, Scalar.BLACK, 16, CV_AA, 0);
-					if (checkBoxForCenter(ptemp.x(), ptemp.y())) {
+					if (checkBoxForCenter(ptemp.x(), ptemp.y(),dist)) {
 						counter++;
 					}
 				}
 
 				if (counter == matContour.get(i).total()) {
 					// check in which part of center box is.
-					switch (checkPositionInCenter(p.x(), p.y())) {
+					switch (checkPositionInCenter(p.x(), p.y(),dist)) {
 					case 1:
 						line(img, p, p, Scalar.BLUE, 16, CV_AA, 0);
 						break;
 					case 2:
 						line(img, p, p, Scalar.RED, 16, CV_AA, 0);
+						dist = 0;
 						break;
 					case 3:
 						line(img, p, p, Scalar.GREEN, 16, CV_AA, 0);
@@ -433,11 +443,22 @@ public class PictureProcessingHelper {
 				}
 			}
 		}
+		line(img, pointTopLeft, pointTopRight, new Scalar(255, 0, 255, 0));
+		line(img, pointTopRight, pointRightBottom, new Scalar(255, 0, 255, 0));
+		line(img, pointRightBottom, pointBottomLeft, new Scalar(255, 0, 255, 0));
+		line(img, pointBottomLeft, pointTopLeft, new Scalar(255, 0, 255, 0));
+		// Draw upper line
+		line(img, pointCenterUpperLeft, pointCenterUpperRight, new Scalar(0, 0, 255, 0));
+		line(img, pointCenterBottomLeft, pointCenterBottomRight, new Scalar(0, 255, 0, 0));
+		
+		
 
 		return img;
 	}
 
-	public Boolean CheckdecodedQR(IplImage img0) {
+
+	public Boolean CheckdecodedQR(Mat img0) {
+
 		String OURQR = "AF.01";
 
 		try {
@@ -830,36 +851,65 @@ public class PictureProcessingHelper {
 		return distance;
 	}
 
-	private int checkPositionInCenter(int posx, int posy) {
+	private int checkPositionInCenter(int posx, int posy, int dist) {
 
 		boolean bottomCenterCondition = posy > yCenterBottom;
 		boolean upperCenterCondition = posy < yCenterTop;
+		boolean leftCenterCondition = posx < xleft;
+		boolean rightCenterCondition = posx > xright;
+		
 		if (upperCenterCondition) {
+			dist = 0;
 			return 1;
 		}
 
 		if (!bottomCenterCondition && !upperCenterCondition) {
+			dist = 0;
 			return 2;
 		}
 
 		if (bottomCenterCondition) {
+			dist = 0;
 			return 3;
 		}
-
+		if(leftCenterCondition){
+			dist = 0;
+			return 4;
+		}
+		
+		if(rightCenterCondition){
+			dist = 0;
+			return 5;
+		}
 		return 0;
 
 	}
 
-	private boolean checkBoxForCenter(int posx, int posy) {
-
+	private boolean checkBoxForCenter(int posx, int posy, int dist) {
+		
 		boolean verticalCondition = posy > ytop && posy < ybot;
 		boolean horizontalCondition = posx > xleft && posx < xright;
 		if (horizontalCondition && verticalCondition) {
+			dist = 50;
 			return true;
 		} else {
 			return false;
 		}
 
+	}
+	
+	private boolean checkCenterDistance(int posx, int posy, int dist){
+		
+		dist = 50; 
+		
+		checkBoxForCenter(posx, posy, dist);
+		
+		checkPositionInCenter(posx, posy, dist);
+		
+		
+		
+		return false;
+		
 	}
 
 	private boolean checkForCenter(int posx, int posy, int redx, int redy) {

@@ -64,7 +64,6 @@ public class PictureController  {
 	private IARDrone drone;
 	private OFVideo ofvideo;
 	private ScheduledExecutorService timer;
-	private Result qrCodeResult;
 	public static String qrCodeText = "";
 	FrameGrabber grabber = new OpenCVFrameGrabber(0);
 	Set<KeyCode> pressedKeys = new HashSet<KeyCode>();
@@ -225,7 +224,7 @@ public class PictureController  {
 		grabber.start();
 
 		Runnable frameGrabber = new Runnable() {
-			boolean isFirst = true;
+			boolean isFirst = true;	
 			Mat camMat = null;
 			@Override
 			public void run() {
@@ -248,8 +247,8 @@ public class PictureController  {
 					break;
 				}
 				
-				showQr(camMat);
-				showLanding(camMat, filteredMat);
+				showQr(camMat.clone());
+				showLanding(camMat.clone(), filteredMat);
 				showPolygons(camMat, filteredMat);
 				showFilter(filteredMat);
 				
@@ -276,6 +275,9 @@ public class PictureController  {
 	}
 	
 	public void showLanding(Mat camMat, Mat filteredMat){
+
+		Mat qrMat = OFC.extractQRImage(camMat);
+		Boolean check = OFC.CheckdecodedQR(qrMat);
 		Mat landing = OFC.center(camMat.clone(), filteredMat.clone());
 		BufferedImage bufferedImageLanding =  MatToBufferedImage(landing);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
