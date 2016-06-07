@@ -194,6 +194,9 @@ public class PictureProcessingHelper {
 		}
 		return imgbin;
 	}
+	
+	
+
 
 	public Mat warpImage(Mat crop, RotatedRect rect) {
 		vertices = new Point2f(4);
@@ -201,6 +204,16 @@ public class PictureProcessingHelper {
 		CvMemStorage storage = CvMemStorage.create();
 		rect.points(vertices);
 		int angle = Math.abs((int) rect.angle());
+		float w = crop.cols();
+		float x = distance;
+		float y = 28;
+		float z = vertices.position(1).x() - vertices.position(0).x();
+		z = Math.abs(z);
+//		System.out.println("Width in pix " + z);
+		double sum = (w*y)/(2*x*z);
+		double AOV = Math.atan(sum)*2;
+		AOV = Math.toDegrees(AOV);
+		System.out.println("AOV " + AOV);
 		
 		Point tl = null;
 		Point tr = null;
@@ -233,9 +246,6 @@ public class PictureProcessingHelper {
 		cvWarpPerspective(dest, dest, homography, CV_INTER_LINEAR, CvScalar.ZERO);
 		dest = cropImage(dest, 0, 0, width, height);
 		Mat m = cvarrToMat(dest.clone());
-		
-		
-		
 		cvRelease(dest);
 		cvClearMemStorage(storage);
 		
@@ -271,14 +281,14 @@ public class PictureProcessingHelper {
 		Mat mask = new Mat(img1.rows(), img1.cols(), CV_8UC1, Scalar.BLACK);
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
-			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > 1000
-					) {
+			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > 1000) {
 				drawContours(mask, matContour, i, Scalar.WHITE, CV_FILLED, 8, null, 1, null);
 				img0.copyTo(crop, mask);
 				RotatedRect rect = minAreaRect(matContour.get(i));
 				crop = warpImage(crop, rect);
 				scanQrCode(crop);
 				distance = calcDistance(rect);
+			
 				
 				drawContours(img0, matContour, i, Scalar.WHITE, 2, 8, null, 1, null);
 				putText(img0, "" + (int) distance, new Point((int)rect.center().x() - 25, (int)rect.center().y() + 60), 1, 2, Scalar.RED, 2, 8, false);
@@ -936,7 +946,8 @@ public class PictureProcessingHelper {
 		return thresh;
 
 	}
-
+	
+	
 	public double calcAngles(IplImage coloredImage, CvSeq points) {
 
 		double angle = 0;
