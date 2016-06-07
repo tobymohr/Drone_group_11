@@ -196,6 +196,7 @@ public class PictureController  {
 		drone.start();
 		cC = new CommandController(drone);
 		cC.dC.setFrontCamera();
+		new Thread(cC).start();
 //		droneCommunicator.setBottomCamera();
 	}
 
