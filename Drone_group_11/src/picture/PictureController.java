@@ -4,7 +4,9 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -29,6 +31,8 @@ import static org.bytedeco.javacpp.opencv_imgproc.*;
 import static org.bytedeco.javacpp.opencv_video.*;
 import org.bytedeco.javacv.*;
 import static org.bytedeco.javacpp.opencv_core.*;
+
+import app.CommandController;
 import app.DroneCommunicator;
 import app.DroneInterface;
 import de.yadrone.base.ARDrone;
@@ -47,6 +51,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -55,13 +60,14 @@ import javafx.stage.Stage;
 public class PictureController  {
 
 	private PictureProcessingHelper OFC = new PictureProcessingHelper();
-	private DroneInterface droneCommunicator;
+	private CommandController cC;
 	private IARDrone drone;
 	private OFVideo ofvideo;
 	private ScheduledExecutorService timer;
 	private Result qrCodeResult;
 	public static String qrCodeText = "";
 	FrameGrabber grabber = new OpenCVFrameGrabber(0);
+	Set<KeyCode> pressedKeys = new HashSet<KeyCode>();
 
 	public static int colorInt = 3;
 
@@ -88,6 +94,44 @@ public class PictureController  {
 	private Label qrDist;
 	
 
+	public void setUpKeys(){
+		borderpane.getScene().setOnKeyPressed(new EventHandler<KeyEvent>()
+	    {
+	        @Override
+	        public void handle(KeyEvent event){
+	        	KeyCode note = event.getCode();
+	        	
+	        	if (!pressedKeys.contains(note)){
+	        		System.out.println(note);
+	        		pressedKeys.add(note);
+	        	switch (event.getCode()) {
+                case W:   cC.dC.goForward(10000);
+                break;
+                case S:   cC.dC.goBackwards(10000);
+                break;
+                case A:   cC.dC.goLeft(10000);
+                break;
+                case D:  cC.dC.goRight(10000);
+                break;
+				default:
+					break;
+            }
+	        	
+	        }
+	        }
+	    });
+		
+		borderpane.getScene().setOnKeyReleased(new EventHandler<KeyEvent>()
+	    {
+	        @Override
+	        public void handle(KeyEvent event){
+	        	pressedKeys.remove(event.getCode());
+	        	System.out.println(event.getCode().toString() + " removed");
+	        	cC.dC.hover();
+	        }
+	    });
+	}
+	
 	public PictureController() throws Exception {
 		
 	}
@@ -121,6 +165,7 @@ public class PictureController  {
 
 	public void startDrone() {
 		 initDrone();
+		 setUpKeys();
 //		 setDimension(polyFrame, 800);
 //			setDimension(filterFrame, 800);
 //			setDimension(qrFrame, 800);
@@ -149,8 +194,9 @@ public class PictureController  {
 			}
 		});
 		drone.start();
-		droneCommunicator = new DroneCommunicator(drone);
-		droneCommunicator.setFrontCamera();
+		cC = new CommandController(drone);
+		cC.dC.setFrontCamera();
+		new Thread(cC).start();
 //		droneCommunicator.setBottomCamera();
 	}
 
@@ -312,17 +358,16 @@ public class PictureController  {
 	}
 	
 	public void emergencyStop() {
-		droneCommunicator.emergencyStop();
+		cC.emergencyStop();
 	}
 	
 	public void land() {
-		droneCommunicator.freeze();
-		droneCommunicator.land();
+		cC.dC.land();
 	}
 	
 	public void takeOff() {
 		System.out.println("TAKEOFF");
-		droneCommunicator.takeOff();
+		cC.dC.takeOff();
 	}
 
 }

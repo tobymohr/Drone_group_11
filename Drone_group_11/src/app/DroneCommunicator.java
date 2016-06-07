@@ -26,7 +26,8 @@ public class DroneCommunicator implements DroneInterface {
 				@Override
 				public void run() {
 					commandManager.flatTrim().doFor(1000);
-					commandManager.takeOff().doFor(5000);
+					commandManager.takeOff().doFor(2000);
+					commandManager.hover();
 				}
 			});
 			droneFlying = true;
@@ -39,6 +40,7 @@ public class DroneCommunicator implements DroneInterface {
 			commandManager.schedule(0, new Runnable() {				
 				@Override
 				public void run() {
+					commandManager.freeze(); //Hvad gør freeze?
 					commandManager.landing();
 				}
 			});
