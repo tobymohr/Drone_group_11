@@ -75,6 +75,8 @@ public class PictureController  {
 	@FXML
 	private ImageView filterFrame;
 	@FXML
+	private ImageView landingFrame;
+	@FXML
 	private ImageView qrFrame;
 	@FXML
 	private static Slider minimumThresh;
@@ -173,8 +175,7 @@ public class PictureController  {
 	public void grabFromVideo() throws org.bytedeco.javacv.FrameGrabber.Exception {
 		OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
 		OpenCVFrameConverter.ToMat converterMat = new OpenCVFrameConverter.ToMat();
-
-		 FrameGrabber grabber = new VideoInputFrameGrabber(0);
+		FrameGrabber grabber = new VideoInputFrameGrabber(0);
 		grabber.start();
 
 		Runnable frameGrabber = new Runnable() {
@@ -184,19 +185,8 @@ public class PictureController  {
 			Mat camImageOld = null;
 			@Override
 			public void run() {
-				
-				
-//				if(!isFirst){
-//					camMat  = new Mat();
-//					camImageOld= new Mat(camMat);
-////					CvtColor(camImageOld, camImageOld, CV_BGR2GRAY);
-//				}		
-				
 				camMat = grabMatFromCam(converterMat, grabber);
-//				camImage = grabFromCam(converter, grabber);
 				
-				
-//				IplImage filteredImage = null;
 				Mat filteredMat = null;
 				
 				switch(colorInt){
@@ -214,40 +204,16 @@ public class PictureController  {
 					break;
 				}
 				
-//				QR
-				Mat qrImage = OFC.center(camMat.clone(), filteredMat.clone());
-				BufferedImage bufferedImageQr =  MatToBufferedImage(qrImage);
-				Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
-				qrFrame.setImage(imageQr);
-			
-				//Filter
-				BufferedImage bufferedMatImage = MatToBufferedImage(filteredMat);
-				Image imageFilter = SwingFXUtils.toFXImage(bufferedMatImage, null);
-				filterFrame.setImage(imageFilter);
+				showQr(camMat);
+				showLanding(camMat, filteredMat);
+				showPolygons(camMat, filteredMat);
+				showFilter(filteredMat);
 				
-				//POLY
-				filteredMat = OFC.erodeAndDilate(filteredMat);
-				Mat polyImage = OFC.findPolygonsMat(camMat,filteredMat,4);
-				BufferedImage bufferedImage = MatToBufferedImage(polyImage);
-				Image imagePoly = SwingFXUtils.toFXImage(bufferedImage, null);
-				polyFrame.setImage(imagePoly);
-				
-				
-//				//Optical Flow
-//				if(!isFirst){
-//				IplImage opticalImage = OFC.opticalFlowOnDrones(camImageOld, camImage);
-//				BufferedImage bufferedImageOptical = IplImageToBufferedImage(opticalImage);
-//				Image imageOptical = SwingFXUtils.toFXImage(bufferedImageOptical, null);
-//				polyFrame.setImage(imageOptical);
-//				}
-				
-				
-				
-//				Platform.runLater(new Runnable() {
-//		            @Override public void run() {
-//		            	qrCode.setText("QR Code Found: " + OFC.getQrCode());
-//		            }
-//		        });
+				Platform.runLater(new Runnable() {
+		            @Override public void run() {
+		            	qrCode.setText("QR Code Found: " + OFC.getQrCode());
+		            }
+		        });
 				
 				isFirst = false;
 				
@@ -255,7 +221,36 @@ public class PictureController  {
 		};
 		timer = Executors.newSingleThreadScheduledExecutor();
 		timer.scheduleAtFixedRate(frameGrabber, 0, 33, TimeUnit.MILLISECONDS);
-	}	
+	}
+	
+	public void showQr(Mat camMat){
+		Mat qrMat = OFC.extractQRImage(camMat);
+		BufferedImage bufferedImageQr =  MatToBufferedImage(qrMat);
+		Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
+		qrFrame.setImage(imageQr);
+	}
+	
+	public void showLanding(Mat camMat, Mat filteredMat){
+		Mat landing = OFC.center(camMat.clone(), filteredMat.clone());
+		BufferedImage bufferedImageLanding =  MatToBufferedImage(landing);
+		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
+		landingFrame.setImage(imageLanding);
+	}
+	
+	public void showFilter(Mat filteredMat){
+		BufferedImage bufferedMatImage = MatToBufferedImage(filteredMat);
+		Image imageFilter = SwingFXUtils.toFXImage(bufferedMatImage, null);
+		filterFrame.setImage(imageFilter);
+		
+	}
+	
+	public void showPolygons(Mat camMat, Mat filteredMat){
+		filteredMat = OFC.erodeAndDilate(filteredMat);
+		Mat polyImage = OFC.findPolygonsMat(camMat,filteredMat,4);
+		BufferedImage bufferedImage = MatToBufferedImage(polyImage);
+		Image imagePoly = SwingFXUtils.toFXImage(bufferedImage, null);
+		polyFrame.setImage(imagePoly);
+	}
 	
 	public Mat grabMatFromCam(OpenCVFrameConverter.ToMat converter, FrameGrabber grabber){
 		Mat newImg = null;
