@@ -81,7 +81,7 @@ public class PictureProcessingHelper {
 
 	private CvScalar rgba_min = cvScalar(minRed, minGreen, minBlue, 0);
 	private CvScalar rgba_max = cvScalar(maxRed, maxGreen, maxBlue, 0);
-	private int xleft, xright, ytop, ybot, yCenterTop, yCenterBottom;
+	private int xleft, xright, ytop, ybot, yCenterTop, yCenterBottom, dist;
 	QRCodeReader reader = new QRCodeReader();
 	private Result qrCodeResult;
 	LuminanceSource source;
@@ -381,19 +381,20 @@ public class PictureProcessingHelper {
 					opencv_core.Point ptemp = new opencv_core.Point((int) centerPointTemp.x(),
 							(int) centerPointTemp.y());
 					line(img, ptemp, ptemp, Scalar.BLACK, 16, CV_AA, 0);
-					if (checkBoxForCenter(ptemp.x(), ptemp.y())) {
+					if (checkBoxForCenter(ptemp.x(), ptemp.y(),dist)) {
 						counter++;
 					}
 				}
 
 				if (counter == matContour.get(i).total()) {
 					// check in which part of center box is.
-					switch (checkPositionInCenter(p.x(), p.y())) {
+					switch (checkPositionInCenter(p.x(), p.y(),dist)) {
 					case 1:
 						line(img, p, p, Scalar.BLUE, 16, CV_AA, 0);
 						break;
 					case 2:
 						line(img, p, p, Scalar.RED, 16, CV_AA, 0);
+						dist = 0;
 						break;
 					case 3:
 						line(img, p, p, Scalar.GREEN, 16, CV_AA, 0);
@@ -805,36 +806,65 @@ public class PictureProcessingHelper {
 		return distance;
 	}
 
-	private int checkPositionInCenter(int posx, int posy) {
+	private int checkPositionInCenter(int posx, int posy, int dist) {
 
 		boolean bottomCenterCondition = posy > yCenterBottom;
 		boolean upperCenterCondition = posy < yCenterTop;
+		boolean leftCenterCondition = posx < xleft;
+		boolean rightCenterCondition = posx > xright;
+		
 		if (upperCenterCondition) {
+			dist = 0;
 			return 1;
 		}
 
 		if (!bottomCenterCondition && !upperCenterCondition) {
+			dist = 0;
 			return 2;
 		}
 
 		if (bottomCenterCondition) {
+			dist = 0;
 			return 3;
 		}
-
+		if(leftCenterCondition){
+			dist = 0;
+			return 4;
+		}
+		
+		if(rightCenterCondition){
+			dist = 0;
+			return 5;
+		}
 		return 0;
 
 	}
 
-	private boolean checkBoxForCenter(int posx, int posy) {
-
+	private boolean checkBoxForCenter(int posx, int posy, int dist) {
+		
 		boolean verticalCondition = posy > ytop && posy < ybot;
 		boolean horizontalCondition = posx > xleft && posx < xright;
 		if (horizontalCondition && verticalCondition) {
+			dist = 50;
 			return true;
 		} else {
 			return false;
 		}
 
+	}
+	
+	private boolean checkCenterDistance(int posx, int posy, int dist){
+		
+		dist = 50; 
+		
+		checkBoxForCenter(posx, posy, dist);
+		
+		checkPositionInCenter(posx, posy, dist);
+		
+		
+		
+		return false;
+		
 	}
 
 	private boolean checkForCenter(int posx, int posy, int redx, int redy) {
