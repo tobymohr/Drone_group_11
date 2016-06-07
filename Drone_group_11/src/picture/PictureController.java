@@ -195,6 +195,7 @@ public class PictureController  {
 		drone.start();
 		cC = new CommandController(drone);
 		cC.dC.setFrontCamera();
+		new Thread(cC).start();
 //		droneCommunicator.setBottomCamera();
 	}
 
@@ -254,6 +255,7 @@ public class PictureController  {
 				Platform.runLater(new Runnable() {
 		            @Override public void run() {
 		            	qrCode.setText("QR Code Found: " + OFC.getQrCode());
+		            	qrDist.setText("Dist: " + OFC.getDistance());
 		            }
 		        });
 				
