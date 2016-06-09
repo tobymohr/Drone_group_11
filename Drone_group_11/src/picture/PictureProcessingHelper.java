@@ -113,12 +113,7 @@ public class PictureProcessingHelper {
 		Mat scalarBlue2 = new Mat(new Scalar(blueMax, 255, 255, 0));
 		inRange(mathsv3, scalarBlue1, scalarBlue2, mathsv3);
 		
-		findContours(mathsv3, contoursSwagger, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
-		System.out.println("BEGIN!");
-		for (int i = 0; i < contoursSwagger.size(); i++) {
-			System.out.println(contoursSwagger.get(i).sizeof());
-		}
-		System.out.println("END!");
+		findContours(mathsv3, contoursSwagger, RETR_LIST , CV_LINK_RUNS, new opencv_core.Point());
 		System.out.println(contoursSwagger.size());
 		for (int i = 0; i < contoursSwagger.size(); i++) {
 			drawContours(mathsv3, contoursSwagger, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 2,
@@ -527,22 +522,6 @@ public class PictureProcessingHelper {
 		return img;
 	}
 	
-	public Mat circle(Mat img){
-		
-		MatVector matCircles = new MatVector();
-		
-		Mat img1 = new Mat(img.arraySize(), CV_8UC1, 1);
-		
-		cvtColor(img, img1, CV_RGB2GRAY);
-		
-		GaussianBlur(img1,img, new Size(9,9), 2.0);
-		
-		HoughCircles(img, img,HOUGH_GRADIENT, 1, 100, 100, 100, 15, 500);
-		
-		
-		
-		return img;
-	}
 
 	public IplImage convertMatToIplImage(Mat mat) {
 		return converter.convert(converter.convert(mat));
@@ -682,4 +661,41 @@ public class PictureProcessingHelper {
 		float ratio = rect.size().height() / rect.size().width();
 		return ratio > 1.40 && ratio < 1.45;
 	}
+	public Mat myCircle(Mat img){
+		
+		IplImage src = new IplImage(img);
+		 IplImage gray = cvCreateImage(cvGetSize(src), 8, 1);
+		   
+		  cvCvtColor(src, gray, CV_BGR2GRAY);  
+		  cvSmooth(gray, gray);
+		  CvMemStorage mem = CvMemStorage.create();
+		   
+		  CvSeq circles = cvHoughCircles( 
+		    gray, //Input image
+		    mem, //Memory Storage
+		    CV_HOUGH_GRADIENT, //Detection method
+		    1, //Inverse ratio
+		    100, //Minimum distance between the centers of the detected circles
+		    60, //Higher threshold for canny edge detector
+		    100, //Threshold at the center detection stage
+		    15, //min radius
+		    700 //max radius
+		    );
+		   
+		  for(int i = 0; i < circles.total(); i++){
+		      CvPoint3D32f circle = new CvPoint3D32f(cvGetSeqElem(circles, i));
+		      CvPoint center = cvPointFrom32f(new CvPoint2D32f(circle.x(), circle.y()));
+		      int radius = Math.round(circle.z());      
+		      circle(img, new Point(center.x(), center.y()), radius, new Scalar(20,255,20,0), 5, CV_AA, 0);
+		  }
+		   
+		return img;
+	}
+	
+//	public Mat optFlow(Mat matterino){
+//		calcOpticalFlowPyrLK(arg0, arg1, arg2, arg3, arg4, arg5);
+//		
+//		
+//	}
 }
+
