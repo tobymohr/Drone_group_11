@@ -214,7 +214,7 @@ public class PictureController {
 			public void imageUpdated(BufferedImage arg0) {
 				if (isFirst) {
 					new Thread(
-							ofvideo = new OFVideo(filterFrame, polyFrame, qrFrame, landingFrame, qrCode, qrDist, arg0))
+							ofvideo = new OFVideo(filterFrame, polyFrame, qrFrame, landingFrame, qrCode, qrDist, arg0, cC))
 									.start();
 					isFirst = false;
 				}

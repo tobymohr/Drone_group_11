@@ -2,6 +2,7 @@ package app;
 import java.util.concurrent.LinkedBlockingDeque;
 
 import de.yadrone.base.IARDrone;
+import helper.Command;
 
 public class CommandController implements Runnable {
 	public DroneInterface dC;
@@ -42,44 +43,44 @@ public class CommandController implements Runnable {
 					task = q.take();
 					switch(task.task){
 					//Go commands
-					case 1:
+					case Command.FORWARD:
 						startTime = System.currentTimeMillis();
 						dC.goForward(task.time);
 						break;
-					case 2:
+					case Command.BACKWARDS:
 						startTime = System.currentTimeMillis();
 						dC.goBackwards(task.time);
 						break;
-					case 3:
+					case Command.LEFT:
 						startTime = System.currentTimeMillis();
 						dC.goLeft(task.time);
 						break;
-					case 4:
+					case Command.RIGHT:
 						startTime = System.currentTimeMillis();
 						dC.goRight(task.time);
 						break;
-					case 5:
+					case Command.UP:
 						startTime = System.currentTimeMillis();
 						dC.goUp(task.time);
 						break;
-					case 6:
+					case Command.DOWN:
 						startTime = System.currentTimeMillis();
 						dC.goUp(task.time);
 						break;
 						//Rotate commands
-					case 7:
+					case Command.SPINLEFT:
 						startTime = System.currentTimeMillis();
 						dC.spinLeft(task.time);
 						break;
-					case 8:
+					case Command.SPINRIGHT:
 						startTime = System.currentTimeMillis();
 						dC.spinRight(task.time);
 						break;
 						//Take off and land
-					case 9:
+					case Command.TAKEOFF:
 						dC.takeOff();
 						break;
-					case 10:
+					case Command.LAND:
 						dC.land();
 					}
 					wait(task.time);

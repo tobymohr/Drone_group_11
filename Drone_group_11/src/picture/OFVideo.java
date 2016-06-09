@@ -15,6 +15,8 @@ import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
 import org.bytedeco.javacv.OpenCVFrameGrabber;
 
+import app.CommandController;
+import helper.Command;
 import helper.CustomPoint;
 import helper.Move;
 import javafx.application.Platform;
@@ -48,9 +50,10 @@ public class OFVideo implements Runnable {
 	private boolean strafeRight = true;
 	private String code = null;
 	private int rotateCount = 0;
+	private CommandController cC;
 
 	public OFVideo(ImageView filterFrame, ImageView polyFrame, ImageView qrFrame, ImageView landingFrame, Label qrCode,
-			Label qrDist, BufferedImage arg0) {
+			Label qrDist, BufferedImage arg0, CommandController cC) {
 		this.arg0 = arg0;
 		this.filterFrame = filterFrame;
 		this.polyFrame = polyFrame;
@@ -61,7 +64,7 @@ public class OFVideo implements Runnable {
 		converter = new OpenCVFrameConverter.ToIplImage();
 		converterMat = new ToMat();
 		converter1 = new Java2DFrameConverter();
-
+		this.cC = cC;
 	}
 
 	public void setArg0(BufferedImage arg0) {
@@ -119,8 +122,9 @@ public class OFVideo implements Runnable {
 		//#TODO Check if wall is close
 		boolean wallClose = false;
 		if (wallClose) {
-			//#TODO Fly backwards (4-5 meters)
-			//#TODO Rotate 90 degrees
+			// Go backwards 4-5 meters, and rotate 90 degrees
+			cC.addCommand(Command.BACKWARDS, 2000);
+			cC.addCommand(Command.SPINRIGHT, 1500);
 			return;
 		}
 		
@@ -132,6 +136,11 @@ public class OFVideo implements Runnable {
 			if (positionFromCenter != 0) {
 				System.out.println("PositionFromCenter: " + positionFromCenter);
 				//#TODO Rotate <positionFromCenter> pixels to center the QR code in image
+				if (positionFromCenter > 0) {
+					cC.addCommand(Command.SPINRIGHT, 200);
+				} else {
+					cC.addCommand(Command.SPINLeft, 200);
+				}
 				return;
 			}
 			double center = OFC.center(rect);
