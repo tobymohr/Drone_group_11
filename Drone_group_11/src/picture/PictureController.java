@@ -43,6 +43,7 @@ import de.yadrone.base.exception.IExceptionListener;
 import de.yadrone.base.video.ImageListener;
 import de.yadrone.base.video.VideoManager;
 import helper.Circle;
+import helper.Command;
 import helper.CustomPoint;
 import helper.Move;
 import javafx.application.Platform;
@@ -71,7 +72,7 @@ public class PictureController {
 	private FrameGrabber grabber = new OpenCVFrameGrabber(0);
 	private Set<KeyCode> pressedKeys = new HashSet<KeyCode>();
 	private Mat camMat = null;
-	public static boolean shouldScan = true;
+	public static boolean shouldScan = false;
 	private static boolean aboveLanding = false;
 	private static int circleCounter = 0;
 
@@ -401,9 +402,17 @@ public class PictureController {
 
 	public void takeOff() {
 		System.out.println("TAKEOFF");
-		shouldScan = true;
 		cC.dC.takeOff();
 		//#TODO Adjust height to line up with QR codes.
+		cC.dC.setSpeed(30);
+		cC.addCommand(Command.UP, 2750);
+		try {
+			Thread.sleep(3000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		shouldScan = true;
 	}
 
 }

@@ -219,9 +219,13 @@ public class OFVideo implements Runnable {
 		} else {
 			if (rotateCount != 4) {
 				//#TODO Rotate 90 degrees
+				cC.addCommand(Command.SPINRIGHT, 1500);
+				sleep(1500);
 				rotateCount++;
 			} else {
 				//#TODO Fly forwards (1 meter)
+				cC.addCommand(Command.FORWARD, 1000);
+				sleep(1000);
 			}
 			return;
 		}
