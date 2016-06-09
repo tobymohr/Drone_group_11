@@ -83,6 +83,8 @@ public class PictureController {
 	public static String qrCodeText = "";
 	private FrameGrabber grabber = new OpenCVFrameGrabber(0);
 	private Set<KeyCode> pressedKeys = new HashSet<KeyCode>();
+	private static boolean aboveLanding = false;
+	private static int circleCounter = 0;
 
 	public static int colorInt = 4;
 
@@ -297,11 +299,28 @@ public class PictureController {
 
 	public void showLanding(Mat mat) {
 //		Mat landing = OFC.center(camMat.clone(), filteredMat.clone());
+		Mat landing = mat;
+		int circles = 0;
 		boolean check = OFC.checkDecodedQR(mat);
-		Mat landing = OFC.myCircle(mat);
+		if(check){
+			circles = OFC.myCircle(mat);
+		}
+		if(circles > 0 ){
+			aboveLanding = true;
+			//If false restart landing sequence
+		}else{
+			circles = 0;
+			circleCounter++;
+		}
+		if(circleCounter >= 120){
+			aboveLanding = false;
+			circleCounter = 0;
+		}
 		BufferedImage bufferedImageLanding = MatToBufferedImage(landing);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
 		landingFrame.setImage(imageLanding);
+		System.out.println(aboveLanding);
+		
 	}
 
 	public void showFilter(Mat filteredMat) {

@@ -114,7 +114,7 @@ public class PictureProcessingHelper {
 		inRange(mathsv3, scalarBlue1, scalarBlue2, mathsv3);
 		
 		findContours(mathsv3, contoursSwagger, RETR_LIST , CV_LINK_RUNS, new opencv_core.Point());
-		System.out.println(contoursSwagger.size());
+//		System.out.println(contoursSwagger.size());
 		for (int i = 0; i < contoursSwagger.size(); i++) {
 			drawContours(mathsv3, contoursSwagger, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 2,
 					new opencv_core.Point());
@@ -309,16 +309,16 @@ public class PictureProcessingHelper {
 	public void printMoves(List<Move> moves) {
 		for (Move move : moves) {
 			if (move.getMove() == Move.MOVE_RIGHT) {
-				System.out.println("MOVE RIGHT");
+//				System.out.println("MOVE RIGHT");
 			}
 			if (move.getMove() == Move.MOVE_DOWN) {
-				System.out.println("MOVE DOWN");
+//				System.out.println("MOVE DOWN");
 			}
 			if (move.getMove() == Move.MOVE_LEFT) {
-				System.out.println("MOVE LEFT");
+//				System.out.println("MOVE LEFT");
 			}
 			if (move.getMove() == Move.MOVE_FORWARD) {
-				System.out.println("MOVE FORWARD");
+//				System.out.println("MOVE FORWARD");
 			}
 		}
 	}
@@ -342,7 +342,7 @@ public class PictureProcessingHelper {
 		// C2.getCenter().getY() + "|" + C2.getRadius());
 		CustomPoint[] points = Circle.intersection(C1, C2);
 		for (CustomPoint p : points) {
-			System.out.println(Math.round(p.getX()) + "|" + Math.round(p.getY()));
+//			System.out.println(Math.round(p.getX()) + "|" + Math.round(p.getY()));
 			calcedPoints.add(Math.round(p.getX()));
 			calcedPoints.add(Math.round(p.getY()));
 		}
@@ -402,8 +402,8 @@ public class PictureProcessingHelper {
 		try {
 			Result detectionResult = reader.decode(bitmap);
 			code = detectionResult.getText();
-			if(detectionResult.equals(OURQR)){
-				System.out.println(OURQR);
+			if(code.equals(OURQR)){
+//				System.out.println(code);
 				return true;	
 			}
 			
@@ -686,7 +686,7 @@ public class PictureProcessingHelper {
 		float ratio = rect.size().height() / rect.size().width();
 		return ratio > 1.40 && ratio < 1.45;
 	}
-	public Mat myCircle(Mat img){
+	public int myCircle(Mat img){
 		
 		IplImage src = new IplImage(img);
 		 IplImage gray = cvCreateImage(cvGetSize(src), 8, 1);
@@ -714,7 +714,7 @@ public class PictureProcessingHelper {
 		      circle(img, new Point(center.x(), center.y()), radius, new Scalar(20,255,20,0), 5, CV_AA, 0);
 		  }
 		   
-		return img;
+		return circles.total();
 	}
 	
 //	public Mat optFlow(Mat matterino){
