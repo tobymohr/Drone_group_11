@@ -124,7 +124,9 @@ public class OFVideo implements Runnable {
 		if (wallClose) {
 			// Go backwards 4-5 meters, and rotate 90 degrees
 			cC.addCommand(Command.BACKWARDS, 2000);
+			sleep(2000);
 			cC.addCommand(Command.SPINRIGHT, 1500);
+			sleep(1500);
 			return;
 		}
 		
@@ -138,14 +140,23 @@ public class OFVideo implements Runnable {
 				//#TODO Rotate <positionFromCenter> pixels to center the QR code in image
 				if (positionFromCenter > 0) {
 					cC.addCommand(Command.SPINRIGHT, 200);
+					sleep(200);
 				} else {
-					cC.addCommand(Command.SPINLeft, 200);
+					cC.addCommand(Command.SPINLEFT, 200);
+					sleep(200);
 				}
 				return;
 			}
 			double center = OFC.center(rect);
 			if (center > CENTER_UPPER || center < CENTER_LOWER) {
 				//#TODO Strafe the drone <center> amount. Right is chosen as standard.
+				if (strafeRight) {
+					cC.addCommand(Command.RIGHT, 500);
+					sleep(500);
+				} else {
+					cC.addCommand(Command.LEFT, 500);
+					sleep(500);
+				}
 				if (previousCenter == -1) {
 					// Record center in order to react to it next iteration
 					previousCenter = center;
@@ -183,6 +194,8 @@ public class OFVideo implements Runnable {
 					return;
 				} else {
 					//#TODO Fly backwards (0.5 meters)
+					cC.addCommand(Command.BACKWARDS, 500);
+					sleep(500);
 					return;
 				}
 			} else {
@@ -190,10 +203,16 @@ public class OFVideo implements Runnable {
 				// It might still be a QR code, we're too far away to know
 				if (distanceToSquare > 100) {
 					//#TODO Fly closer to the square (0.5 meters)
+					cC.addCommand(Command.FORWARD, 500);
+					sleep(500);
 					return;
 				} else {
 					//#TODO Fly backwards (4-5 meters)
 					//#TODO Rotate 90 degrees
+					cC.addCommand(Command.BACKWARDS, 2000);
+					sleep(2000);
+					cC.addCommand(Command.SPINRIGHT, 1500);
+					sleep(1500);
 					return;
 				}
 			}
@@ -205,6 +224,14 @@ public class OFVideo implements Runnable {
 				//#TODO Fly forwards (1 meter)
 			}
 			return;
+		}
+	}
+	
+	private void sleep(int duration) {
+		try {
+			Thread.sleep(duration);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 	
