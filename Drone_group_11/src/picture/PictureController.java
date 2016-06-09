@@ -220,7 +220,7 @@ public class PictureController  {
 	public void grabFromVideo() throws org.bytedeco.javacv.FrameGrabber.Exception {
 		OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
 		OpenCVFrameConverter.ToMat converterMat = new OpenCVFrameConverter.ToMat();
-		FrameGrabber grabber = new VideoInputFrameGrabber(1);
+		FrameGrabber grabber = new VideoInputFrameGrabber(0);
 		grabber.start();
 
 		Runnable frameGrabber = new Runnable() {

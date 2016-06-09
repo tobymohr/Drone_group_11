@@ -212,7 +212,7 @@ public class PictureProcessingHelper {
 		double sum = (w*y)/(2*x*z);
 		double AOV = Math.atan(sum)*2;
 		AOV = Math.toDegrees(AOV);
-//		System.out.println("AOV " + AOV);
+		System.out.println("AOV " + AOV);
 		
 		Point tl = null;
 		Point tr = null;
@@ -317,12 +317,12 @@ public class PictureProcessingHelper {
 			br = new Point((int) vertices.position(0).x(), (int) vertices.position(0).y());
 			bl = new Point((int) vertices.position(1).x(), (int) vertices.position(1).y());
 		}
-		System.out.println("----------");
-		System.out.println(Math.toDegrees(calculateAngle(tl, tr, bl)));
-		System.out.println(Math.toDegrees(calculateAngle(tr, tl, br)));
-		System.out.println(Math.toDegrees(calculateAngle(bl, tl, br)));
-		System.out.println(Math.toDegrees(calculateAngle(br, bl, tr)));
-		System.out.println("----------");
+//		System.out.println("----------");
+//		System.out.println(Math.toDegrees(calculateAngle(tl, tr, bl)));
+//		System.out.println(Math.toDegrees(calculateAngle(tr, tl, br)));
+//		System.out.println(Math.toDegrees(calculateAngle(bl, tl, br)));
+//		System.out.println(Math.toDegrees(calculateAngle(br, bl, tr)));
+//		System.out.println("----------");
 	}
 	
 	public boolean scanQrCode(Mat srcImage){
