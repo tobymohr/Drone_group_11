@@ -68,7 +68,7 @@ public class OFVideo implements Runnable {
 					filteredImage = OFC.findContoursGreenMat(newImg);
 					break;
 				default:
-					filteredImage = OFC.findContoursBlackMat(newImg);
+					filteredImage = OFC.findContoursBlueMat(newImg);
 					break;
 				}
 
