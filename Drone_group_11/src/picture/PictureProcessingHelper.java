@@ -58,6 +58,7 @@ import javax.swing.JFrame;
 
 import helper.Circle;
 import helper.CustomPoint;
+import helper.Move;
 import helper.Vector;
 
 public class PictureProcessingHelper {
@@ -212,7 +213,7 @@ public class PictureProcessingHelper {
 		double sum = (w*y)/(2*x*z);
 		double AOV = Math.atan(sum)*2;
 		AOV = Math.toDegrees(AOV);
-		System.out.println("AOV " + AOV);
+//		System.out.println("AOV " + AOV);
 		
 		Point tl = null;
 		Point tr = null;
@@ -289,6 +290,9 @@ public class PictureProcessingHelper {
 					putText(img0, code, new Point((int)rect.center().x() - 25, (int)rect.center().y() + 80), 1, 2, Scalar.GREEN, 2, 8, false);
 				}
 				distance = calcDistance(rect);
+				List<Long> points =calcPosition(3,3.3,3);
+				printMoves(calcMoves( points.get(0), points.get(1)));
+			
 				drawContours(img0, matContour, i, Scalar.WHITE, 2, 8, null, 1, null);
 				putText(img0, "" + (int) distance, new Point((int)rect.center().x() - 25, (int)rect.center().y() + 60), 1, 2, Scalar.BLUE, 2, 8, false);
 				if (center(rect)) {
@@ -299,6 +303,74 @@ public class PictureProcessingHelper {
 			}
 		}
 		return img0;
+	}
+	
+	public List<Move> calcMoves(long x, long y){
+		List<Move> moves = new ArrayList<>();
+		int minY = 0;
+		int maxX = 5;
+		int maxY = 5;
+		//Calc moves in x-axis
+		for(int i = 0 ; i<5 ; i++){
+			if(x < maxX){
+				x++;
+				moves.add(new Move(Move.MOVE_RIGHT));
+			}
+		}
+		//Calc moves in y-axis
+		for(int i = 0 ; i<5 ; i++){
+			if(y <= maxY && y > minY){
+				y--;
+				moves.add(new Move(Move.MOVE_DOWN));
+			}
+		}
+		return moves;
+	}
+	
+	public void printMoves(List<Move> moves){
+		for(Move move : moves){
+			if(move.getMove() == Move.MOVE_RIGHT){
+				System.out.println("MOVE RIGHT");
+			}
+			
+			if(move.getMove() == Move.MOVE_DOWN){
+				System.out.println("MOVE DOWN");
+			}
+			
+			if(move.getMove() == Move.MOVE_LEFT){
+				System.out.println("MOVE LEFT");
+			}
+			
+			if(move.getMove() == Move.MOVE_FORWARD){
+				System.out.println("MOVE FORWARD");
+			}
+		}
+		
+	}
+	
+	public List<Long> calcPosition(double distanceOne, double distanceTwo, double distanceThree){
+		List<Long> calcedPoints = new ArrayList<>();
+		double distanceBetweenPointsOne = 1.5;
+		double distanceBetweenPointsTwo = 1.5;
+		double angleA = CustomPoint.calculateAngle(distanceOne, distanceBetweenPointsOne);
+		double angleB = CustomPoint.calculateAngle(distanceThree, distanceBetweenPointsTwo);
+		CustomPoint P1 = new CustomPoint(6, 0);
+		CustomPoint P2 = new CustomPoint(5, 0);
+		CustomPoint P3 = new CustomPoint(4, 0);
+		Circle C1 = new Circle(Circle.calculateCenter(P1, P2, distanceBetweenPointsOne, angleA), 
+				Circle.calculateRadius(distanceBetweenPointsOne, angleA));
+//		System.out.println(C1.getCenter().getX() + "|" + C1.getCenter().getY() + "|" + C1.getRadius());
+		Circle C2 = new Circle(Circle.calculateCenter(P2, P3, distanceBetweenPointsTwo, angleB), 
+				Circle.calculateRadius(distanceBetweenPointsTwo, angleB));
+//		System.out.println(C2.getCenter().getX() + "|" + C2.getCenter().getY() + "|" + C2.getRadius());
+		CustomPoint[] points = Circle.intersection(C1, C2);
+		for (CustomPoint p : points) {
+			System.out.println(Math.round(p.getX()) + "|" + Math.round(p.getY()));
+			calcedPoints.add(Math.round(p.getX()));
+			calcedPoints.add(Math.round(p.getY()));
+		}
+		
+		return calcedPoints;
 	}
 	
 	public void checkAngles(RotatedRect rect) {

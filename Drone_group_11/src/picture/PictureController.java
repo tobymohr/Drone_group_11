@@ -44,6 +44,8 @@ import de.yadrone.base.exception.ARDroneException;
 import de.yadrone.base.exception.IExceptionListener;
 import de.yadrone.base.video.ImageListener;
 import de.yadrone.base.video.VideoManager;
+import helper.Circle;
+import helper.CustomPoint;
 import helper.Move;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
@@ -220,29 +222,10 @@ public class PictureController  {
 		
 	}
 	
-	public void printMoves(List<Move> moves){
-		for(Move move : moves){
-			if(move.getMove() == Move.MOVE_RIGHT){
-				System.out.println("MOVE RIGHT");
-			}
-			
-			if(move.getMove() == Move.MOVE_DOWN){
-				System.out.println("MOVE DOWN");
-			}
-			
-			if(move.getMove() == Move.MOVE_LEFT){
-				System.out.println("MOVE LEFT");
-			}
-			
-			if(move.getMove() == Move.MOVE_FORWARD){
-				System.out.println("MOVE FORWARD");
-			}
-		}
-		
-	}
+	
 
 	public void grabFromVideo() throws org.bytedeco.javacv.FrameGrabber.Exception {
-		printMoves(calcMoves(1, 1));
+
 		OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
 		OpenCVFrameConverter.ToMat converterMat = new OpenCVFrameConverter.ToMat();
 		FrameGrabber grabber = new VideoInputFrameGrabber(0);
@@ -293,27 +276,9 @@ public class PictureController  {
 	}
 	
 	
-	public List<Move> calcMoves(int x, int y){
-		List<Move> moves = new ArrayList<>();
-		int minY = 0;
-		int maxX = 5;
-		int maxY = 5;
-		//Calc moves in x-axis
-		for(int i = 0 ; i<5 ; i++){
-			if(x < maxX){
-				x++;
-				moves.add(new Move(Move.MOVE_RIGHT));
-			}
-		}
-		//Calc moves in y-axis
-		for(int i = 0 ; i<5 ; i++){
-			if(y <= maxY && y > minY){
-				y--;
-				moves.add(new Move(Move.MOVE_DOWN));
-			}
-		}
-		return moves;
-	}
+	
+	
+	
 	
 	public void showQr(Mat camMat){
 		Mat qrMat = OFC.extractQRImage(camMat);
