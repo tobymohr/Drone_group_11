@@ -594,7 +594,6 @@ public class PictureProcessingHelper {
 			System.out.println(angle);
 			break;
 		}
-
 		return angle;
 	}
 
