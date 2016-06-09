@@ -76,6 +76,8 @@ public class PictureProcessingHelper {
 	static int minGreen = 0;
 	static int minBlue = 134;
 	static int smoother = 11;
+	int blueMin = 110;
+	int blueMax = 130;
 	public String code = "";
 	private int i = 0;
 	CvPoint2D32f c1 = new CvPoint2D32f(4);
@@ -129,6 +131,27 @@ public class PictureProcessingHelper {
 		return index;
 	}
 
+	public Mat findContoursBlueMat(Mat img){
+		
+		MatVector contoursSwagger = new MatVector();
+
+		Mat mathsv3 = new Mat(img.arraySize(), img.arrayDepth(), img.arrayChannels());
+		cvtColor(img, mathsv3, CV_BGR2HSV);
+		Mat scalarBlue1 = new Mat(new Scalar(blueMin, 50, 50, 0));
+		Mat scalarBlue2 = new Mat(new Scalar(blueMax, 255, 255, 0));
+		inRange(mathsv3, scalarBlue1, scalarBlue2, mathsv3);
+		
+		findContours(mathsv3, contoursSwagger, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
+//		System.out.println(contoursSwagger.size());
+		for (int i = 0; i < contoursSwagger.size(); i++) {
+			drawContours(mathsv3, contoursSwagger, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 2,
+					new opencv_core.Point());
+		}
+		
+		return mathsv3;
+	}
+	
+	
 	public Mat findContoursBlackMat(Mat img) {
 		MatVector contour1 = new MatVector();
 		// cvtColor(img, grayImageMat, CV_BGR2GRAY);

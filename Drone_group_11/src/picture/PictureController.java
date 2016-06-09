@@ -10,12 +10,17 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
 import javax.imageio.ImageIO;
+
 import static org.bytedeco.javacpp.helper.opencv_core.*;
+
 import org.bytedeco.javacpp.opencv_videoio.CvCapture;
 import org.bytedeco.javacv.Frame;
+
 import static org.bytedeco.javacpp.helper.opencv_imgproc.*;
 import static org.bytedeco.javacpp.opencv_imgcodecs.*;
+
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
@@ -27,11 +32,13 @@ import com.google.zxing.Result;
 import org.bytedeco.javacpp.*;
 import org.bytedeco.javacpp.opencv_core.*;
 import org.bytedeco.javacpp.indexer.FloatIndexer;
+
 import static org.bytedeco.javacpp.opencv_imgproc.*;
 import static org.bytedeco.javacpp.opencv_video.*;
-import org.bytedeco.javacv.*;
-import static org.bytedeco.javacpp.opencv_core.*;
 
+import org.bytedeco.javacv.*;
+
+import static org.bytedeco.javacpp.opencv_core.*;
 import app.CommandController;
 import app.DroneCommunicator;
 import app.DroneInterface;
@@ -68,7 +75,7 @@ public class PictureController  {
 	FrameGrabber grabber = new OpenCVFrameGrabber(0);
 	Set<KeyCode> pressedKeys = new HashSet<KeyCode>();
 
-	public static int colorInt = 3;
+	public static int colorInt = 4;
 
 	// CAMERA
 	@FXML
@@ -112,6 +119,22 @@ public class PictureController  {
                 break;
                 case D:  cC.dC.goRight(10000);
                 break;
+                case MINUS:
+                	OFC.blueMin -= 1;
+                	System.out.println("Min: " + OFC.blueMin);
+                	break;
+                case PLUS:
+                	OFC.blueMin += 1;
+                	System.out.println("Min: " + OFC.blueMin);
+                	break;
+                case NUMPAD4:
+                	OFC.blueMax -= 1;
+                	System.out.println("Max: " + OFC.blueMax);
+                	break;
+                case NUMPAD5:
+                	OFC.blueMax += 1;
+                	System.out.println("Max: " + OFC.blueMax);
+                	break;
 				default:
 					break;
             }
@@ -152,13 +175,13 @@ public class PictureController  {
 			
 		} catch (org.bytedeco.javacv.FrameGrabber.Exception e) {
 			e.printStackTrace();
-			try {
-				grabber.restart();
-			} catch (org.bytedeco.javacv.FrameGrabber.Exception e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-				System.err.println("Couldn't restart grabber");
-			}
+//			try {
+////				grabber.restart();
+//			} catch (org.bytedeco.javacv.FrameGrabber.Exception e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//				System.err.println("Couldn't restart grabber");
+//			}
 		}
 	}
 
@@ -194,7 +217,7 @@ public class PictureController  {
 		});
 		drone.start();
 		cC = new CommandController(drone);
-		cC.dC.setFrontCamera();
+		cC.dC.setBottomCamera();
 		new Thread(cC).start();
 //		droneCommunicator.setBottomCamera();
 	}
@@ -220,7 +243,7 @@ public class PictureController  {
 	public void grabFromVideo() throws org.bytedeco.javacv.FrameGrabber.Exception {
 		OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
 		OpenCVFrameConverter.ToMat converterMat = new OpenCVFrameConverter.ToMat();
-		FrameGrabber grabber = new VideoInputFrameGrabber(1);
+		FrameGrabber grabber = new VideoInputFrameGrabber(0);
 		grabber.start();
 
 		Runnable frameGrabber = new Runnable() {
@@ -243,7 +266,7 @@ public class PictureController  {
 					filteredMat = OFC.findContoursGreenMat(camMat);
 					break;
 				default: 
-//					filteredImage = OFC.findContoursBlue(camImage);
+					filteredMat = OFC.findContoursBlueMat(camMat);
 					break;
 				}
 				
