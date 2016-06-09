@@ -246,7 +246,6 @@ public class PictureController {
 			@Override
 			public void run() {
 
-//				camMat = imread("circles_stage.png");
 
 				camMat = grabMatFromCam(converterMat, grabber);
 
@@ -269,7 +268,7 @@ public class PictureController {
 				}
 
 				showQr(camMat.clone());
-				showLanding(camMat.clone(), filteredMat);
+				showLanding(camMat.clone());
 				showPolygons(camMat, filteredMat);
 				showFilter(filteredMat);
 
@@ -296,8 +295,9 @@ public class PictureController {
 		qrFrame.setImage(imageQr);
 	}
 
-	public void showLanding(Mat camMat, Mat filteredMat) {
-		Mat landing = OFC.center(camMat.clone(), filteredMat.clone());
+	public void showLanding(Mat mat) {
+//		Mat landing = OFC.center(camMat.clone(), filteredMat.clone());
+		Mat landing = OFC.myCircle(mat);
 		BufferedImage bufferedImageLanding = MatToBufferedImage(landing);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
 		landingFrame.setImage(imageLanding);
