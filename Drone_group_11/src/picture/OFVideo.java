@@ -96,6 +96,7 @@ public class OFVideo implements Runnable {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
 	}
 	
 	public void scanSequence(Mat camMat) {
