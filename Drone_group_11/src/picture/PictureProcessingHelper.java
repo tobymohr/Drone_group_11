@@ -64,7 +64,7 @@ import helper.Vector;
 public class PictureProcessingHelper {
 
 	private OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
-	private float distance;
+	private double distance;
 	private Java2DFrameConverter converter1 = new Java2DFrameConverter();
 	private CvMemStorage storage = CvMemStorage.create();
 	int blueMin = 110;
@@ -182,7 +182,7 @@ public class PictureProcessingHelper {
 		rect.points(vertices);
 		int angle = Math.abs((int) rect.angle());
 		float w = crop.cols();
-		float x = distance;
+		Double x = distance;
 		float y = 28;
 		float z = vertices.position(1).x() - vertices.position(0).x();
 		z = Math.abs(z);
@@ -305,7 +305,8 @@ public class PictureProcessingHelper {
 				putText(img0, "" + ratio,
 						new Point((int) rect.center().x() - 25, (int) rect.center().y() + 60), 1, 2, Scalar.BLUE, 2, 8,
 						false);
-				if (center(rect)) {
+				double center = center(rect);
+				if (center < 0.2 && center > -0.5) {
 					putText(img0, "CENTER", new Point((int) rect.center().x() - 25, (int) rect.center().y() + 20), 1, 2,
 							Scalar.RED, 2, 8, false);
 				}
@@ -347,7 +348,8 @@ public class PictureProcessingHelper {
 				putText(img0, "" + (int) distance,
 						new Point((int) rect.center().x() - 25, (int) rect.center().y() + 60), 1, 2, Scalar.BLUE, 2, 8,
 						false);
-				if (center(rect)) {
+				double center = center(rect);
+				if (center < 0.2 && center > -0.5) {
 					putText(img0, "CENTER", new Point((int) rect.center().x() - 25, (int) rect.center().y() + 20), 1, 2,
 							Scalar.RED, 2, 8, false);
 				}
@@ -376,7 +378,7 @@ public class PictureProcessingHelper {
 	}
 
 
-	public List<Move> calcMoves(long x, long y) {
+	public List<Move> calcMoves(double x, double y) {
 		List<Move> moves = new ArrayList<>();
 		int minY = 0;
 		int maxX = 5;
@@ -505,7 +507,7 @@ public class PictureProcessingHelper {
 	}
 	
 
-	public float calcDistance(RotatedRect rect) {
+	public double calcDistance(RotatedRect rect) {
 		float knownDistance = 214;
 		float height = 0;
 		float focalLength = 103 * knownDistance;
@@ -779,7 +781,7 @@ public class PictureProcessingHelper {
 		return angle;
 	}
 
-	public boolean center(RotatedRect rect) {
+	public double center(RotatedRect rect) {
 		float height;
 		float width;
 		if (rect.angle() >= 0 && rect.angle() < 10) {
@@ -791,7 +793,7 @@ public class PictureProcessingHelper {
 		}
 
 		float ratio = height / width;
-		return ratio > 1.40 && ratio < 1.45;
+		return ratio - 1.43;
 	}
 	public int myCircle(Mat img){
 		

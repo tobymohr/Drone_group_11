@@ -283,22 +283,6 @@ public class PictureController {
 	}
 
 	public void scanSequence(Mat camMat) {
-		List<Mat> contours = OFC.findQrContours(camMat);
-		if(contours.size() != 0){
-			RotatedRect rect = minAreaRect(contours.get(0));
-			double positionFromCenter = OFC.isCenterInImage(camMat.clone(), rect);
-			if(positionFromCenter == 0 && OFC.center(rect)){
-				System.out.println("CENTER");
-				Mat qrImg = OFC.warpImage(camMat.clone(), rect);
-				String code = OFC.scanQrCode(qrImg);
-				if(code != null){
-					System.out.println("QR SCANNED: " + code);
-					if (contours.size() == 3) {
-						System.out.println("DREI FOUND");
-					}
-				}
-			}
-		}
 	}
 
 	public void showQr(Mat camMat) {
@@ -330,7 +314,7 @@ public class PictureController {
 		BufferedImage bufferedImageLanding = MatToBufferedImage(landing);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
 		landingFrame.setImage(imageLanding);
-		System.out.println(aboveLanding);
+//		System.out.println(aboveLanding);
 		
 	}
 
@@ -419,7 +403,7 @@ public class PictureController {
 		System.out.println("TAKEOFF");
 		shouldScan = true;
 		cC.dC.takeOff();
-
+		//#TODO Adjust height to line up with QR codes.
 	}
 
 }
