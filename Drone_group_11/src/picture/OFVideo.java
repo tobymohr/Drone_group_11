@@ -99,6 +99,7 @@ public class OFVideo implements Runnable {
 		
 	}
 	
+	
 	public void scanSequence(Mat camMat) {
 		List<Mat> contours = OFC.findQrContours(camMat);
 		if(contours.size() != 0){
