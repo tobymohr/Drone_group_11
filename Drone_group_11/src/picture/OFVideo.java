@@ -99,6 +99,7 @@ public class OFVideo implements Runnable {
 	}
 
 	public void showLanding(Mat camMat, Mat filteredMat) {
+		Boolean check = OFC.checkDecodedQR(camMat.clone());
 		Mat landing = OFC.center(camMat.clone(), filteredMat.clone());
 		BufferedImage bufferedImageLanding = MatToBufferedImage(landing);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);

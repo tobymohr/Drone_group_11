@@ -402,8 +402,11 @@ public class PictureProcessingHelper {
 		try {
 			Result detectionResult = reader.decode(bitmap);
 			code = detectionResult.getText();
-			if(detectionResult.equals(OURQR))
-			return true;
+			if(detectionResult.equals(OURQR)){
+				System.out.println(OURQR);
+				return true;	
+			}
+			
 		} catch (Exception e) {
 			return false;
 		}
