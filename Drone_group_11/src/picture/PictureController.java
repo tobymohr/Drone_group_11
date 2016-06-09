@@ -119,11 +119,11 @@ public class PictureController  {
                 break;
                 case D:  cC.dC.goRight(10000);
                 break;
-                case MINUS:
+                case NUMPAD1:
                 	OFC.blueMin -= 1;
                 	System.out.println("Min: " + OFC.blueMin);
                 	break;
-                case PLUS:
+                case NUMPAD2:
                 	OFC.blueMin += 1;
                 	System.out.println("Min: " + OFC.blueMin);
                 	break;
@@ -136,6 +136,7 @@ public class PictureController  {
                 	System.out.println("Max: " + OFC.blueMax);
                 	break;
 				default:
+					
 					break;
             }
 	        	
@@ -149,7 +150,7 @@ public class PictureController  {
 	        public void handle(KeyEvent event){
 	        	pressedKeys.remove(event.getCode());
 	        	System.out.println(event.getCode().toString() + " removed");
-	        	cC.dC.hover();
+//	        	cC.dC.hover();
 	        }
 	    });
 	}
@@ -171,7 +172,9 @@ public class PictureController  {
 //			setDimension(filterFrame, 800);
 //			setDimension(qrFrame, 800);
 		try {
+			setUpKeys();
 			grabFromVideo();
+			
 			
 		} catch (org.bytedeco.javacv.FrameGrabber.Exception e) {
 			e.printStackTrace();
@@ -217,7 +220,7 @@ public class PictureController  {
 		});
 		drone.start();
 		cC = new CommandController(drone);
-		cC.dC.setBottomCamera();
+		cC.dC.setFrontCamera();
 		new Thread(cC).start();
 //		droneCommunicator.setBottomCamera();
 	}
@@ -251,8 +254,8 @@ public class PictureController  {
 			Mat camMat = null;
 			@Override
 			public void run() {
-				camMat = grabMatFromCam(converterMat, grabber);
-				
+//				camMat = grabMatFromCam(converterMat, grabber);
+				camMat = imread("squares-blue.jpg");
 				Mat filteredMat = null;
 				
 				switch(colorInt){
@@ -314,7 +317,10 @@ public class PictureController  {
 	}
 	
 	public void showPolygons(Mat camMat, Mat filteredMat){
+		
 		filteredMat = OFC.erodeAndDilate(filteredMat);
+		
+		
 		Mat polyImage = OFC.findPolygonsMat(camMat,filteredMat,4);
 		BufferedImage bufferedImage = MatToBufferedImage(polyImage);
 		Image imagePoly = SwingFXUtils.toFXImage(bufferedImage, null);

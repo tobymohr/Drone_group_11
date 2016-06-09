@@ -142,7 +142,11 @@ public class PictureProcessingHelper {
 		inRange(mathsv3, scalarBlue1, scalarBlue2, mathsv3);
 		
 		findContours(mathsv3, contoursSwagger, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
-//		System.out.println(contoursSwagger.size());
+		for (int i = 0; i < contoursSwagger.size(); i++) {
+			System.out.println(contoursSwagger.get(i));
+		}
+		
+		System.out.println(contoursSwagger.size());
 		for (int i = 0; i < contoursSwagger.size(); i++) {
 			drawContours(mathsv3, contoursSwagger, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 2,
 					new opencv_core.Point());
@@ -204,7 +208,6 @@ public class PictureProcessingHelper {
 		Mat imghsv = new Mat(img.arraySize(), 8, 3);
 		Mat imgbin = new Mat(img.arraySize(), 8, 1);
 		cvtColor(img, imghsv, CV_BGR2HSV);
-
 		Mat scalar1 = new Mat(new Scalar(35, 75, 6, 0));
 		Mat scalar2 = new Mat(new Scalar(75, 220, 220, 0));
 		// Two ranges to get full color spectrum
@@ -323,7 +326,35 @@ public class PictureProcessingHelper {
 		}
 		return img0;
 	}
-		
+	
+	public void checkAngles(RotatedRect rect) {
+		Point2f vertices = new Point2f(4);
+		rect.points(vertices);
+		int angle = Math.abs((int) rect.angle());
+		Point tl = null;
+		Point tr = null;
+		Point br = null;
+		Point bl = null;
+		if (angle >= 0 && angle < 10) {
+			tl = new Point((int) vertices.position(1).x(), (int) vertices.position(1).y());
+			tr = new Point((int) vertices.position(2).x(), (int) vertices.position(2).y());
+			br = new Point((int) vertices.position(3).x(), (int) vertices.position(3).y());
+			bl = new Point((int) vertices.position(0).x(), (int) vertices.position(0).y());
+		} else {
+			tl = new Point((int) vertices.position(2).x(), (int) vertices.position(2).y());
+			tr = new Point((int) vertices.position(3).x(), (int) vertices.position(3).y());
+			br = new Point((int) vertices.position(0).x(), (int) vertices.position(0).y());
+			bl = new Point((int) vertices.position(1).x(), (int) vertices.position(1).y());
+		}
+//		System.out.println("----------");
+//		System.out.println(Math.toDegrees(calculateAngle(tl, tr, bl)));
+//		System.out.println(Math.toDegrees(calculateAngle(tr, tl, br)));
+//		System.out.println(Math.toDegrees(calculateAngle(bl, tl, br)));
+//		System.out.println(Math.toDegrees(calculateAngle(br, bl, tr)));
+//		System.out.println("----------");
+	}
+	
+
 	public boolean scanQrCode(Mat srcImage){
 		BufferedImage qrCode = converter1.convert(converter.convert(srcImage));
 		source = new BufferedImageLuminanceSource(qrCode);
@@ -998,7 +1029,7 @@ public class PictureProcessingHelper {
 
 			angle = Math.atan2(listen.get(j + 1).y() - listen.get(j).y(), listen.get(j + 1).x() - listen.get(j).x())
 					* 180.0 / CV_PI;
-			System.out.println(angle);
+//			System.out.println(angle);
 			break;
 		}
 
