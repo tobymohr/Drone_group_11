@@ -383,18 +383,39 @@ public class PictureProcessingHelper {
 	}
 
 	public boolean scanQrCode(Mat srcImage) {
+		
 		BufferedImage qrCode = converter1.convert(converter.convert(srcImage));
 		source = new BufferedImageLuminanceSource(qrCode);
 		bitmap = new BinaryBitmap(new HybridBinarizer(source));
 		try {
 			Result detectionResult = reader.decode(bitmap);
 			code = detectionResult.getText();
+			
 			return true;
 		} catch (Exception e) {
 			return false;
 		}
 
 	}
+	
+	public boolean checkDecodedQR(Mat img){
+		String OURQR = "AF.01";
+		
+		BufferedImage qrCode = converter1.convert(converter.convert(img));
+		source = new BufferedImageLuminanceSource(qrCode);
+		bitmap = new BinaryBitmap(new HybridBinarizer(source));
+		try {
+			Result detectionResult = reader.decode(bitmap);
+			code = detectionResult.getText();
+			if(detectionResult.equals(OURQR))
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+		
+		return false;
+	}
+	
 
 	public float calcDistance(RotatedRect rect) {
 		float knownDistance = 214;
@@ -527,7 +548,7 @@ public class PictureProcessingHelper {
 		return img;
 	}
 	
-	public Mat circle(Mat img){
+	public Mat myCircle(Mat img){
 		
 		MatVector matCircles = new MatVector();
 		
@@ -539,7 +560,15 @@ public class PictureProcessingHelper {
 		
 		HoughCircles(img, img,HOUGH_GRADIENT, 1, 100, 100, 100, 15, 500);
 		
-		
+		for(int i = 0; i < matCircles.get(i).total(); i++){
+			Point3f circle = new Point3f(matCircles.get(i));
+			
+			
+			int radius = Math.round(circle.z());
+			
+			
+			
+		}
 		
 		return img;
 	}
