@@ -142,10 +142,11 @@ public class PictureProcessingHelper {
 		inRange(mathsv3, scalarBlue1, scalarBlue2, mathsv3);
 		
 		findContours(mathsv3, contoursSwagger, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
+		System.out.println("BEGIN!");
 		for (int i = 0; i < contoursSwagger.size(); i++) {
-			System.out.println(contoursSwagger.get(i));
+			System.out.println(contoursSwagger.get(i).sizeof());
 		}
-		
+		System.out.println("END!");
 		System.out.println(contoursSwagger.size());
 		for (int i = 0; i < contoursSwagger.size(); i++) {
 			drawContours(mathsv3, contoursSwagger, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 2,

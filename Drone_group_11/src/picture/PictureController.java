@@ -255,7 +255,7 @@ public class PictureController  {
 			@Override
 			public void run() {
 //				camMat = grabMatFromCam(converterMat, grabber);
-				camMat = imread("squares-blue.jpg");
+				camMat = imread("circles_stage.png");
 				Mat filteredMat = null;
 				
 				switch(colorInt){
