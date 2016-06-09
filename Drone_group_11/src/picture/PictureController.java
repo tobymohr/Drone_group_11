@@ -12,38 +12,24 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
 import javax.imageio.ImageIO;
-
 import static org.bytedeco.javacpp.helper.opencv_core.*;
-
 import org.bytedeco.javacpp.opencv_videoio.CvCapture;
-
 import org.bytedeco.javacv.Frame;
-
-
 import static org.bytedeco.javacpp.helper.opencv_imgproc.*;
 import static org.bytedeco.javacpp.opencv_imgcodecs.*;
-
-
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameGrabber;
 import org.bytedeco.javacv.VideoInputFrameGrabber;
-
-
 import com.google.zxing.Result;
-
 import org.bytedeco.javacpp.*;
 import org.bytedeco.javacpp.opencv_core.*;
 import org.bytedeco.javacpp.indexer.FloatIndexer;
-
 import static org.bytedeco.javacpp.opencv_imgproc.*;
 import static org.bytedeco.javacpp.opencv_video.*;
-
 import org.bytedeco.javacv.*;
-
 import static org.bytedeco.javacpp.opencv_core.*;
 import app.CommandController;
 import app.DroneCommunicator;
@@ -51,6 +37,7 @@ import app.DroneInterface;
 import de.yadrone.base.ARDrone;
 import de.yadrone.base.IARDrone;
 import de.yadrone.base.command.VideoBitRateMode;
+import de.yadrone.base.command.VideoCodec;
 import de.yadrone.base.exception.ARDroneException;
 import de.yadrone.base.exception.IExceptionListener;
 import de.yadrone.base.video.ImageListener;
@@ -83,6 +70,8 @@ public class PictureController {
 	public static String qrCodeText = "";
 	private FrameGrabber grabber = new OpenCVFrameGrabber(0);
 	private Set<KeyCode> pressedKeys = new HashSet<KeyCode>();
+	private Mat camMat = null;
+	public static boolean shouldScan = true;
 
 	public static int colorInt = 4;
 
@@ -108,60 +97,61 @@ public class PictureController {
 	@FXML
 	private Label qrDist;
 
+	public void setUpKeys() {
+		borderpane.getScene().setOnKeyPressed(new EventHandler<KeyEvent>() {
+			@Override
+			public void handle(KeyEvent event) {
+				KeyCode note = event.getCode();
 
-	public void setUpKeys(){
-		borderpane.getScene().setOnKeyPressed(new EventHandler<KeyEvent>()
-	    {
-	        @Override
-	        public void handle(KeyEvent event){
-	        	KeyCode note = event.getCode();
-	        	
-	        	if (!pressedKeys.contains(note)){
-	        		System.out.println(note);
-	        		pressedKeys.add(note);
-	        	switch (event.getCode()) {
-                case W:   cC.dC.goForward(10000);
-                break;
-                case S:   cC.dC.goBackwards(10000);
-                break;
-                case A:   cC.dC.goLeft(10000);
-                break;
-                case D:  cC.dC.goRight(10000);
-                break;
-                case NUMPAD1:
-                	OFC.blueMin -= 1;
-                	System.out.println("Min: " + OFC.blueMin);
-                	break;
-                case NUMPAD2:
-                	OFC.blueMin += 1;
-                	System.out.println("Min: " + OFC.blueMin);
-                	break;
-                case NUMPAD4:
-                	OFC.blueMax -= 1;
-                	System.out.println("Max: " + OFC.blueMax);
-                	break;
-                case NUMPAD5:
-                	OFC.blueMax += 1;
-                	System.out.println("Max: " + OFC.blueMax);
-                	break;
-				default:
-					
-					break;
-            }
-	        	
-	        }
-	        }
-	    });
-		
-		borderpane.getScene().setOnKeyReleased(new EventHandler<KeyEvent>()
-	    {
-	        @Override
-	        public void handle(KeyEvent event){
-	        	pressedKeys.remove(event.getCode());
-	        	System.out.println(event.getCode().toString() + " removed");
-	        	cC.dC.hover();
-	        }
-	    });
+				if (!pressedKeys.contains(note)) {
+					System.out.println(note);
+					pressedKeys.add(note);
+					switch (event.getCode()) {
+					case W:
+						cC.dC.goForward(10000);
+						break;
+					case S:
+						cC.dC.goBackwards(10000);
+						break;
+					case A:
+						cC.dC.goLeft(10000);
+						break;
+					case D:
+						cC.dC.goRight(10000);
+						break;
+					case NUMPAD1:
+						OFC.blueMin -= 1;
+						System.out.println("Min: " + OFC.blueMin);
+						break;
+					case NUMPAD2:
+						OFC.blueMin += 1;
+						System.out.println("Min: " + OFC.blueMin);
+						break;
+					case NUMPAD4:
+						OFC.blueMax -= 1;
+						System.out.println("Max: " + OFC.blueMax);
+						break;
+					case NUMPAD5:
+						OFC.blueMax += 1;
+						System.out.println("Max: " + OFC.blueMax);
+						break;
+					default:
+
+						break;
+					}
+
+				}
+			}
+		});
+
+		borderpane.getScene().setOnKeyReleased(new EventHandler<KeyEvent>() {
+			@Override
+			public void handle(KeyEvent event) {
+				pressedKeys.remove(event.getCode());
+				System.out.println(event.getCode().toString() + " removed");
+				cC.dC.hover();
+			}
+		});
 	}
 
 	private void setDimension(ImageView image, int dimension) {
@@ -206,6 +196,7 @@ public class PictureController {
 		});
 		drone.start();
 		cC = new CommandController(drone);
+		drone.getCommandManager().setVideoCodec(VideoCodec.H264_720P);
 		cC.dC.setFrontCamera();
 		new Thread(cC).start();
 		// droneCommunicator.setBottomCamera();
@@ -241,13 +232,11 @@ public class PictureController {
 
 		Runnable frameGrabber = new Runnable() {
 			boolean isFirst = true;
-			Mat camMat = null;
 
 			@Override
 			public void run() {
 
-//				camMat = imread("circles_stage.png");
-
+				// camMat = imread("circles_stage.png");
 				camMat = grabMatFromCam(converterMat, grabber);
 
 				Mat filteredMat = null;
@@ -262,7 +251,7 @@ public class PictureController {
 				case 3:
 					filteredMat = OFC.findContoursGreenMat(camMat);
 					break;
-				default: 
+				default:
 					filteredMat = OFC.findContoursBlueMat(camMat);
 
 					break;
@@ -272,6 +261,9 @@ public class PictureController {
 				showLanding(camMat.clone(), filteredMat);
 				showPolygons(camMat, filteredMat);
 				showFilter(filteredMat);
+				if (shouldScan) {
+					scanSequence(camMat.clone());
+				}
 
 				Platform.runLater(new Runnable() {
 					@Override
@@ -287,6 +279,25 @@ public class PictureController {
 		};
 		timer = Executors.newSingleThreadScheduledExecutor();
 		timer.scheduleAtFixedRate(frameGrabber, 0, 33, TimeUnit.MILLISECONDS);
+	}
+
+	public void scanSequence(Mat camMat) {
+		List<Mat> contours = OFC.findQrContours(camMat);
+		if(contours.size() != 0){
+			RotatedRect rect = minAreaRect(contours.get(0));
+			double positionFromCenter = OFC.isCenterInImage(camMat.clone(), rect);
+			if(positionFromCenter == 0 && OFC.center(rect)){
+				System.out.println("CENTER");
+				Mat qrImg = OFC.warpImage(camMat.clone(), rect);
+				String code = OFC.scanQrCode(qrImg);
+				if(code != null){
+					System.out.println("QR SCANNED: " + code);
+					if (contours.size() == 3) {
+						System.out.println("DREI FOUND");
+					}
+				}
+			}
+		}
 	}
 
 	public void showQr(Mat camMat) {
@@ -312,7 +323,7 @@ public class PictureController {
 
 	public void showPolygons(Mat camMat, Mat filteredMat) {
 		filteredMat = OFC.erodeAndDilate(filteredMat);
-		Mat polyImage = OFC.findPolygonsMat(camMat,filteredMat,4);
+		Mat polyImage = OFC.findPolygonsMat(camMat, filteredMat, 4);
 
 		BufferedImage bufferedImage = MatToBufferedImage(polyImage);
 		Image imagePoly = SwingFXUtils.toFXImage(bufferedImage, null);
@@ -386,7 +397,9 @@ public class PictureController {
 
 	public void takeOff() {
 		System.out.println("TAKEOFF");
+		shouldScan = true;
 		cC.dC.takeOff();
+
 	}
 
 }

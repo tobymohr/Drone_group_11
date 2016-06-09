@@ -1,9 +1,13 @@
 package picture;
 
+import static org.bytedeco.javacpp.opencv_imgproc.minAreaRect;
+
 import java.awt.image.BufferedImage;
+import java.util.List;
 
 import org.bytedeco.javacpp.opencv_core.IplImage;
 import org.bytedeco.javacpp.opencv_core.Mat;
+import org.bytedeco.javacpp.opencv_core.RotatedRect;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
@@ -85,11 +89,32 @@ public class OFVideo implements Runnable {
 
 					}
 				});
+				if (PictureController.shouldScan) {
+					scanSequence(newImg.clone());
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
+	
+	public void scanSequence(Mat camMat) {
+		List<Mat> contours = OFC.findQrContours(camMat);
+		if(contours.size() != 0){
+			RotatedRect rect = minAreaRect(contours.get(0));
+			double positionFromCenter = OFC.isCenterInImage(camMat.clone(), rect);
+			if(positionFromCenter == 0 && OFC.center(rect)){
+				System.out.println("CENTER");
+				Mat qrImg = OFC.warpImage(camMat.clone(), rect);
+				String code = OFC.scanQrCode(qrImg);
+				if(code != null){
+					System.out.println("QR SCANNED: " + code);
+					System.out.println(contours.size());
+				}
+			}
+		}
+	}
+
 
 	public void showQr(Mat camMat) {
 		Mat qrMat = OFC.extractQRImage(camMat);
