@@ -13,14 +13,9 @@ import java.util.concurrent.TimeUnit;
 import javax.imageio.ImageIO;
 import static org.bytedeco.javacpp.helper.opencv_core.*;
 import org.bytedeco.javacpp.opencv_videoio.CvCapture;
-import org.bytedeco.javacv.Frame;
+
 import static org.bytedeco.javacpp.helper.opencv_imgproc.*;
 import static org.bytedeco.javacpp.opencv_imgcodecs.*;
-import org.bytedeco.javacv.FrameGrabber;
-import org.bytedeco.javacv.Java2DFrameConverter;
-import org.bytedeco.javacv.OpenCVFrameConverter;
-import org.bytedeco.javacv.OpenCVFrameGrabber;
-import org.bytedeco.javacv.VideoInputFrameGrabber;
 
 import com.google.zxing.Result;
 
@@ -145,8 +140,9 @@ public class PictureController  {
 	protected void startCamera() {
 		
 //		 setDimension(polyFrame, 800);
-//			setDimension(filterFrame, 800);
-//			setDimension(qrFrame, 800);
+//		setDimension(filterFrame, 800);
+//		setDimension(qrFrame, 800);
+		
 		try {
 			grabFromVideo();
 			
@@ -221,6 +217,7 @@ public class PictureController  {
 		OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
 		OpenCVFrameConverter.ToMat converterMat = new OpenCVFrameConverter.ToMat();
 		FrameGrabber grabber = new VideoInputFrameGrabber(0);
+	
 		grabber.start();
 
 		Runnable frameGrabber = new Runnable() {

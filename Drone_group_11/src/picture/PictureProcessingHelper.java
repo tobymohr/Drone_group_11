@@ -31,6 +31,7 @@ import com.google.zxing.Result;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
+import com.sun.javafx.geom.Vec4d;
 
 import org.bytedeco.javacpp.*;
 import org.bytedeco.javacpp.opencv_core.*;
@@ -80,6 +81,8 @@ public class PictureProcessingHelper {
 	private int i = 0;
 	CvPoint2D32f c1 = new CvPoint2D32f(4);
 	CvPoint2D32f c2 = new CvPoint2D32f(4);
+	int centerW = 320;
+	int centerY = 180;
 
 	private CvScalar rgba_min = cvScalar(minRed, minGreen, minBlue, 0);
 	private CvScalar rgba_max = cvScalar(maxRed, maxGreen, maxBlue, 0);
@@ -145,6 +148,8 @@ public class PictureProcessingHelper {
 		}
 		return matHSV;
 	}
+	
+	
 
 	public Mat findContoursRedMat(Mat img) {
 
@@ -263,6 +268,7 @@ public class PictureProcessingHelper {
 		
 		Mat img1 = new Mat(img0.arraySize(), CV_8UC1, 1);
 		cvtColor(img0, img1, CV_RGB2GRAY);
+		
 		Canny(img1, img1, 75, 200);
 		MatVector matContour = new MatVector();
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
@@ -328,7 +334,12 @@ public class PictureProcessingHelper {
 		Mat img1 = new Mat(img.arraySize(), CV_8UC1, 1);
 		
 		cvtColor(img, img1, CV_RGB2GRAY);
+		
+		
+		
 		Canny(img1, img1, 75, 200);
+		
+		
 		
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 
@@ -343,6 +354,12 @@ public class PictureProcessingHelper {
 		// center of centerpoints y
 		yCenterBottom = (img.arrayHeight() / 3) * 2;
 		yCenterTop = (img.arrayHeight() / 3);
+		
+//		// center points 
+//		int xcenter =  img.arrayWidth()/2;
+//		int ycenter = img.arrayHeight()/2;
+		
+		
 
 		// System.out.println(img.arrayHeight() + "h");
 		// System.out.println(img.arrayWidth() + "w");
@@ -372,8 +389,11 @@ public class PictureProcessingHelper {
 		
 		// Draw Center
 	
+	
+		
 		int counter = 0;
 		for (int i = 0; i < matContour.size(); i++) {
+
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
 			if (matContour.get(i).total()== 4 && contourArea(matContour.get(i))>1000 && contourArea(matContour.get(i)) <10000) {
 				Point2f centerPoint = minAreaRect(matContour.get(i)).center();
@@ -381,7 +401,7 @@ public class PictureProcessingHelper {
 				line(img, p, p, Scalar.BLACK, 16, CV_AA, 0);
 
 				drawContours(img1, matContour, i, Scalar.WHITE, CV_FILLED, 8, null, 1, null);
-				
+
 				
 
 				for (int j = 0; j < matContour.get(i).total(); j++) {
@@ -389,24 +409,32 @@ public class PictureProcessingHelper {
 					opencv_core.Point ptemp = new opencv_core.Point((int) centerPointTemp.x(),
 							(int) centerPointTemp.y());
 					line(img, ptemp, ptemp, Scalar.BLACK, 16, CV_AA, 0);
-					if (checkBoxForCenter(ptemp.x(), ptemp.y(),dist)) {
+					if (checkBoxForCenter(ptemp.x(), ptemp.y())) {
 						counter++;
 					}
 				}
 
 				if (counter == matContour.get(i).total()) {
 					// check in which part of center box is.
-					switch (checkPositionInCenter(p.x(), p.y(),dist)) {
+					switch (checkPositionInCenter(p.x(), p.y())) {
 					case 1:
 						line(img, p, p, Scalar.BLUE, 16, CV_AA, 0);
 						break;
 					case 2:
 						line(img, p, p, Scalar.RED, 16, CV_AA, 0);
 						dist = 0;
+						System.out.println("Center" + dist);
 						break;
-					case 3:
+					case 3:	
 						line(img, p, p, Scalar.GREEN, 16, CV_AA, 0);
+						System.out.println("move up" + dist);
 						break;
+					case 4: 
+						line(img,p,p,Scalar.BLACK,16,CV_AA,0);
+						System.out.println("move right" + dist);
+					case 5: 
+						line(img,p,p,Scalar.BLACK,16,CV_AA,0);
+						System.out.println("Move left" + dist);
 					default:
 						break;
 
@@ -425,6 +453,23 @@ public class PictureProcessingHelper {
 		
 		
 
+		return img;
+	}
+	
+	public Mat circle(Mat img){
+		
+		MatVector matCircles = new MatVector();
+		
+		Mat img1 = new Mat(img.arraySize(), CV_8UC1, 1);
+		
+		cvtColor(img, img1, CV_RGB2GRAY);
+		
+		GaussianBlur(img1,img, new Size(9,9), 2.0);
+		
+		HoughCircles(img, img,HOUGH_GRADIENT, 1, 100, 100, 100, 15, 500);
+		
+		
+		
 		return img;
 	}
 
@@ -823,7 +868,7 @@ public class PictureProcessingHelper {
 		return distance;
 	}
 
-	private int checkPositionInCenter(int posx, int posy, int dist) {
+	private int checkPositionInCenter(int posx, int posy) {
 
 		boolean bottomCenterCondition = posy > yCenterBottom;
 		boolean upperCenterCondition = posy < yCenterTop;
@@ -831,57 +876,43 @@ public class PictureProcessingHelper {
 		boolean rightCenterCondition = posx > xright;
 		
 		if (upperCenterCondition) {
-			dist = 0;
+			
 			return 1;
 		}
 
 		if (!bottomCenterCondition && !upperCenterCondition) {
-			dist = 0;
+			
 			return 2;
 		}
 
 		if (bottomCenterCondition) {
-			dist = 0;
+			
 			return 3;
 		}
 		if(leftCenterCondition){
-			dist = 0;
+			
 			return 4;
 		}
 		
 		if(rightCenterCondition){
-			dist = 0;
+			
 			return 5;
 		}
 		return 0;
 
 	}
 
-	private boolean checkBoxForCenter(int posx, int posy, int dist) {
+	private boolean checkBoxForCenter(int posx, int posy) {
 		
 		boolean verticalCondition = posy > ytop && posy < ybot;
 		boolean horizontalCondition = posx > xleft && posx < xright;
 		if (horizontalCondition && verticalCondition) {
-			dist = 50;
+			
 			return true;
 		} else {
 			return false;
 		}
 
-	}
-	
-	private boolean checkCenterDistance(int posx, int posy, int dist){
-		
-		dist = 50; 
-		
-		checkBoxForCenter(posx, posy, dist);
-		
-		checkPositionInCenter(posx, posy, dist);
-		
-		
-		
-		return false;
-		
 	}
 
 	private boolean checkForCenter(int posx, int posy, int redx, int redy) {
