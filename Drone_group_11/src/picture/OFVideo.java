@@ -18,19 +18,20 @@ import javafx.scene.image.ImageView;
 
 public class OFVideo implements Runnable {
 
-	Java2DFrameConverter converter1;
-	OpenCVFrameConverter.ToIplImage converter;
-	OpenCVFrameConverter.ToMat converterMat;
+	private Java2DFrameConverter converter1;
+	private OpenCVFrameConverter.ToIplImage converter;
+	private OpenCVFrameConverter.ToMat converterMat;
 	private ImageView filterFrame;
 	private ImageView polyFrame;
 	private ImageView qrFrame;
 	private ImageView landingFrame;
 	private Label qrCode;
 	private Label qrDist;
-	BufferedImage arg0;
-	PictureProcessingHelper OFC = new PictureProcessingHelper();
+	private BufferedImage arg0;
+	private PictureProcessingHelper OFC = new PictureProcessingHelper();
 
-	public OFVideo(ImageView filterFrame, ImageView polyFrame, ImageView qrFrame, ImageView landingFrame, Label qrCode, Label qrDist, BufferedImage arg0) {
+	public OFVideo(ImageView filterFrame, ImageView polyFrame, ImageView qrFrame, ImageView landingFrame, Label qrCode,
+			Label qrDist, BufferedImage arg0) {
 		this.arg0 = arg0;
 		this.filterFrame = filterFrame;
 		this.polyFrame = polyFrame;
@@ -40,8 +41,8 @@ public class OFVideo implements Runnable {
 		this.qrCode = qrCode;
 		converter = new OpenCVFrameConverter.ToIplImage();
 		converterMat = new ToMat();
-		converter1 = new Java2DFrameConverter();		
-		
+		converter1 = new Java2DFrameConverter();
+
 	}
 
 	public void setArg0(BufferedImage arg0) {
@@ -51,80 +52,73 @@ public class OFVideo implements Runnable {
 	@Override
 	public void run() {
 		try {
-			IplImage cam;
 			Mat newImg = null;
 			while (true) {
-					cam = converter.convert(converter1.convert(arg0));
-					newImg = converterMat.convert(converter1.convert(arg0));
-					Mat filteredImage = null;
-					
-					switch(PictureController.colorInt){
-					case 1:
-						filteredImage = OFC.findContoursBlackMat(newImg);
-						break;
-					case 2: 
-						filteredImage = OFC.findContoursRedMat(newImg);
-						break;
-					case 3: 
-						filteredImage = OFC.findContoursGreenMat(newImg);
-						break;
-					default: 
-						filteredImage = OFC.findContoursBlackMat(newImg);
-						break;
+				newImg = converterMat.convert(converter1.convert(arg0));
+				Mat filteredImage = null;
+
+				switch (PictureController.colorInt) {
+				case 1:
+					filteredImage = OFC.findContoursBlackMat(newImg);
+					break;
+				case 2:
+					filteredImage = OFC.findContoursRedMat(newImg);
+					break;
+				case 3:
+					filteredImage = OFC.findContoursGreenMat(newImg);
+					break;
+				default:
+					filteredImage = OFC.findContoursBlackMat(newImg);
+					break;
+				}
+
+				showQr(newImg.clone());
+				showLanding(newImg.clone(), filteredImage.clone());
+				showPolygons(newImg.clone(), filteredImage.clone());
+				showFilter(filteredImage.clone());
+
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						qrCode.setText("QR Code: " + OFC.getQrCode());
+						qrDist.setText("Dist: " + OFC.getDistance());
+
 					}
-					
-					
-					showQr(newImg.clone());
-					showLanding(newImg.clone(), filteredImage.clone());
-					showPolygons(newImg.clone(), filteredImage.clone());
-					showFilter(filteredImage.clone());
-					
-					Platform.runLater(new Runnable() {
-			            @Override public void run() {
-			            	qrCode.setText("QR Code: " + OFC.getQrCode());
-			            	qrDist.setText("Dist: " + OFC.getDistance());
-			            	
-			            }
-			        });
-		}
+				});
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
-	
 
-	public void showQr(Mat camMat){
+	public void showQr(Mat camMat) {
 		Mat qrMat = OFC.extractQRImage(camMat);
-		BufferedImage bufferedImageQr =  MatToBufferedImage(qrMat);
+		BufferedImage bufferedImageQr = MatToBufferedImage(qrMat);
 		Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
 		qrFrame.setImage(imageQr);
 	}
-	
-	public void showLanding(Mat camMat, Mat filteredMat){
+
+	public void showLanding(Mat camMat, Mat filteredMat) {
 		Mat landing = OFC.center(camMat.clone(), filteredMat.clone());
-		BufferedImage bufferedImageLanding =  MatToBufferedImage(landing);
+		BufferedImage bufferedImageLanding = MatToBufferedImage(landing);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
 		landingFrame.setImage(imageLanding);
 	}
-	
-	public void showFilter(Mat filteredMat){
+
+	public void showFilter(Mat filteredMat) {
 		BufferedImage bufferedMatImage = MatToBufferedImage(filteredMat);
 		Image imageFilter = SwingFXUtils.toFXImage(bufferedMatImage, null);
 		filterFrame.setImage(imageFilter);
-		
+
 	}
-	
-	public void showPolygons(Mat camMat, Mat filteredMat){
+
+	public void showPolygons(Mat camMat, Mat filteredMat) {
 		filteredMat = OFC.erodeAndDilate(filteredMat);
-		Mat polyImage = OFC.findPolygonsMat(camMat,filteredMat,4);
+		Mat polyImage = OFC.findPolygonsMat(camMat, filteredMat, 4);
 		BufferedImage bufferedImage = MatToBufferedImage(polyImage);
 		Image imagePoly = SwingFXUtils.toFXImage(bufferedImage, null);
 		polyFrame.setImage(imagePoly);
 	}
-	
-	
-	
 
 	public BufferedImage IplImageToBufferedImage(IplImage src) {
 		OpenCVFrameConverter.ToIplImage grabberConverter = new OpenCVFrameConverter.ToIplImage();
@@ -132,6 +126,7 @@ public class OFVideo implements Runnable {
 		Frame frame = grabberConverter.convert(src);
 		return paintConverter.getBufferedImage(frame, 1);
 	}
+
 	public BufferedImage MatToBufferedImage(Mat src) {
 		OpenCVFrameConverter.ToMat grabberConverter = new OpenCVFrameConverter.ToMat();
 		Java2DFrameConverter paintConverter = new Java2DFrameConverter();
