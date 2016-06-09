@@ -75,7 +75,10 @@ public class PictureController {
 	public static boolean shouldScan = false;
 	private static boolean aboveLanding = false;
 	private static int circleCounter = 0;
-
+	public BufferedImage billede;
+	public int navn = 0;
+	public int speed = 10;
+	public int duration = 3000;
 	public static int colorInt = 4;
 
 	// CAMERA
@@ -110,18 +113,65 @@ public class PictureController {
 					System.out.println(note);
 					pressedKeys.add(note);
 					switch (event.getCode()) {
-					case W:
-						cC.dC.goForward(10000);
-						break;
-					case S:
-						cC.dC.goBackwards(10000);
-						break;
-					case A:
-						cC.dC.goLeft(10000);
-						break;
-					case D:
-						cC.dC.goRight(10000);
-						break;
+	                case W:   cC.addCommand(1, duration);
+	                break;
+	                case S:   cC.addCommand(2, duration);
+	                break;
+	                case A:   cC.addCommand(3, duration);
+	                break;
+	                case D:   cC.addCommand(4, duration);
+	                break;
+	                case M:		cC.dC.land();
+	                break;
+	                case F:
+	                	navn++;
+	                	String navn2 = navn+".jpg";
+	File outputfile = new File(navn2);
+						try {
+							ImageIO.write(billede, "jpg", outputfile);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+
+	break;
+	                case G:
+	                case H:
+	                	cC.emergencyStop();
+	                	break;
+	                case UP:
+	                	cC.addCommand(5, duration);
+	                	break;
+	                case DOWN:
+	                	cC.addCommand(6, duration);
+	                	break;
+	                case LEFT:
+	                	cC.dC.spinLeft(duration);
+	                	break;
+	                case RIGHT:
+	                	cC.dC.spinRight(duration);
+	                	break;
+	                case ENTER:
+	                	cC.dC.hover();
+	                	break;
+	                case O:
+	                	speed += 5;
+	                	cC.dC.setSpeed(speed);
+	                	qrCode.setText("speed: "+speed);
+	                break;
+	                case I:
+	                	speed -= 5;
+	                	cC.dC.setSpeed(speed);
+	                	qrCode.setText("speed: "+speed);
+	               break;
+	                case L:
+	                	duration += 250;
+	                	qrDist.setText("duration: "+ duration);
+	                	break;
+	                case K:
+	                	duration -= 250;
+	                	qrDist.setText("duration: "+ duration);
+	                	break;
 					case NUMPAD1:
 						OFC.blueMin -= 1;
 						System.out.println("Min: " + OFC.blueMin);

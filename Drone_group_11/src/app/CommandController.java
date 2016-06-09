@@ -32,9 +32,10 @@ public class CommandController implements Runnable {
 		while(true){
 			try {
 				synchronized(this){
-					while(wait){
+					while(wait || q.peek()==null){
 						try {
-							wait();
+							dC.hover();
+							wait(50);
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
