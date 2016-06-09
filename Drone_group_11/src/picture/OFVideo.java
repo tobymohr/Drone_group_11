@@ -33,6 +33,8 @@ public class OFVideo implements Runnable {
 	private Label qrDist;
 	private BufferedImage arg0;
 	private PictureProcessingHelper OFC = new PictureProcessingHelper();
+	private static boolean aboveLanding = false;
+	private static int circleCounter = 0;
 
 	public OFVideo(ImageView filterFrame, ImageView polyFrame, ImageView qrFrame, ImageView landingFrame, Label qrCode,
 			Label qrDist, BufferedImage arg0) {
@@ -72,13 +74,13 @@ public class OFVideo implements Runnable {
 					filteredImage = OFC.findContoursGreenMat(newImg);
 					break;
 				default:
-					filteredImage = OFC.findContoursBlackMat(newImg);
+					filteredImage = OFC.findContoursBlueMat(newImg);
 					break;
 				}
 
-				showQr(newImg.clone());
-				showLanding(newImg.clone(), filteredImage.clone());
-				showPolygons(newImg.clone(), filteredImage.clone());
+//				showQr(newImg.clone());
+//				showLanding(newImg.clone(), filteredImage.clone());
+//				showPolygons(newImg.clone(), filteredImage.clone());
 				showFilter(filteredImage.clone());
 
 				Platform.runLater(new Runnable() {
@@ -125,11 +127,27 @@ public class OFVideo implements Runnable {
 		qrFrame.setImage(imageQr);
 	}
 
-	public void showLanding(Mat camMat, Mat filteredMat) {
-		Mat landing = OFC.center(camMat.clone(), filteredMat.clone());
+	public void showLanding(Mat mat, Mat filteredMat) {
+		Mat landing = mat;
+		int circles = 0;
+		boolean check = OFC.checkDecodedQR(mat);
+		if(check){
+			circles = OFC.myCircle(mat);
+		}
+		if(circles > 0 ){
+			aboveLanding = true;
+		}else{
+			circles = 0;
+			circleCounter++;
+		}
+		if(circleCounter >= 120){
+			aboveLanding = false;
+			circleCounter = 0;
+		}
 		BufferedImage bufferedImageLanding = MatToBufferedImage(landing);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
 		landingFrame.setImage(imageLanding);
+		System.out.println(aboveLanding);
 	}
 
 	public void showFilter(Mat filteredMat) {

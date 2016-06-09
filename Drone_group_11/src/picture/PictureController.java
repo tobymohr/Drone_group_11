@@ -72,6 +72,8 @@ public class PictureController {
 	private Set<KeyCode> pressedKeys = new HashSet<KeyCode>();
 	private Mat camMat = null;
 	public static boolean shouldScan = true;
+	private static boolean aboveLanding = false;
+	private static int circleCounter = 0;
 
 	public static int colorInt = 4;
 
@@ -236,7 +238,6 @@ public class PictureController {
 			@Override
 			public void run() {
 
-				// camMat = imread("circles_stage.png");
 				camMat = grabMatFromCam(converterMat, grabber);
 
 				Mat filteredMat = null;
@@ -258,7 +259,7 @@ public class PictureController {
 				}
 
 				showQr(camMat.clone());
-				showLanding(camMat.clone(), filteredMat);
+				showLanding(camMat.clone());
 				showPolygons(camMat, filteredMat);
 				showFilter(filteredMat);
 				if (shouldScan) {
@@ -307,11 +308,30 @@ public class PictureController {
 		qrFrame.setImage(imageQr);
 	}
 
-	public void showLanding(Mat camMat, Mat filteredMat) {
-		Mat landing = OFC.center(camMat.clone(), filteredMat.clone());
+	public void showLanding(Mat mat) {
+//		Mat landing = OFC.center(camMat.clone(), filteredMat.clone());
+		Mat landing = mat;
+		int circles = 0;
+		boolean check = OFC.checkDecodedQR(mat);
+		if(check){
+			circles = OFC.myCircle(mat);
+		}
+		if(circles > 0 ){
+			aboveLanding = true;
+			//If false restart landing sequence
+		}else{
+			circles = 0;
+			circleCounter++;
+		}
+		if(circleCounter >= 120){
+			aboveLanding = false;
+			circleCounter = 0;
+		}
 		BufferedImage bufferedImageLanding = MatToBufferedImage(landing);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
 		landingFrame.setImage(imageLanding);
+		System.out.println(aboveLanding);
+		
 	}
 
 	public void showFilter(Mat filteredMat) {
