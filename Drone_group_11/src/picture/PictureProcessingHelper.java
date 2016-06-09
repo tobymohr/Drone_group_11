@@ -692,10 +692,10 @@ public class PictureProcessingHelper {
 		return img;
 	}
 	
-	public Mat optFlow(Mat matterino){
-		calcOpticalFlowPyrLK(arg0, arg1, arg2, arg3, arg4, arg5);
-		
-		
-	}
+//	public Mat optFlow(Mat matterino){
+//		calcOpticalFlowPyrLK(arg0, arg1, arg2, arg3, arg4, arg5);
+//		
+//		
+//	}
 }
 
