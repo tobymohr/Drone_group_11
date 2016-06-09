@@ -378,18 +378,42 @@ public class PictureProcessingHelper {
 	}
 
 	public boolean scanQrCode(Mat srcImage) {
+		
 		BufferedImage qrCode = converter1.convert(converter.convert(srcImage));
 		source = new BufferedImageLuminanceSource(qrCode);
 		bitmap = new BinaryBitmap(new HybridBinarizer(source));
 		try {
 			Result detectionResult = reader.decode(bitmap);
 			code = detectionResult.getText();
+			
 			return true;
 		} catch (Exception e) {
 			return false;
 		}
 
 	}
+	
+	public boolean checkDecodedQR(Mat img){
+		String OURQR = "AF.01";
+		
+		BufferedImage qrCode = converter1.convert(converter.convert(img));
+		source = new BufferedImageLuminanceSource(qrCode);
+		bitmap = new BinaryBitmap(new HybridBinarizer(source));
+		try {
+			Result detectionResult = reader.decode(bitmap);
+			code = detectionResult.getText();
+			if(detectionResult.equals(OURQR)){
+				System.out.println(OURQR);
+				return true;	
+			}
+			
+		} catch (Exception e) {
+			return false;
+		}
+		
+		return false;
+	}
+	
 
 	public float calcDistance(RotatedRect rect) {
 		float knownDistance = 214;
@@ -522,6 +546,7 @@ public class PictureProcessingHelper {
 		return img;
 	}
 	
+
 
 	public IplImage convertMatToIplImage(Mat mat) {
 		return converter.convert(converter.convert(mat));
