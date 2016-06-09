@@ -10,7 +10,5 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/JavaCVDrone"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/YaDrones"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Yadrone"/>
-	<classpathentry kind="lib" path="/Users/Mkiza/YaDrone/yadrone_032_fat_lib/lib/zxing/core-2.2.jar"/>
-	<classpathentry kind="lib" path="/Users/Mkiza/YaDrone/yadrone_032_fat_lib/lib/zxing/javase-2.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

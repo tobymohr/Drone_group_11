@@ -218,8 +218,8 @@ public class PictureProcessingHelper {
 		Point tr = null;
 		Point br = null;
 		Point bl = null;
-		int height;
-		int width;
+		float height;
+		float width;
 		if (angle >= 0 && angle < 10) {
 			tl = new Point((int) vertices.position(1).x(), (int) vertices.position(1).y());
 			tr = new Point((int) vertices.position(2).x(), (int) vertices.position(2).y());
@@ -232,8 +232,8 @@ public class PictureProcessingHelper {
 			tr = new Point((int) vertices.position(3).x(), (int) vertices.position(3).y());
 			br = new Point((int) vertices.position(0).x(), (int) vertices.position(0).y());
 			bl = new Point((int) vertices.position(1).x(), (int) vertices.position(1).y());
-			height = (int) rect.size().width();
-			width = (int) rect.size().height();
+			height = rect.size().width();
+			width = rect.size().height();
 		}
 
 		float[] sourcePoints = { tl.x(), tl.y(), tr.x(), tr.y(), bl.x(), bl.y(), br.x(), br.y() };
@@ -243,7 +243,7 @@ public class PictureProcessingHelper {
 		Mat copy = crop.clone();
 		IplImage dest = new IplImage(copy);
 		cvWarpPerspective(dest, dest, homography, CV_INTER_LINEAR, CvScalar.ZERO);
-		dest = cropImage(dest, 0, 0, width, height);
+		dest = cropImage(dest, 0, 0, (int)width, (int)height);
 		Mat m = cvarrToMat(dest.clone());
 		cvRelease(dest);
 		cvClearMemStorage(storage);
@@ -285,12 +285,15 @@ public class PictureProcessingHelper {
 				img0.copyTo(crop, mask);
 				RotatedRect rect = minAreaRect(matContour.get(i));
 				crop = warpImage(crop, rect);
-				scanQrCode(crop);
+				if (scanQrCode(crop)) {
+					putText(img0, code, new Point((int)rect.center().x() - 25, (int)rect.center().y() + 80), 1, 2, Scalar.GREEN, 2, 8, false);
+				}
 				distance = calcDistance(rect);
-				checkAngles(rect);
 				drawContours(img0, matContour, i, Scalar.WHITE, 2, 8, null, 1, null);
-				putText(img0, "" + (int) distance, new Point((int)rect.center().x() - 25, (int)rect.center().y() + 60), 1, 2, Scalar.RED, 2, 8, false);
-				putText(img0, code, new Point((int)rect.center().x() - 25, (int)rect.center().y() + 80), 1, 2, Scalar.GREEN, 2, 8, false);
+				putText(img0, "" + (int) distance, new Point((int)rect.center().x() - 25, (int)rect.center().y() + 60), 1, 2, Scalar.BLUE, 2, 8, false);
+				if (center(rect)) {
+					putText(img0, "CENTER", new Point((int)rect.center().x() - 25, (int)rect.center().y() + 20), 1, 2, Scalar.RED, 2, 8, false);
+				}
 				crop = new Mat(img0.rows(), img0.cols(), CV_8UC3, Scalar.BLACK);
 				mask = new Mat(img1.rows(), img1.cols(), CV_8UC1, Scalar.BLACK);
 			}
@@ -325,6 +328,7 @@ public class PictureProcessingHelper {
 //		System.out.println("----------");
 	}
 	
+
 	public boolean scanQrCode(Mat srcImage){
 		BufferedImage qrCode = converter1.convert(converter.convert(srcImage));
 		source = new BufferedImageLuminanceSource(qrCode);
@@ -1006,12 +1010,8 @@ public class PictureProcessingHelper {
 		return angle;
 	}
 	
-	public double calculateAngle(Point A, Point B, Point C) {
-		double a = Math.sqrt(Math.pow(C.x()-B.x(), 2) + Math.pow(C.y()-B.y(), 2));
-		double b = Math.sqrt(Math.pow(A.x()-C.x(), 2) + Math.pow(A.y()-C.y(), 2));
-		double c = Math.sqrt(Math.pow(B.x()-A.x(), 2) + Math.pow(B.y()-A.y(), 2));
-		
-		double cosA = (Math.pow(b, 2) + Math.pow(c, 2) - Math.pow(a, 2)) / (2 * b * c);
-		return Math.acos(cosA);
+	public boolean center(RotatedRect rect) {
+		float ratio = rect.size().height()/rect.size().width();
+		return ratio > 1.40 && ratio < 1.45;
 	}
 }
