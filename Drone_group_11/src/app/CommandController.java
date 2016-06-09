@@ -66,7 +66,7 @@ public class CommandController implements Runnable {
 						break;
 					case Command.DOWN:
 						startTime = System.currentTimeMillis();
-						dC.goUp(task.time);
+						dC.goDown(task.time);
 						break;
 						//Rotate commands
 					case Command.SPINLEFT:
