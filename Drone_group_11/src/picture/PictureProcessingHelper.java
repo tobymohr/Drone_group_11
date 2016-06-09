@@ -328,24 +328,20 @@ public class PictureProcessingHelper {
 	}
 	
 	public void printMoves(List<Move> moves){
-		for(Move move : moves){
-			if(move.getMove() == Move.MOVE_RIGHT){
+		for (Move move : moves) {
+			if (move.getMove() == Move.MOVE_RIGHT) {
 				System.out.println("MOVE RIGHT");
 			}
-			
-			if(move.getMove() == Move.MOVE_DOWN){
+			if (move.getMove() == Move.MOVE_DOWN) {
 				System.out.println("MOVE DOWN");
 			}
-			
-			if(move.getMove() == Move.MOVE_LEFT){
+			if (move.getMove() == Move.MOVE_LEFT) {
 				System.out.println("MOVE LEFT");
 			}
-			
-			if(move.getMove() == Move.MOVE_FORWARD){
+			if (move.getMove() == Move.MOVE_FORWARD) {
 				System.out.println("MOVE FORWARD");
 			}
 		}
-		
 	}
 	
 	public List<Long> calcPosition(double distanceOne, double distanceTwo, double distanceThree){
