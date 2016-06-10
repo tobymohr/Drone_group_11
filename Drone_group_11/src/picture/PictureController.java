@@ -207,7 +207,6 @@ public class PictureController {
 			public void handle(KeyEvent event) {
 				pressedKeys.remove(event.getCode());
 				System.out.println(event.getCode().toString() + " removed");
-				cC.dC.hover();
 			}
 		});
 	}
@@ -462,6 +461,7 @@ public class PictureController {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+
 		System.out.println("SLEEP 1 DONE");
 		//#TODO Adjust height to line up with QR codes.
 		cC.dC.setSpeed(30);
@@ -473,6 +473,6 @@ public class PictureController {
 		}
 		System.out.println("SLEEP 2 DONE");
 		shouldScan = true;
-	}
+		}
 
 }
