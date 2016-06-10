@@ -122,7 +122,8 @@ public class OFVideo implements Runnable {
 		//#TODO Check if wall is close
 		boolean wallClose = false;
 		if (wallClose) {
-			// Go backwards 4-5 meters, and rotate 90 degrees
+			//#TODO Fly backwards (4-5 meters)
+			//#TODO Rotate 90 degrees
 			cC.addCommand(Command.BACKWARDS, 2000);
 			sleep(2000);
 			cC.addCommand(Command.SPINRIGHT, 1500);
@@ -139,11 +140,13 @@ public class OFVideo implements Runnable {
 				System.out.println("PositionFromCenter: " + positionFromCenter);
 				//#TODO Rotate <positionFromCenter> pixels to center the QR code in image
 				if (positionFromCenter > 0) {
+					System.out.println("SPINRIGHT");
 					cC.addCommand(Command.SPINRIGHT, 200);
-					sleep(200);
+					sleep(1000);
 				} else {
+					System.out.println("SPINLEFT");
 					cC.addCommand(Command.SPINLEFT, 200);
-					sleep(200);
+					sleep(1000);
 				}
 				return;
 			}
@@ -151,11 +154,15 @@ public class OFVideo implements Runnable {
 			if (center > CENTER_UPPER || center < CENTER_LOWER) {
 				//#TODO Strafe the drone <center> amount. Right is chosen as standard.
 				if (strafeRight) {
+					System.out.println("STRAFERIGHT");
+					cC.dC.setSpeed(5);
 					cC.addCommand(Command.RIGHT, 500);
-					sleep(500);
+					sleep(1000);
 				} else {
+					cC.dC.setSpeed(5);
+					System.out.println("STRAFELEFT");
 					cC.addCommand(Command.LEFT, 500);
-					sleep(500);
+					sleep(1000);
 				}
 				if (previousCenter == -1) {
 					// Record center in order to react to it next iteration
@@ -165,6 +172,7 @@ public class OFVideo implements Runnable {
 					if (difference < CENTER_DIFFERENCE) {
 						// We moved the wrong way. Change strafe direction.
 						strafeRight = !strafeRight;
+						System.out.println("CHANGE STRAFE DIRECTION");
 					}
 				}
 				return;
@@ -181,50 +189,52 @@ public class OFVideo implements Runnable {
 				//#TODO Ensure that the field code is set to null every time we need to reset.  
 				code = tempCode;
 			}
-			if(code != null){
-				// Check amount of squares found
-				// #TODO Implement some way to check squares across more than one frame
-				if (contours.size() == 3) {
-					//#TODO Calculate distance and placement in coordinate system
-					CustomPoint placement = new CustomPoint();
-					moveDroneToStart(placement);
-					code = null;
-					rotateCount = 0;
-					PictureController.shouldScan = false;
-					return;
-				} else {
-					//#TODO Fly backwards (0.5 meters)
-					cC.addCommand(Command.BACKWARDS, 500);
-					sleep(500);
-					return;
-				}
-			} else {
-				double distanceToSquare = OFC.calcDistance(rect);
-				// It might still be a QR code, we're too far away to know
-				if (distanceToSquare > 100) {
-					//#TODO Fly closer to the square (0.5 meters)
-					cC.addCommand(Command.FORWARD, 500);
-					sleep(500);
-					return;
-				} else {
-					//#TODO Fly backwards (4-5 meters)
-					//#TODO Rotate 90 degrees
-					cC.addCommand(Command.BACKWARDS, 2000);
-					sleep(2000);
-					cC.addCommand(Command.SPINRIGHT, 1500);
-					sleep(1500);
-					return;
-				}
-			}
+//			if(code != null) {
+//				// Check amount of squares found
+//				// #TODO Implement some way to check squares across more than one frame
+//				if (contours.size() == 3) {
+//					//#TODO Calculate distance and placement in coordinate system
+//					CustomPoint placement = new CustomPoint();
+//					moveDroneToStart(placement);
+//					code = null;
+//					rotateCount = 0;
+//					PictureController.shouldScan = false;
+//					return;
+//				} else {
+//					//#TODO Fly backwards (0.5 meters)
+//					cC.addCommand(Command.BACKWARDS, 500);
+//					sleep(500);
+//					return;
+//				}
+//			} else {
+//				double distanceToSquare = OFC.calcDistance(rect);
+//				// It might still be a QR code, we're too far away to know
+//				if (distanceToSquare > 100) {
+//					//#TODO Fly closer to the square (0.5 meters)
+//					cC.addCommand(Command.FORWARD, 500);
+//					sleep(500);
+//					return;
+//				} else {
+//					//#TODO Fly backwards (4-5 meters)
+//					//#TODO Rotate 90 degrees
+//					cC.addCommand(Command.BACKWARDS, 2000);
+//					sleep(2000);
+//					cC.addCommand(Command.SPINRIGHT, 1500);
+//					sleep(1500);
+//					return;
+//				}
+//			}
 		} else {
 			if (rotateCount != 4) {
 				//#TODO Rotate 90 degrees
+				System.out.println("ROTATE");
 				cC.addCommand(Command.SPINRIGHT, 1500);
 				sleep(1500);
 				rotateCount++;
 			} else {
 				//#TODO Fly forwards (1 meter)
-				cC.addCommand(Command.FORWARD, 1000);
+				System.out.println("FORWARD (DISABLED)");
+//				cC.addCommand(Command.FORWARD, 1000);
 				sleep(1000);
 			}
 			return;
