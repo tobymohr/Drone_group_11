@@ -457,15 +457,21 @@ public class PictureController {
 	public void takeOff() {
 		System.out.println("TAKEOFF");
 		cC.dC.takeOff();
-		// #TODO Adjust height to line up with QR codes.
-		cC.dC.setSpeed(30);
-		cC.addCommand(Command.UP, 2750);
 		try {
-			Thread.sleep(3000);
+			Thread.sleep(5000);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		System.out.println("SLEEP 1 DONE");
+		//#TODO Adjust height to line up with QR codes.
+		cC.dC.setSpeed(30);
+		cC.dC.goUp(6000);
+		try {
+			Thread.sleep(6000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		System.out.println("SLEEP 2 DONE");
 		shouldScan = true;
 	}
 
