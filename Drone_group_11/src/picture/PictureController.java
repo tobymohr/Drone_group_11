@@ -209,7 +209,6 @@ public class PictureController {
 			public void handle(KeyEvent event) {
 				pressedKeys.remove(event.getCode());
 				System.out.println(event.getCode().toString() + " removed");
-				cC.dC.hover();
 			}
 		});
 	}
@@ -488,5 +487,4 @@ public class PictureController {
 	public void showFilter(){
 		imageInt = SHOW_FILTER;
 	}
-
 }
