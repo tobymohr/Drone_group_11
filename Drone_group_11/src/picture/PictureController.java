@@ -113,20 +113,25 @@ public class PictureController {
 					System.out.println(note);
 					pressedKeys.add(note);
 					switch (event.getCode()) {
-	                case W:   cC.addCommand(1, duration);
-	                break;
-	                case S:   cC.addCommand(2, duration);
-	                break;
-	                case A:   cC.addCommand(3, duration);
-	                break;
-	                case D:   cC.addCommand(4, duration);
-	                break;
-	                case M:		cC.dC.land();
-	                break;
-	                case F:
-	                	navn++;
-	                	String navn2 = navn+".jpg";
-	File outputfile = new File(navn2);
+					case W:
+						cC.addCommand(1, duration);
+						break;
+					case S:
+						cC.addCommand(2, duration);
+						break;
+					case A:
+						cC.addCommand(3, duration);
+						break;
+					case D:
+						cC.addCommand(4, duration);
+						break;
+					case M:
+						cC.dC.land();
+						break;
+					case F:
+						navn++;
+						String navn2 = navn + ".jpg";
+						File outputfile = new File(navn2);
 						try {
 							ImageIO.write(billede, "jpg", outputfile);
 						} catch (IOException e) {
@@ -134,44 +139,44 @@ public class PictureController {
 							e.printStackTrace();
 						}
 
-	break;
-	                case G:
-	                case H:
-	                	cC.emergencyStop();
-	                	break;
-	                case UP:
-	                	cC.addCommand(5, duration);
-	                	break;
-	                case DOWN:
-	                	cC.addCommand(6, duration);
-	                	break;
-	                case LEFT:
-	                	cC.dC.spinLeft(duration);
-	                	break;
-	                case RIGHT:
-	                	cC.dC.spinRight(duration);
-	                	break;
-	                case ENTER:
-	                	cC.dC.hover();
-	                	break;
-	                case O:
-	                	speed += 5;
-	                	cC.dC.setSpeed(speed);
-	                	qrCode.setText("speed: "+speed);
-	                break;
-	                case I:
-	                	speed -= 5;
-	                	cC.dC.setSpeed(speed);
-	                	qrCode.setText("speed: "+speed);
-	               break;
-	                case L:
-	                	duration += 250;
-	                	qrDist.setText("duration: "+ duration);
-	                	break;
-	                case K:
-	                	duration -= 250;
-	                	qrDist.setText("duration: "+ duration);
-	                	break;
+						break;
+					case G:
+					case H:
+						cC.emergencyStop();
+						break;
+					case UP:
+						cC.addCommand(5, duration);
+						break;
+					case DOWN:
+						cC.addCommand(6, duration);
+						break;
+					case LEFT:
+						cC.dC.spinLeft(duration);
+						break;
+					case RIGHT:
+						cC.dC.spinRight(duration);
+						break;
+					case ENTER:
+						cC.dC.hover();
+						break;
+					case O:
+						speed += 5;
+						cC.dC.setSpeed(speed);
+						qrCode.setText("speed: " + speed);
+						break;
+					case I:
+						speed -= 5;
+						cC.dC.setSpeed(speed);
+						qrCode.setText("speed: " + speed);
+						break;
+					case L:
+						duration += 250;
+						qrDist.setText("duration: " + duration);
+						break;
+					case K:
+						duration -= 250;
+						qrDist.setText("duration: " + duration);
+						break;
 					case NUMPAD1:
 						OFC.blueMin -= 1;
 						System.out.println("Min: " + OFC.blueMin);
@@ -264,9 +269,8 @@ public class PictureController {
 			@Override
 			public void imageUpdated(BufferedImage arg0) {
 				if (isFirst) {
-					new Thread(
-							ofvideo = new OFVideo(filterFrame, polyFrame, qrFrame, landingFrame, qrCode, qrDist, arg0, cC))
-									.start();
+					new Thread(ofvideo = new OFVideo(filterFrame, polyFrame, qrFrame, landingFrame, qrCode, qrDist,
+							arg0, cC)).start();
 					isFirst = false;
 				}
 				ofvideo.setArg0(arg0);
@@ -344,29 +348,29 @@ public class PictureController {
 	}
 
 	public void showLanding(Mat mat) {
-//		Mat landing = OFC.center(camMat.clone(), filteredMat.clone());
+		// Mat landing = OFC.center(camMat.clone(), filteredMat.clone());
 		Mat landing = mat;
 		int circles = 0;
 		boolean check = OFC.checkDecodedQR(mat);
-		if(check){
+		if (check) {
 			circles = OFC.myCircle(mat);
 		}
-		if(circles > 0 ){
+		if (circles > 0) {
 			aboveLanding = true;
-			//If false restart landing sequence
-		}else{
+			// If false restart landing sequence
+		} else {
 			circles = 0;
 			circleCounter++;
 		}
-		if(circleCounter >= 120){
+		if (circleCounter >= 120) {
 			aboveLanding = false;
 			circleCounter = 0;
 		}
 		BufferedImage bufferedImageLanding = MatToBufferedImage(landing);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
 		landingFrame.setImage(imageLanding);
-//		System.out.println(aboveLanding);
-		
+		// System.out.println(aboveLanding);
+
 	}
 
 	public void showFilter(Mat filteredMat) {
@@ -453,7 +457,7 @@ public class PictureController {
 	public void takeOff() {
 		System.out.println("TAKEOFF");
 		cC.dC.takeOff();
-		//#TODO Adjust height to line up with QR codes.
+		// #TODO Adjust height to line up with QR codes.
 		cC.dC.setSpeed(30);
 		cC.addCommand(Command.UP, 2750);
 		try {
