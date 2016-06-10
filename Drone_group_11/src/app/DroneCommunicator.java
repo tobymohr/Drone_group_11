@@ -27,7 +27,6 @@ public class DroneCommunicator implements DroneInterface {
 				public void run() {
 					commandManager.flatTrim().doFor(1000);
 					commandManager.takeOff().doFor(2000);
-					commandManager.hover();
 				}
 			});
 			droneFlying = true;

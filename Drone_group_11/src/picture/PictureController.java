@@ -38,6 +38,7 @@ import de.yadrone.base.ARDrone;
 import de.yadrone.base.IARDrone;
 import de.yadrone.base.command.VideoBitRateMode;
 import de.yadrone.base.command.VideoCodec;
+import de.yadrone.base.configuration.ConfigurationListener;
 import de.yadrone.base.exception.ARDroneException;
 import de.yadrone.base.exception.IExceptionListener;
 import de.yadrone.base.video.ImageListener;
@@ -80,6 +81,13 @@ public class PictureController {
 	public int speed = 10;
 	public int duration = 3000;
 	public static int colorInt = 4;
+	public static boolean restart = false;
+	public static final int SHOW_QR = 0;
+	public static final int SHOW_FILTER= 1;
+	public static final int SHOW_POLYGON = 2;
+	public static final int SHOW_LANDING= 3;
+	public static int imageInt = SHOW_POLYGON;
+
 
 	// CAMERA
 	@FXML
@@ -87,13 +95,7 @@ public class PictureController {
 	@FXML
 	private BorderPane borderpane;
 	@FXML
-	private ImageView polyFrame;
-	@FXML
-	private ImageView filterFrame;
-	@FXML
-	private ImageView landingFrame;
-	@FXML
-	private ImageView qrFrame;
+	private ImageView mainFrame;
 	@FXML
 	private static Slider minimumThresh;
 	@FXML
@@ -269,7 +271,7 @@ public class PictureController {
 			@Override
 			public void imageUpdated(BufferedImage arg0) {
 				if (isFirst) {
-					new Thread(ofvideo = new OFVideo(filterFrame, polyFrame, qrFrame, landingFrame, qrCode, qrDist,
+					new Thread(ofvideo = new OFVideo(mainFrame, qrCode, qrDist,
 							arg0, cC)).start();
 					isFirst = false;
 				}
@@ -312,14 +314,29 @@ public class PictureController {
 
 					break;
 				}
-
-				showQr(camMat.clone());
-				showLanding(camMat.clone());
-				showPolygons(camMat, filteredMat);
-				showFilter(filteredMat);
-				if (shouldScan) {
-					scanSequence(camMat.clone());
+				
+				switch (imageInt) {
+				case SHOW_QR:
+					showQr(camMat.clone());
+					break;
+				case SHOW_FILTER:
+					showFilter(filteredMat);
+					break;
+				case SHOW_POLYGON:
+					showPolygons(camMat, filteredMat);
+					break;
+				case SHOW_LANDING:
+					showLanding(camMat.clone());
+					break;
+				default:
+					showPolygons(camMat, filteredMat);
+					break;
 				}
+
+				
+				
+				
+				
 
 				Platform.runLater(new Runnable() {
 					@Override
@@ -337,14 +354,11 @@ public class PictureController {
 		timer.scheduleAtFixedRate(frameGrabber, 0, 33, TimeUnit.MILLISECONDS);
 	}
 
-	public void scanSequence(Mat camMat) {
-	}
-
 	public void showQr(Mat camMat) {
 		Mat qrMat = OFC.extractQRImage(camMat);
 		BufferedImage bufferedImageQr = MatToBufferedImage(qrMat);
 		Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
-		qrFrame.setImage(imageQr);
+		mainFrame.setImage(imageQr);
 	}
 
 	public void showLanding(Mat mat) {
@@ -368,7 +382,7 @@ public class PictureController {
 		}
 		BufferedImage bufferedImageLanding = MatToBufferedImage(landing);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
-		landingFrame.setImage(imageLanding);
+		mainFrame.setImage(imageLanding);
 		// System.out.println(aboveLanding);
 
 	}
@@ -376,7 +390,7 @@ public class PictureController {
 	public void showFilter(Mat filteredMat) {
 		BufferedImage bufferedMatImage = MatToBufferedImage(filteredMat);
 		Image imageFilter = SwingFXUtils.toFXImage(bufferedMatImage, null);
-		filterFrame.setImage(imageFilter);
+		mainFrame.setImage(imageFilter);
 
 	}
 
@@ -386,7 +400,7 @@ public class PictureController {
 
 		BufferedImage bufferedImage = MatToBufferedImage(polyImage);
 		Image imagePoly = SwingFXUtils.toFXImage(bufferedImage, null);
-		polyFrame.setImage(imagePoly);
+		mainFrame.setImage(imagePoly);
 	}
 
 	public Mat grabMatFromCam(OpenCVFrameConverter.ToMat converter, FrameGrabber grabber) {
@@ -456,23 +470,23 @@ public class PictureController {
 
 	public void takeOff() {
 		System.out.println("TAKEOFF");
-		cC.dC.takeOff();
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		System.out.println("SLEEP 1 DONE");
-		//#TODO Adjust height to line up with QR codes.
-		cC.dC.setSpeed(30);
-		cC.dC.goUp(6000);
-		try {
-			Thread.sleep(6000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		System.out.println("SLEEP 2 DONE");
 		shouldScan = true;
+	}
+	
+	public void showQr(){
+		imageInt = SHOW_QR;
+	}
+	
+	public void showPolygon(){
+		imageInt = SHOW_POLYGON;
+	}
+	
+	public void showLanding(){
+		imageInt = SHOW_LANDING;
+	}
+	
+	public void showFilter(){
+		imageInt = SHOW_FILTER;
 	}
 
 }

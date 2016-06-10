@@ -26,15 +26,10 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
 public class OFVideo implements Runnable {
-	//#TODO Tweak these values based on testing
-	private static final double CENTER_UPPER = 0.22;
-	private static final double CENTER_LOWER = -0.4;
-	private static final double CENTER_DIFFERENCE = -0.2;
-	
 	private Java2DFrameConverter converter1;
 	private OpenCVFrameConverter.ToIplImage converter;
 	private OpenCVFrameConverter.ToMat converterMat;
-	private ImageView filterFrame;
+	private ImageView mainFrame;
 	private ImageView polyFrame;
 	private ImageView qrFrame;
 	private ImageView landingFrame;
@@ -46,25 +41,19 @@ public class OFVideo implements Runnable {
 	private static int circleCounter = 0;
 	
 	// Scansequence fields
-	private double previousCenter = -1;
-	private boolean strafeRight = true;
-	private String code = null;
-	private int rotateCount = 0;
-	private CommandController cC;
-
-	public OFVideo(ImageView filterFrame, ImageView polyFrame, ImageView qrFrame, ImageView landingFrame, Label qrCode,
+	private ScanSequence scanSequence;
+	private boolean isFirst = true;
+	
+	public OFVideo(ImageView mainFrame, Label qrCode,
 			Label qrDist, BufferedImage arg0, CommandController cC) {
 		this.arg0 = arg0;
-		this.filterFrame = filterFrame;
-		this.polyFrame = polyFrame;
-		this.qrFrame = qrFrame;
+		this.mainFrame = mainFrame;
 		this.qrDist = qrDist;
-		this.landingFrame = landingFrame;
 		this.qrCode = qrCode;
 		converter = new OpenCVFrameConverter.ToIplImage();
 		converterMat = new ToMat();
 		converter1 = new Java2DFrameConverter();
-		this.cC = cC;
+		scanSequence = new ScanSequence(cC);
 	}
 
 	public void setArg0(BufferedImage arg0) {
@@ -93,11 +82,24 @@ public class OFVideo implements Runnable {
 					filteredImage = OFC.findContoursBlueMat(newImg);
 					break;
 				}
-
-				showQr(newImg.clone());
-				showLanding(newImg.clone(), filteredImage.clone());
-				showPolygons(newImg.clone(), filteredImage.clone());
-				showFilter(filteredImage.clone());
+				
+				switch (PictureController.imageInt) {
+				case PictureController.SHOW_QR:
+					showQr(newImg.clone());
+					break;
+				case PictureController.SHOW_FILTER:
+					showFilter(filteredImage.clone());
+					break;
+				case PictureController.SHOW_POLYGON:
+					showPolygons(newImg.clone(), filteredImage.clone());
+					break;
+				case PictureController.SHOW_LANDING:
+					showLanding(newImg.clone(), filteredImage.clone());
+					break;
+				default:
+					showPolygons(newImg.clone(), filteredImage.clone());
+					break;
+				}
 
 				Platform.runLater(new Runnable() {
 					@Override
@@ -108,7 +110,11 @@ public class OFVideo implements Runnable {
 					}
 				});
 				if (PictureController.shouldScan) {
-					scanSequence(newImg.clone());
+					scanSequence.setImage(newImg.clone());
+					if (isFirst) {
+						new Thread(scanSequence).start();
+						isFirst = false;
+					}
 				}
 			}
 		} catch (Exception e) {
@@ -116,152 +122,12 @@ public class OFVideo implements Runnable {
 		}
 		
 	}
-	
-	
-	public void scanSequence(Mat camMat) {
-		//#TODO Check if wall is close
-		boolean wallClose = false;
-		if (wallClose) {
-			//#TODO Fly backwards (4-5 meters)
-			//#TODO Rotate 90 degrees
-			cC.addCommand(Command.BACKWARDS, 2000);
-			sleep(2000);
-			cC.addCommand(Command.SPINRIGHT, 1500);
-			sleep(1500);
-			return;
-		}
-		
-		List<Mat> contours = OFC.findQrContours(camMat);
-
-		if(contours.size() != 0) {
-			RotatedRect rect = minAreaRect(contours.get(0));
-			double positionFromCenter = OFC.isCenterInImage(camMat.clone(), rect);
-			if (positionFromCenter != 0) {
-				System.out.println("PositionFromCenter: " + positionFromCenter);
-				//#TODO Rotate <positionFromCenter> pixels to center the QR code in image
-				if (positionFromCenter > 0) {
-					System.out.println("SPINRIGHT");
-					cC.addCommand(Command.SPINRIGHT, 200);
-					sleep(1000);
-				} else {
-					System.out.println("SPINLEFT");
-					cC.addCommand(Command.SPINLEFT, 200);
-					sleep(1000);
-				}
-				return;
-			}
-			double center = OFC.center(rect);
-			if (center > CENTER_UPPER || center < CENTER_LOWER) {
-				//#TODO Strafe the drone <center> amount. Right is chosen as standard.
-				if (strafeRight) {
-					System.out.println("STRAFERIGHT");
-					cC.dC.setSpeed(5);
-					cC.addCommand(Command.RIGHT, 500);
-					sleep(1000);
-				} else {
-					cC.dC.setSpeed(5);
-					System.out.println("STRAFELEFT");
-					cC.addCommand(Command.LEFT, 500);
-					sleep(1000);
-				}
-				if (previousCenter == -1) {
-					// Record center in order to react to it next iteration
-					previousCenter = center;
-				} else {
-					double difference = previousCenter - center;
-					if (difference < CENTER_DIFFERENCE) {
-						// We moved the wrong way. Change strafe direction.
-						strafeRight = !strafeRight;
-						System.out.println("CHANGE STRAFE DIRECTION");
-					}
-				}
-				return;
-			}
-			// Reset the previous center
-			previousCenter = -1;
-			
-			Mat qrImg = OFC.warpImage(camMat.clone(), rect);
-			
-			String tempCode = OFC.scanQrCode(qrImg);
-
-			if (tempCode != null) {
-				// Code stored as field, we need to use it even if we're too far away to scan it.
-				//#TODO Ensure that the field code is set to null every time we need to reset.  
-				code = tempCode;
-			}
-//			if(code != null) {
-//				// Check amount of squares found
-//				// #TODO Implement some way to check squares across more than one frame
-//				if (contours.size() == 3) {
-//					//#TODO Calculate distance and placement in coordinate system
-//					CustomPoint placement = new CustomPoint();
-//					moveDroneToStart(placement);
-//					code = null;
-//					rotateCount = 0;
-//					PictureController.shouldScan = false;
-//					return;
-//				} else {
-//					//#TODO Fly backwards (0.5 meters)
-//					cC.addCommand(Command.BACKWARDS, 500);
-//					sleep(500);
-//					return;
-//				}
-//			} else {
-//				double distanceToSquare = OFC.calcDistance(rect);
-//				// It might still be a QR code, we're too far away to know
-//				if (distanceToSquare > 100) {
-//					//#TODO Fly closer to the square (0.5 meters)
-//					cC.addCommand(Command.FORWARD, 500);
-//					sleep(500);
-//					return;
-//				} else {
-//					//#TODO Fly backwards (4-5 meters)
-//					//#TODO Rotate 90 degrees
-//					cC.addCommand(Command.BACKWARDS, 2000);
-//					sleep(2000);
-//					cC.addCommand(Command.SPINRIGHT, 1500);
-//					sleep(1500);
-//					return;
-//				}
-//			}
-		} else {
-			if (rotateCount != 4) {
-				//#TODO Rotate 90 degrees
-				System.out.println("ROTATE");
-				cC.addCommand(Command.SPINRIGHT, 1500);
-				sleep(1500);
-				rotateCount++;
-			} else {
-				//#TODO Fly forwards (1 meter)
-				System.out.println("FORWARD (DISABLED)");
-//				cC.addCommand(Command.FORWARD, 1000);
-				sleep(1000);
-			}
-			return;
-		}
-	}
-	
-	private void sleep(int duration) {
-		try {
-			Thread.sleep(duration);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	private void moveDroneToStart(CustomPoint placement) {
-		List<Move> moves = OFC.calcMoves(placement.getX(), placement.getY());
-		for (Move move : moves) {
-			//#TODO Actually move the drone according to moves
-		}
-	}
-
 
 	public void showQr(Mat camMat) {
 		Mat qrMat = OFC.extractQRImage(camMat);
 		BufferedImage bufferedImageQr = MatToBufferedImage(qrMat);
 		Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
-		qrFrame.setImage(imageQr);
+		mainFrame.setImage(imageQr);
 	}
 
 	public void showLanding(Mat mat, Mat filteredMat) {
@@ -283,14 +149,14 @@ public class OFVideo implements Runnable {
 		}
 		BufferedImage bufferedImageLanding = MatToBufferedImage(landing);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
-		landingFrame.setImage(imageLanding);
+		mainFrame.setImage(imageLanding);
 //		System.out.println(aboveLanding);
 	}
 
 	public void showFilter(Mat filteredMat) {
 		BufferedImage bufferedMatImage = MatToBufferedImage(filteredMat);
 		Image imageFilter = SwingFXUtils.toFXImage(bufferedMatImage, null);
-		filterFrame.setImage(imageFilter);
+		mainFrame.setImage(imageFilter);
 
 	}
 
@@ -299,7 +165,7 @@ public class OFVideo implements Runnable {
 		Mat polyImage = OFC.findPolygonsMat(camMat, filteredMat, 4);
 		BufferedImage bufferedImage = MatToBufferedImage(polyImage);
 		Image imagePoly = SwingFXUtils.toFXImage(bufferedImage, null);
-		polyFrame.setImage(imagePoly);
+		mainFrame.setImage(imagePoly);
 	}
 
 	public BufferedImage IplImageToBufferedImage(IplImage src) {

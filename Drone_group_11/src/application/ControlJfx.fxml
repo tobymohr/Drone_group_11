@@ -42,18 +42,8 @@
       <children>
         <HBox prefHeight="100.0" prefWidth="200.0">
           <children>
-            <ImageView fx:id="polyFrame" fitHeight="350.0" fitWidth="350.0" pickOnBounds="true" preserveRatio="true" />
-            <ImageView fx:id="qrFrame" fitHeight="350.0" fitWidth="350.0" pickOnBounds="true" preserveRatio="true" />
+            <ImageView fx:id="mainFrame" fitHeight="607.0" fitWidth="607.0" pickOnBounds="true" preserveRatio="true" />
           </children>
-        </HBox>
-        <HBox fx:id="Hbox" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="150.0" prefWidth="1407.0">
-          <children>
-            <ImageView fx:id="landingFrame" fitHeight="350.0" fitWidth="350.0" pickOnBounds="true" preserveRatio="true" />
-            <ImageView fx:id="filterFrame" fitHeight="350.0" fitWidth="350.0" pickOnBounds="true" preserveRatio="true" />
-          </children>
-          <padding>
-            <Insets />
-          </padding>
         </HBox>
       </children>
     </VBox>
@@ -76,6 +66,14 @@
           </padding>
         </HBox>
         <Separator />
+        <HBox alignment="CENTER" spacing="15.0">
+          <children>
+            <Button fx:id="qrButton" mnemonicParsing="false" onAction="#showQr" text="QR CODE" />
+            <Button fx:id="filterButton" mnemonicParsing="false" onAction="#showFilter" text="FILTER" />
+            <Button fx:id="polygonButton" mnemonicParsing="false" onAction="#showPolygon" text="POLYGON" />
+            <Button fx:id="landingButton" mnemonicParsing="false" onAction="#showLanding" text="LANDING" />
+          </children>
+        </HBox>
       </children>
     </VBox>
   </top>

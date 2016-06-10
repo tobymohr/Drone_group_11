@@ -263,59 +263,35 @@ public class PictureProcessingHelper {
 
 	}
 
-	public Mat extractQRImage(Mat img0) {
-		Mat img1 = new Mat(img0.arraySize(), CV_8UC1, 1);
-		cvtColor(img0, img1, CV_RGB2GRAY);
+	public Mat extractQRImage(Mat srcImage) {
+		
+		Mat img1 = new Mat(srcImage.arraySize(), CV_8UC1, 1);
+		cvtColor(srcImage, img1, CV_RGB2GRAY);
 		Canny(img1, img1, 75, 200);
 		MatVector matContour = new MatVector();
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
-		Mat crop = new Mat(img0.rows(), img0.cols(), CV_8UC3, Scalar.BLACK);
-		Mat mask = new Mat(img1.rows(), img1.cols(), CV_8UC1, Scalar.BLACK);
-
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
-
-			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > 1000) {
-
-				drawContours(mask, matContour, i, Scalar.WHITE, CV_FILLED, 8, null, 1, null);
-				img0.copyTo(crop, mask);
+			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > 40000) {
 				RotatedRect rect = minAreaRect(matContour.get(i));
-				crop = warpImage(crop, rect);
-				if (scanQrCode(crop) != null) {
-					putText(img0, code, new Point((int) rect.center().x() - 25, (int) rect.center().y() + 80), 1, 2,
+				drawContours(srcImage, matContour, i, Scalar.WHITE, 3, 8, null, 1, null);
+				img1 = warpImage(srcImage, rect);
+				if (scanQrCode(img1) != null) {
+					putText(srcImage, code, new Point((int) rect.center().x() - 25, (int) rect.center().y() + 80), 1, 2,
 							Scalar.GREEN, 2, 8, false);
 				}
 				distance = calcDistance(rect);
-				// List<Long> points = calcPosition(3, 3.3, 3);
-				// printMoves(calcMoves(points.get(0), points.get(1)));
-
-				drawContours(img0, matContour, i, Scalar.WHITE, 2, 8, null, 1, null);
-				float height;
-				float width;
-				if (rect.angle() >= 0 && rect.angle() < 10) {
-					height = rect.size().height();
-					width = rect.size().width();
-				} else {
-					height = rect.size().width();
-					width = rect.size().height();
-				}
-
-				float ratio = height / width;
-
-				putText(img0, "" + ratio,
+				putText(srcImage, "" + distance,
 						new Point((int) rect.center().x() - 25, (int) rect.center().y() + 60), 1, 2, Scalar.BLUE, 2, 8,
 						false);
 				double center = center(rect);
-				if (center < 0.2 && center > -0.5) {
-					putText(img0, "CENTER", new Point((int) rect.center().x() - 25, (int) rect.center().y() + 20), 1, 2,
+				if (center < ScanSequence.CENTER_UPPER && center > ScanSequence.CENTER_LOWER && isCenterInImage(srcImage, rect) == 0) {
+					putText(srcImage, "CENTER", new Point((int) rect.center().x() - 25, (int) rect.center().y() + 20), 1, 2,
 							Scalar.RED, 2, 8, false);
 				}
-				crop = new Mat(img0.rows(), img0.cols(), CV_8UC3, Scalar.BLACK);
-				mask = new Mat(img1.rows(), img1.cols(), CV_8UC1, Scalar.BLACK);
 			}
-
 		}
-		return img0;
+		return srcImage;
 	}
 
 	public boolean moreSquares(Mat img0) {
@@ -370,7 +346,8 @@ public class PictureProcessingHelper {
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
-			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > 1000) {
+			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > 40000) {
+				System.out.println(contourArea(matContour.get(i)));
 				result.add(matContour.get(i));
 			}
 		}
@@ -508,9 +485,9 @@ public class PictureProcessingHelper {
 	
 
 	public double calcDistance(RotatedRect rect) {
-		float knownDistance = 214;
+		float knownDistance = 165;
 		float height = 0;
-		float focalLength = 103 * knownDistance;
+		float focalLength = 259 * knownDistance;
 		int angle = Math.abs((int) rect.angle());
 		if (angle >= 0 && angle < 10) {
 			height = rect.size().height();
