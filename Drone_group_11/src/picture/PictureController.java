@@ -195,6 +195,8 @@ public class PictureController {
 						OFC.blueMax += 1;
 						System.out.println("Max: " + OFC.blueMax);
 						break;
+					case T:
+						cC.dC.setBottomCamera();
 					default:
 
 						break;
@@ -364,21 +366,35 @@ public class PictureController {
 		// Mat landing = OFC.center(camMat.clone(), filteredMat.clone());
 		Mat landing = mat;
 		int circles = 0;
-		boolean check = OFC.checkDecodedQR(mat);
-		if (check) {
-			circles = OFC.myCircle(mat);
+		
+		
+//		boolean check = OFC.checkDecodedQR(mat);
+//		if (check) {
+//			circles = OFC.myCircle(mat);
+//		}
+		
+		for(int i = 0; i < 4; i++){
+			if (circles > 0) {
+				aboveLanding = true;
+				// If false restart landing sequence
+				//Drone skal flye lidt ned
+				System.out.println("going down");
+				cC.dC.goDown(6);
+				
+				i++;
+				}
+			else {
+					circles = 0;
+					circleCounter++;
+				}
+			if(circleCounter>=120){
+				aboveLanding = false;
+				circleCounter = 0;
+			}
+			if(i == 3)
+				cC.dC.land();
 		}
-		if (circles > 0) {
-			aboveLanding = true;
-			// If false restart landing sequence
-		} else {
-			circles = 0;
-			circleCounter++;
-		}
-		if (circleCounter >= 120) {
-			aboveLanding = false;
-			circleCounter = 0;
-		}
+		
 		BufferedImage bufferedImageLanding = MatToBufferedImage(landing);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
 		mainFrame.setImage(imageLanding);
