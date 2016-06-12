@@ -12,24 +12,34 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
 import javax.imageio.ImageIO;
+
 import static org.bytedeco.javacpp.helper.opencv_core.*;
+
 import org.bytedeco.javacpp.opencv_videoio.CvCapture;
 import org.bytedeco.javacv.Frame;
+
 import static org.bytedeco.javacpp.helper.opencv_imgproc.*;
 import static org.bytedeco.javacpp.opencv_imgcodecs.*;
+
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameGrabber;
 import org.bytedeco.javacv.VideoInputFrameGrabber;
+
 import com.google.zxing.Result;
+
 import org.bytedeco.javacpp.*;
 import org.bytedeco.javacpp.opencv_core.*;
 import org.bytedeco.javacpp.indexer.FloatIndexer;
+
 import static org.bytedeco.javacpp.opencv_imgproc.*;
 import static org.bytedeco.javacpp.opencv_video.*;
+
 import org.bytedeco.javacv.*;
+
 import static org.bytedeco.javacpp.opencv_core.*;
 import app.CommandController;
 import app.DroneCommunicator;
@@ -87,6 +97,7 @@ public class PictureController {
 	public static final int SHOW_POLYGON = 2;
 	public static final int SHOW_LANDING= 3;
 	public static int imageInt = SHOW_POLYGON;
+	private static int counts = 0;
 
 
 	// CAMERA
@@ -327,7 +338,12 @@ public class PictureController {
 					showPolygons(camMat, filteredMat);
 					break;
 				case SHOW_LANDING:
-					showLanding(camMat.clone());
+					try {
+						showLanding(camMat.clone());
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					break;
 				default:
 					showPolygons(camMat, filteredMat);
@@ -362,44 +378,58 @@ public class PictureController {
 		mainFrame.setImage(imageQr);
 	}
 
-	public void showLanding(Mat mat) {
-		// Mat landing = OFC.center(camMat.clone(), filteredMat.clone());
+	public void showLanding(Mat mat) throws InterruptedException {
 		Mat landing = mat;
 		int circles = 0;
 		
-		
-//		boolean check = OFC.checkDecodedQR(mat);
-//		if (check) {
-//			circles = OFC.myCircle(mat);
+//		if (PictureController.shouldScan) {
+//			scanSequence.setImage(mat.clone());
+//			if (isFirst) {
+//				new Thread(scanSequence).start();
+//				isFirst = false;
+//			}
 //		}
 		
-		for(int i = 0; i < 4; i++){
-			if (circles > 0) {
-				aboveLanding = true;
-				// If false restart landing sequence
-				//Drone skal flye lidt ned
-				System.out.println("going down");
-				cC.dC.goDown(6);
-				
-				i++;
+		boolean check = OFC.checkDecodedQR(mat);
+		if(check){
+			
+			circles = OFC.myCircle(mat);
+			
+//			for(int i = 0; i < 4; ){
+				if (circles > 0) {
+					aboveLanding = true;
+					// If false restart landing sequence
+					//Drone skal flye lidt ned
+					System.out.println("going down");
+//					Thread.sleep(10);
+//					cC.dC.goDown(6);
+//					Thread.sleep(10);
+					counts++;
+					System.out.println(counts);
+					}
+				else {
+						circles = 0;
+						circleCounter++;
+						System.out.println(circleCounter);
+						
+					}
+				if(circleCounter>=120){
+					aboveLanding = false;
+					circleCounter = 0;
+					counts = 0;
 				}
-			else {
-					circles = 0;
-					circleCounter++;
+				if(counts == 3){
+					System.out.println("landing");
+					
+					cC.dC.land();
 				}
-			if(circleCounter>=120){
-				aboveLanding = false;
-				circleCounter = 0;
-			}
-			if(i == 3)
-				cC.dC.land();
+//			}
 		}
-		
 		BufferedImage bufferedImageLanding = MatToBufferedImage(landing);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
 		mainFrame.setImage(imageLanding);
 		// System.out.println(aboveLanding);
-
+		
 	}
 
 	public void showFilter(Mat filteredMat) {
@@ -483,9 +513,14 @@ public class PictureController {
 		cC.dC.land();
 	}
 
-	public void takeOff() {
+	public void takeOff() throws InterruptedException {
 		System.out.println("TAKEOFF");
-		shouldScan = true;
+//		shouldScan = false;
+		cC.dC.takeOff();
+		Thread.sleep(5);
+		cC.dC.hover();
+		Thread.sleep(5);
+		
 	}
 	
 	public void showQr(){

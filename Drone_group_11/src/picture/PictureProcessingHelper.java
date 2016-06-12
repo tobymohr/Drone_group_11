@@ -142,7 +142,7 @@ public class PictureProcessingHelper {
 		Mat scalarBlue2 = new Mat(new Scalar(blueMax, 255, 255, 0));
 		inRange(mathsv3, scalarBlue1, scalarBlue2, mathsv3);
 		findContours(mathsv3, contoursSwagger, RETR_LIST , CV_LINK_RUNS, new opencv_core.Point());
-		System.out.println(contoursSwagger.size());
+//		System.out.println(contoursSwagger.size());
 		for (int i = 0; i < contoursSwagger.size(); i++) {
 			drawContours(mathsv3, contoursSwagger, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 2,
 					new opencv_core.Point());
@@ -493,7 +493,7 @@ public class PictureProcessingHelper {
 	}
 	
 	public boolean checkDecodedQR(Mat img){
-		String OURQR = "AF.04";
+		String OURQR = "AF.01";
 		
 		BufferedImage qrCode = converter1.convert(converter.convert(img));
 		source = new BufferedImageLuminanceSource(qrCode);
@@ -502,7 +502,7 @@ public class PictureProcessingHelper {
 			Result detectionResult = reader.decode(bitmap);
 			code = detectionResult.getText();
 			if(code.equals(OURQR)){
-//				System.out.println(code);
+				System.out.println(code);
 				return true;	
 			}
 			
