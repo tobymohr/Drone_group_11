@@ -25,7 +25,6 @@ public class DroneCommunicator implements DroneInterface {
 			commandManager.schedule(0, new Runnable() {				
 				@Override
 				public void run() {
-//					commandManager.flatTrim().doFor(1000);
 					commandManager.takeOff().doFor(2000);
 				}
 			});

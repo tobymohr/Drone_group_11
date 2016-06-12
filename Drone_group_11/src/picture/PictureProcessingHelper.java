@@ -1,32 +1,9 @@
 package picture;
 
-import static org.bytedeco.javacpp.helper.opencv_core.*;
-
-import picture.PictureController;
-import static org.bytedeco.javacpp.helper.opencv_imgproc.*;
-import static org.bytedeco.javacpp.helper.opencv_imgproc.cvDrawContours;
-import static org.bytedeco.javacpp.helper.opencv_imgproc.cvFindContours;
 import static org.bytedeco.javacpp.opencv_imgproc.*;
-import static org.bytedeco.javacpp.opencv_imgproc.cvDrawContours;
-import static org.bytedeco.javacpp.opencv_imgproc.cvFindContours;
-import static org.bytedeco.javacpp.opencv_video.*;
-import static org.bytedeco.javacpp.helper.opencv_core.*;
-
-import picture.PictureController;
-import static org.bytedeco.javacpp.helper.opencv_imgproc.*;
-import static org.bytedeco.javacpp.helper.opencv_imgproc.cvDrawContours;
-import static org.bytedeco.javacpp.helper.opencv_imgproc.cvFindContours;
-import static org.bytedeco.javacpp.opencv_imgproc.*;
-import static org.bytedeco.javacpp.opencv_imgproc.cvDrawContours;
-import static org.bytedeco.javacpp.opencv_imgproc.cvFindContours;
-import static org.bytedeco.javacpp.opencv_video.*;
-import static org.bytedeco.javacpp.opencv_imgcodecs.*;
 
 import com.google.zxing.BinaryBitmap;
-import com.google.zxing.ChecksumException;
-import com.google.zxing.FormatException;
 import com.google.zxing.LuminanceSource;
-import com.google.zxing.NotFoundException;
 import com.google.zxing.Result;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
@@ -34,27 +11,15 @@ import com.google.zxing.qrcode.QRCodeReader;
 
 import org.bytedeco.javacpp.*;
 import org.bytedeco.javacpp.opencv_core.*;
-import org.bytedeco.javacpp.opencv_imgproc.CvMoments;
-import org.bytedeco.javacpp.indexer.FloatIndexer;
-import org.bytedeco.javacv.CanvasFrame;
-import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 
 import static org.bytedeco.javacpp.opencv_core.*;
 
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorConvertOp;
-import java.awt.image.ConvolveOp;
-import java.awt.image.ImageProducer;
-import java.awt.image.Kernel;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-import javax.swing.JFrame;
 
 import helper.Circle;
 import helper.CustomPoint;
@@ -74,6 +39,9 @@ public class PictureProcessingHelper {
 	private LuminanceSource source;
 	private BinaryBitmap bitmap;
 	private Point2f vertices;
+	private static final int MIN_AREA = 5000;
+	private static final int ANGLE_UPPER_BOUND = 95;
+	private static final int ANGLE_LOWER_BOUND = 85;
 
 	public PictureProcessingHelper() {
 	}
@@ -237,7 +205,6 @@ public class PictureProcessingHelper {
 	}
 
 	public Mat extractQRImage(Mat srcImage) {
-		
 		Mat img1 = new Mat(srcImage.arraySize(), CV_8UC1, 1);
 		cvtColor(srcImage, img1, CV_RGB2GRAY);
 		Canny(img1, img1, 75, 200);
@@ -245,9 +212,9 @@ public class PictureProcessingHelper {
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
+			RotatedRect rect = minAreaRect(matContour.get(i));
 			
-			if (matContour.get(i).total() == 4  && contourArea(matContour.get(i)) > 6500) {
-				RotatedRect rect = minAreaRect(matContour.get(i));
+			if (matContour.get(i).total() == 4  && contourArea(matContour.get(i)) > MIN_AREA && checkAngles(rect)) {
 				drawContours(srcImage, matContour, i, Scalar.WHITE, 3, 8, null, 1, null);
 				img1 = warpImage(srcImage, rect);
 				if (scanQrCode(img1) != null) {
@@ -324,7 +291,7 @@ public class PictureProcessingHelper {
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
-			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > 6500) {
+			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > MIN_AREA) {
 				result.add(matContour.get(i));
 			}
 		}
@@ -398,10 +365,25 @@ public class PictureProcessingHelper {
 		return calcedPoints;
 	}
 
-	public void checkAngles(RotatedRect rect) {
-		Point2f vertices = new Point2f(4);
+	public String scanQrCode(Mat srcImage) {
+		BufferedImage qrCode = converter1.convert(converter.convert(srcImage));
+		source = new BufferedImageLuminanceSource(qrCode);
+		bitmap = new BinaryBitmap(new HybridBinarizer(source));
+		try {
+			Result detectionResult = reader.decode(bitmap);
+			code = detectionResult.getText();
+			return code;
+		} catch (Exception e) {
+			return null;
+		}
+
+	}
+	
+	public boolean checkAngles(RotatedRect rect) {
+		vertices = new Point2f(4);
 		rect.points(vertices);
 		int angle = Math.abs((int) rect.angle());
+
 		Point tl = null;
 		Point tr = null;
 		Point br = null;
@@ -417,26 +399,33 @@ public class PictureProcessingHelper {
 			br = new Point((int) vertices.position(0).x(), (int) vertices.position(0).y());
 			bl = new Point((int) vertices.position(1).x(), (int) vertices.position(1).y());
 		}
-		// System.out.println("----------");
-		// System.out.println(Math.toDegrees(calculateAngle(tl, tr, bl)));
-		// System.out.println(Math.toDegrees(calculateAngle(tr, tl, br)));
-		// System.out.println(Math.toDegrees(calculateAngle(bl, tl, br)));
-		// System.out.println(Math.toDegrees(calculateAngle(br, bl, tr)));
-		// System.out.println("----------");
-	}
-
-	public String scanQrCode(Mat srcImage) {
-		BufferedImage qrCode = converter1.convert(converter.convert(srcImage));
-		source = new BufferedImageLuminanceSource(qrCode);
-		bitmap = new BinaryBitmap(new HybridBinarizer(source));
-		try {
-			Result detectionResult = reader.decode(bitmap);
-			code = detectionResult.getText();
-			return code;
-		} catch (Exception e) {
-			return null;
+		
+		double tlAngle = calculateAngle(tl, tr, bl);
+		double trAngle = calculateAngle(tr, tl, br);
+		double blAngle = calculateAngle(bl, tl, br);
+		double brAngle = calculateAngle(br, tr, bl);
+		
+		System.out.println((int)tlAngle + "|" + (int)trAngle + "|" + (int)blAngle + "|" + (int)brAngle + "|" + angle);
+		
+		if (tlAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND) {
+			return false;
+		} if (trAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND) {
+			return false;
+		} if (blAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND) {
+			return false;
+		} if (tlAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND) {
+			return false;
+		} else {
+			return true;
 		}
-
+	}
+	
+	private double calculateAngle(Point A, Point B, Point C) {
+		double a = Math.sqrt(Math.pow(C.x()-B.x(), 2) + Math.pow(C.y()-B.y(), 2));
+		double b = Math.sqrt(Math.pow(A.x()-C.x(), 2) + Math.pow(A.y()-C.y(), 2));
+		double c = Math.sqrt(Math.pow(B.x()-A.x(), 2) + Math.pow(B.y()-A.y(), 2));
+		double cosA = (Math.pow(b, 2) + Math.pow(c, 2) - Math.pow(a, 2)) / (2 * b * c);
+		return Math.toDegrees(Math.acos(cosA));
 	}
 	
 	public boolean checkDecodedQR(Mat img){
