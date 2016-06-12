@@ -25,6 +25,7 @@ import static org.bytedeco.javacpp.opencv_imgproc.Canny;
 import static org.bytedeco.javacpp.opencv_imgproc.MORPH_RECT;
 import static org.bytedeco.javacpp.opencv_imgproc.RETR_LIST;
 import static org.bytedeco.javacpp.opencv_imgproc.approxPolyDP;
+import static org.bytedeco.javacpp.opencv_imgproc.*;
 import static org.bytedeco.javacpp.opencv_imgproc.arcLength;
 import static org.bytedeco.javacpp.opencv_imgproc.contourArea;
 import static org.bytedeco.javacpp.opencv_imgproc.cvCvtColor;
@@ -63,8 +64,15 @@ import org.bytedeco.javacpp.opencv_core.Rect;
 import org.bytedeco.javacpp.opencv_core.RotatedRect;
 import org.bytedeco.javacpp.opencv_core.Scalar;
 import org.bytedeco.javacpp.opencv_core.Size;
+import org.bytedeco.javacv.Blobs;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
+import org.bytedeco.javacpp.opencv_imgcodecs.*;
+import org.bytedeco.javacpp.opencv_imgproc.*;
+import org.bytedeco.javacpp.indexer.UByteBufferIndexer;
+import org.bytedeco.javacpp.opencv_highgui.*;
+import org.bytedeco.javacpp.*;
+
 
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.LuminanceSource;
@@ -265,8 +273,14 @@ public class PictureProcessingHelper {
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
 			RotatedRect rect = minAreaRect(matContour.get(i));
-			
 			if (matContour.get(i).total() == 4  && contourArea(matContour.get(i)) > MIN_AREA && checkAngles(rect)) {
+				Mat corners = new Mat(srcImage.arraySize(), CV_32FC1, 1);
+				corners.zero();
+				cornerHarris(img1, corners, 2, 3, 0.04);
+				for (int j = 0; j < corners.rows(); j++) {
+					for (int k = 0; k < corners.cols(); k++) {
+					}
+				}
 				drawContours(srcImage, matContour, i, Scalar.WHITE, 3, 8, null, 1, null);
 				img1 = warpImage(srcImage, rect);
 				if (scanQrCode(img1) != null) {
@@ -456,8 +470,6 @@ public class PictureProcessingHelper {
 		double trAngle = calculateAngle(tr, tl, br);
 		double blAngle = calculateAngle(bl, tl, br);
 		double brAngle = calculateAngle(br, tr, bl);
-		
-		System.out.println((int)tlAngle + "|" + (int)trAngle + "|" + (int)blAngle + "|" + (int)brAngle + "|" + angle);
 		
 		if (tlAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND) {
 			return false;
