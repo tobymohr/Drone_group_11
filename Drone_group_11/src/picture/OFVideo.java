@@ -16,6 +16,8 @@ import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
 import org.bytedeco.javacv.OpenCVFrameGrabber;
 
 import app.CommandController;
+import app.DroneCommunicator;
+import de.yadrone.base.IARDrone;
 import helper.Command;
 import helper.CustomPoint;
 import helper.Move;
@@ -37,6 +39,8 @@ public class OFVideo implements Runnable {
 	private Label qrDist;
 	private BufferedImage arg0;
 	private PictureProcessingHelper OFC = new PictureProcessingHelper();
+	private CommandController cC;
+	private IARDrone drone;
 	private static boolean aboveLanding = false;
 	private static int circleCounter = 0;
 	
@@ -133,19 +137,38 @@ public class OFVideo implements Runnable {
 	public void showLanding(Mat mat, Mat filteredMat) {
 		Mat landing = mat;
 		int circles = 0;
+		
+//		if (PictureController.shouldScan) {
+//			scanSequence.setImage(mat.clone());
+//			if (isFirst) {
+//				new Thread(scanSequence).start();
+//				isFirst = false;
+//			}
+//		}
+		
 		boolean check = OFC.checkDecodedQR(mat);
 		if(check){
 			circles = OFC.myCircle(mat);
-		}
-		if(circles > 0 ){
-			aboveLanding = true;
-		}else{
-			circles = 0;
-			circleCounter++;
-		}
-		if(circleCounter >= 120){
-			aboveLanding = false;
-			circleCounter = 0;
+			for(int i = 0; i < 4; ){
+				if (circles > 0) {
+					aboveLanding = true;
+					// If false restart landing sequence
+					//Drone skal flye lidt ned
+					System.out.println("going down");
+					cC.dC.goDown(6);
+					i++;
+					}
+				else {
+						circles = 0;
+						circleCounter++;
+					}
+				if(circleCounter>=120){
+					aboveLanding = false;
+					circleCounter = 0;
+				}
+				if(i == 3)
+					cC.dC.land();
+			}
 		}
 		BufferedImage bufferedImageLanding = MatToBufferedImage(landing);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);

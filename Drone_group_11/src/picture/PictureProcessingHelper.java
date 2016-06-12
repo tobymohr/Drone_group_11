@@ -493,7 +493,7 @@ public class PictureProcessingHelper {
 	}
 	
 	public boolean checkDecodedQR(Mat img){
-		String OURQR = "AF.01";
+		String OURQR = "AF.04";
 		
 		BufferedImage qrCode = converter1.convert(converter.convert(img));
 		source = new BufferedImageLuminanceSource(qrCode);
