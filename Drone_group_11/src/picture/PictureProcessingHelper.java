@@ -45,6 +45,7 @@ import static org.bytedeco.javacpp.opencv_imgproc.putText;
 import static org.bytedeco.javacpp.opencv_imgproc.warpPerspective;
 
 import java.awt.image.BufferedImage;
+import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,7 +70,9 @@ import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacpp.opencv_imgcodecs.*;
 import org.bytedeco.javacpp.opencv_imgproc.*;
+import org.bytedeco.javacpp.indexer.DoubleIndexer;
 import org.bytedeco.javacpp.indexer.UByteBufferIndexer;
+import org.bytedeco.javacpp.indexer.UByteIndexer;
 import org.bytedeco.javacpp.opencv_highgui.*;
 import org.bytedeco.javacpp.*;
 
@@ -277,10 +280,12 @@ public class PictureProcessingHelper {
 				Mat corners = new Mat(srcImage.arraySize(), CV_32FC1, 1);
 				corners.zero();
 				cornerHarris(img1, corners, 2, 3, 0.04);
+				UByteIndexer idx = corners.createIndexer();
 				for (int j = 0; j < corners.rows(); j++) {
 					for (int k = 0; k < corners.cols(); k++) {
 					}
 				}
+				
 				drawContours(srcImage, matContour, i, Scalar.WHITE, 3, 8, null, 1, null);
 				img1 = warpImage(srcImage, rect);
 				if (scanQrCode(img1) != null) {
