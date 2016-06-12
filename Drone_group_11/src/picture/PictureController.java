@@ -287,7 +287,7 @@ public class PictureController {
 		OpenCVFrameConverter.ToMat converterMat = new OpenCVFrameConverter.ToMat();
 		FrameGrabber grabber = new VideoInputFrameGrabber(0);
 		grabber.start();
-
+		
 		Runnable frameGrabber = new Runnable() {
 			boolean isFirst = true;
 

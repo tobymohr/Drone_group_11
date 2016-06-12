@@ -16,6 +16,7 @@ public class DroneCommunicator implements DroneInterface {
 	public DroneCommunicator(IARDrone drone){
 		this.drone = drone;
 		commandManager = drone.getCommandManager();
+		
 		connectedToDrone = true;
 	}
 	
