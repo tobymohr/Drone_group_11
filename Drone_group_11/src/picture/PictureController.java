@@ -285,7 +285,7 @@ public class PictureController {
 
 		OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
 		OpenCVFrameConverter.ToMat converterMat = new OpenCVFrameConverter.ToMat();
-		FrameGrabber grabber = new VideoInputFrameGrabber(0);
+		FrameGrabber grabber = new VideoInputFrameGrabber(1);
 		grabber.start();
 
 		Runnable frameGrabber = new Runnable() {

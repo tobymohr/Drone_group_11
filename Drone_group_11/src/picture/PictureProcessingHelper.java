@@ -66,7 +66,6 @@ public class PictureProcessingHelper {
 	private OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
 	private double distance;
 	private Java2DFrameConverter converter1 = new Java2DFrameConverter();
-	private CvMemStorage storage = CvMemStorage.create();
 	int blueMin = 110;
 	int blueMax = 130;
 	public String code = "";
@@ -86,20 +85,6 @@ public class PictureProcessingHelper {
 		double dy2 = pt2.y() - pt0.y();
 
 		return (dx1 * dx2 + dy1 * dy2) / Math.sqrt((dx1 * dx1 + dy1 * dy1) * (dx2 * dx2 + dy2 * dy2) + 1e-10);
-	}
-
-	private int closestPoint(List<CvSeq> pointsList, CvSeq markerMiddle) {
-		double qrMarkerSize = cvContourArea(markerMiddle);
-		double distance = Math.abs(cvContourArea(pointsList.get(0)) - qrMarkerSize);
-		int index = 0;
-		for (int i = 1; i < pointsList.size(); i++) {
-			double newDistance = Math.abs(cvContourArea(pointsList.get(i)) - qrMarkerSize);
-			if (newDistance < distance) {
-				index = i;
-				distance = newDistance;
-			}
-		}
-		return index;
 	}
 
 	public Mat findContoursBlueMat(Mat img) {
@@ -178,19 +163,8 @@ public class PictureProcessingHelper {
 
 	public Mat warpImage(Mat crop, RotatedRect rect) {
 		vertices = new Point2f(4);
-		CvMemStorage storage = CvMemStorage.create();
 		rect.points(vertices);
 		int angle = Math.abs((int) rect.angle());
-		float w = crop.cols();
-		Double x = distance;
-		float y = 28;
-		float z = vertices.position(1).x() - vertices.position(0).x();
-		z = Math.abs(z);
-		// System.out.println("Width in pix " + z);
-		double sum = (w * y) / (2 * x * z);
-		double AOV = Math.atan(sum) * 2;
-		AOV = Math.toDegrees(AOV);
-		// System.out.println("AOV " + AOV);
 
 		Point tl = null;
 		Point tr = null;
@@ -213,29 +187,28 @@ public class PictureProcessingHelper {
 			height = rect.size().width();
 			width = rect.size().height();
 		}
-
-		float[] sourcePoints = { tl.x(), tl.y(), tr.x(), tr.y(), bl.x(), bl.y(), br.x(), br.y() };
-		float[] destinationPoints = { 0.0f, 0.0f, width, 0.0f, 0.0f, height, width, height };
-		CvMat homography = cvCreateMat(3, 3, CV_32FC1);
-		cvGetPerspectiveTransform(sourcePoints, destinationPoints, homography);
-		Mat copy = crop.clone();
-		IplImage dest = new IplImage(copy);
-		cvWarpPerspective(dest, dest, homography, CV_INTER_LINEAR, CvScalar.ZERO);
-		dest = cropImage(dest, 0, 0, (int) width, (int) height);
-		Mat m = cvarrToMat(dest.clone());
-		cvRelease(dest);
-		cvClearMemStorage(storage);
-
-		return m;
-
-	}
-
-	private IplImage cropImage(IplImage dest, int fromX, int fromY, int toWidth, int toHeight) {
-		cvSetImageROI(dest, cvRect(fromX, fromY, toWidth, toHeight));
-		IplImage dest2 = cvCloneImage(dest);
-		cvCopy(dest, dest2);
-
-		return dest2;
+		
+		Point2f source = new Point2f(4);
+		Point2f destination = new Point2f(4);
+		
+		source.position(0).x(tl.x()).y(tl.y());
+		source.position(1).x(tr.x()).y(tr.y());
+		source.position(2).x(bl.x()).y(bl.y());
+		source.position(3).x(br.x()).y(br.y());
+		
+		destination.position(0).x(0.0f).y(0.0f);
+		destination.position(1).x(width).y(0.0f);
+		destination.position(2).x(0.0f).y(height);
+		destination.position(3).x(width).y(height);
+		
+		Mat homograpyMat = new Mat(3, 3, CV_32FC1);
+		Mat copyMat = crop.clone();
+		
+		homograpyMat = getPerspectiveTransform(source.position(0), destination.position(0));
+		warpPerspective(copyMat, copyMat, homograpyMat, copyMat.size());
+		copyMat.adjustROI(0, 0, (int) width, (int)height);
+		Mat result = new Mat(copyMat, new Rect(0, 0, (int) width, (int) height));
+		return result;
 	}
 
 
