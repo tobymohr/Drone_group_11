@@ -43,7 +43,7 @@ public class OFVideo implements Runnable {
 	private IARDrone drone;
 	private static boolean aboveLanding = false;
 	private static int circleCounter = 0;
-	
+	private static int counts = 0;
 	// Scansequence fields
 	private ScanSequence scanSequence;
 	private boolean isFirst = true;
@@ -134,7 +134,7 @@ public class OFVideo implements Runnable {
 		mainFrame.setImage(imageQr);
 	}
 
-	public void showLanding(Mat mat, Mat filteredMat) {
+	public void showLanding(Mat mat, Mat filteredMat) throws InterruptedException {
 		Mat landing = mat;
 		int circles = 0;
 		
@@ -148,32 +148,44 @@ public class OFVideo implements Runnable {
 		
 		boolean check = OFC.checkDecodedQR(mat);
 		if(check){
+			
 			circles = OFC.myCircle(mat);
-			for(int i = 0; i < 4; ){
+			
+//			for(int i = 0; i < 4; ){
 				if (circles > 0) {
 					aboveLanding = true;
 					// If false restart landing sequence
 					//Drone skal flye lidt ned
 					System.out.println("going down");
-					cC.dC.goDown(6);
-					i++;
+//					Thread.sleep(10);
+//					cC.dC.goDown(6);
+					Thread.sleep(10);
+					counts++;
+					System.out.println(counts);
 					}
 				else {
 						circles = 0;
 						circleCounter++;
+						System.out.println(circleCounter);
+						
 					}
 				if(circleCounter>=120){
 					aboveLanding = false;
 					circleCounter = 0;
+					counts = 0;
 				}
-				if(i == 3)
+				if(counts == 3){
+					System.out.println("landing");
+					
 					cC.dC.land();
-			}
+				}
+//			}
 		}
 		BufferedImage bufferedImageLanding = MatToBufferedImage(landing);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
 		mainFrame.setImage(imageLanding);
-//		System.out.println(aboveLanding);
+		// System.out.println(aboveLanding);
+		
 	}
 
 	public void showFilter(Mat filteredMat) {

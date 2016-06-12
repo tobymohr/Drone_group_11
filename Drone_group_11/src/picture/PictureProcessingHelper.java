@@ -1,6 +1,70 @@
 package picture;
 
-import static org.bytedeco.javacpp.opencv_imgproc.*;
+import static org.bytedeco.javacpp.opencv_core.CV_32FC1;
+import static org.bytedeco.javacpp.opencv_core.CV_8U;
+import static org.bytedeco.javacpp.opencv_core.CV_8UC1;
+import static org.bytedeco.javacpp.opencv_core.CV_8UC3;
+import static org.bytedeco.javacpp.opencv_core.CV_PI;
+import static org.bytedeco.javacpp.opencv_core.addWeighted;
+import static org.bytedeco.javacpp.opencv_core.cvCreateImage;
+import static org.bytedeco.javacpp.opencv_core.cvGetSeqElem;
+import static org.bytedeco.javacpp.opencv_core.cvGetSize;
+import static org.bytedeco.javacpp.opencv_core.cvPointFrom32f;
+import static org.bytedeco.javacpp.opencv_core.inRange;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_AA;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_BGR2GRAY;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_BGR2HSV;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_CHAIN_APPROX_NONE;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_FILLED;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_HOUGH_GRADIENT;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_LINK_RUNS;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_RETR_EXTERNAL;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_RGB2GRAY;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_RGB2HSV;
+import static org.bytedeco.javacpp.opencv_imgproc.Canny;
+import static org.bytedeco.javacpp.opencv_imgproc.MORPH_RECT;
+import static org.bytedeco.javacpp.opencv_imgproc.RETR_LIST;
+import static org.bytedeco.javacpp.opencv_imgproc.approxPolyDP;
+import static org.bytedeco.javacpp.opencv_imgproc.arcLength;
+import static org.bytedeco.javacpp.opencv_imgproc.contourArea;
+import static org.bytedeco.javacpp.opencv_imgproc.cvCvtColor;
+import static org.bytedeco.javacpp.opencv_imgproc.cvHoughCircles;
+import static org.bytedeco.javacpp.opencv_imgproc.cvSmooth;
+import static org.bytedeco.javacpp.opencv_imgproc.cvtColor;
+import static org.bytedeco.javacpp.opencv_imgproc.dilate;
+import static org.bytedeco.javacpp.opencv_imgproc.drawContours;
+import static org.bytedeco.javacpp.opencv_imgproc.erode;
+import static org.bytedeco.javacpp.opencv_imgproc.findContours;
+import static org.bytedeco.javacpp.opencv_imgproc.getPerspectiveTransform;
+import static org.bytedeco.javacpp.opencv_imgproc.getStructuringElement;
+import static org.bytedeco.javacpp.opencv_imgproc.line;
+import static org.bytedeco.javacpp.opencv_imgproc.minAreaRect;
+import static org.bytedeco.javacpp.opencv_imgproc.moments;
+import static org.bytedeco.javacpp.opencv_imgproc.putText;
+import static org.bytedeco.javacpp.opencv_imgproc.warpPerspective;
+
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.bytedeco.javacpp.opencv_core;
+import org.bytedeco.javacpp.opencv_core.CvMemStorage;
+import org.bytedeco.javacpp.opencv_core.CvPoint;
+import org.bytedeco.javacpp.opencv_core.CvPoint2D32f;
+import org.bytedeco.javacpp.opencv_core.CvPoint3D32f;
+import org.bytedeco.javacpp.opencv_core.CvSeq;
+import org.bytedeco.javacpp.opencv_core.IplImage;
+import org.bytedeco.javacpp.opencv_core.Mat;
+import org.bytedeco.javacpp.opencv_core.MatVector;
+import org.bytedeco.javacpp.opencv_core.Moments;
+import org.bytedeco.javacpp.opencv_core.Point;
+import org.bytedeco.javacpp.opencv_core.Point2f;
+import org.bytedeco.javacpp.opencv_core.Rect;
+import org.bytedeco.javacpp.opencv_core.RotatedRect;
+import org.bytedeco.javacpp.opencv_core.Scalar;
+import org.bytedeco.javacpp.opencv_core.Size;
+import org.bytedeco.javacv.Java2DFrameConverter;
+import org.bytedeco.javacv.OpenCVFrameConverter;
 
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.LuminanceSource;
@@ -8,18 +72,6 @@ import com.google.zxing.Result;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
-
-import org.bytedeco.javacpp.*;
-import org.bytedeco.javacpp.opencv_core.*;
-import org.bytedeco.javacv.Java2DFrameConverter;
-import org.bytedeco.javacv.OpenCVFrameConverter;
-
-import static org.bytedeco.javacpp.opencv_core.*;
-
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.List;
-
 
 import helper.Circle;
 import helper.CustomPoint;
@@ -429,7 +481,7 @@ public class PictureProcessingHelper {
 	}
 	
 	public boolean checkDecodedQR(Mat img){
-		String OURQR = "AF.04";
+		String OURQR = "AF.01";
 		
 		BufferedImage qrCode = converter1.convert(converter.convert(img));
 		source = new BufferedImageLuminanceSource(qrCode);
@@ -438,7 +490,7 @@ public class PictureProcessingHelper {
 			Result detectionResult = reader.decode(bitmap);
 			code = detectionResult.getText();
 			if(code.equals(OURQR)){
-//				System.out.println(code);
+				System.out.println(code);
 				return true;	
 			}
 			
@@ -577,20 +629,20 @@ public class PictureProcessingHelper {
 		return img;
 	}
 
-	public Mat circle(Mat img) {
-
-		MatVector matCircles = new MatVector();
-
-		Mat img1 = new Mat(img.arraySize(), CV_8UC1, 1);
-
-		cvtColor(img, img1, CV_RGB2GRAY);
-
-		GaussianBlur(img1, img, new Size(9, 9), 2.0);
-
-		HoughCircles(img, img, HOUGH_GRADIENT, 1, 100, 100, 100, 15, 500);
-
-		return img;
-	}
+//	public Mat circle(Mat img) {
+//
+//		MatVector matCircles = new MatVector();
+//
+//		Mat img1 = new Mat(img.arraySize(), CV_8UC1, 1);
+//
+//		cvtColor(img, img1, CV_RGB2GRAY);
+//
+//		GaussianBlur(img1, img, new Size(9, 9), 2.0);
+//
+//		HoughCircles(img, img, HOUGH_GRADIENT, 1, 100, 100, 100, 15, 500);
+//
+//		return img;
+//	}
 
 	public IplImage convertMatToIplImage(Mat mat) {
 		return converter.convert(converter.convert(mat));
@@ -769,8 +821,37 @@ public class PictureProcessingHelper {
 		return circles.total();
 	}
 	
-//	public Mat optFlow(Mat matterino){
-//		calcOpticalFlowPyrLK(arg0, arg1, arg2, arg3, arg4, arg5);
+//	public Mat calcOptFlow(Mat prevImg, Mat img, Mat prevPts){
+//		Mat status = new Mat(), error = new Mat(), nextPts = new Mat(), goodPoints = new Mat();
+//		  	Mat pFrame = imread("image0.png");
+//	        Mat cFrame = imread("image1.png");
+//	        Mat pGray = new Mat();
+//	        Mat cGray = new Mat();
+//
+//	        pFrame.convertTo(pGray, CV_32FC1);
+//	        cFrame.convertTo(cGray, CV_32FC1);
+//	        Mat Optical_Flow = new Mat();
+//
+//	        DenseOpticalFlow tvl1 = createOptFlow_DualTVL1();
+//	        tvl1.calc(pGray, cGray, Optical_Flow);
+//
+//	        Mat OF = new Mat(pGray.rows(), pGray.cols(), CV_32FC1);
+//	        FloatBuffer in = Optical_Flow.getFloatBuffer();
+//	        FloatBuffer out = OF.getFloatBuffer();
+//
+//	        int height = pGray.rows();
+//	        int width = pGray.cols();
+//
+//	        for(int y = 0; y < height; y++) {
+//	            for(int x = 0; x < width; x++) {
+//	                float xVelocity = in.get();
+//	                float yVelocity = in.get();
+//	                float pixelVelocity = (float)Math.sqrt(xVelocity*xVelocity + yVelocity*yVelocity);
+//	                out.put(pixelVelocity);
+//	            }
+//	        }
+//	        imwrite("OF.png", OF);
+//		return img;
 //		
 //		
 //	}

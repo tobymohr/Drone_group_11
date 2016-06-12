@@ -452,7 +452,6 @@ public class OpticalFlowCalculator {
 			CvPoint p0 = cvPoint(Math.round(cornersA.x()), Math.round(cornersA.y()));
 			CvPoint p1 = cvPoint(Math.round(cornersB.x()), Math.round(cornersB.y()));
 			cvLine(imgC, p0, p1, CV_RGB(0, 0, 0), 3, CV_AA, 0);
-
 			if (!p0.toString().equals(p1.toString())) {
 				Vector v0 = convertToVector(p0.toString());
 				Vector v1 = convertToVector(p1.toString());
