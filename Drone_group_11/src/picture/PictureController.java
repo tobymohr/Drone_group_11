@@ -368,10 +368,10 @@ public class PictureController {
 		int circles = 0;
 		
 		
-//		boolean check = OFC.checkDecodedQR(mat);
-//		if (check) {
-//			circles = OFC.myCircle(mat);
-//		}
+		boolean check = OFC.checkDecodedQR(mat);
+		if (check) {
+			circles = OFC.myCircle(mat);
+		}
 		
 		for(int i = 0; i < 4; i++){
 			if (circles > 0) {
