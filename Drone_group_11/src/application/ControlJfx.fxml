@@ -10,6 +10,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.*?>
+<?import javafx.scene.control.TextField?>
 
 <BorderPane fx:id="borderpane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="927.9998779296875" prefWidth="1406.0000999999975" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="picture.PictureController">
   <bottom>
@@ -72,6 +73,7 @@
             <Button fx:id="filterButton" mnemonicParsing="false" onAction="#showFilter" text="FILTER" />
             <Button fx:id="polygonButton" mnemonicParsing="false" onAction="#showPolygon" text="POLYGON" />
             <Button fx:id="landingButton" mnemonicParsing="false" onAction="#showLanding" text="LANDING" />
+            <Label fx:id="headingLbl" mnemonicParsing="false" text="heading" />
           </children>
         </HBox>
       </children>

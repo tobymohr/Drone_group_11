@@ -36,22 +36,22 @@ public class ScanSequence implements Runnable {
 	
 	@Override
 	public void run() {
-//		commandController.dC.takeOff();
-//		try {
-//			Thread.sleep(5000);
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
-//		System.out.println("SLEEP 1 DONE");
-//		//#TODO Adjust height to line up with QR codes.
-//		commandController.dC.setSpeed(30);
-//		commandController.addCommand(Command.UP, 6000);
-//		try {
-//			Thread.sleep(6000);
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
-//		System.out.println("SLEEP 2 DONE");
+		commandController.dC.takeOff();
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		System.out.println("SLEEP 1 DONE");
+		//#TODO Adjust height to line up with QR codes.
+		commandController.dC.setSpeed(30);
+		commandController.addCommand(Command.UP, 6000);
+		try {
+			Thread.sleep(6000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		System.out.println("SLEEP 2 DONE");
 		while(PictureController.shouldScan) {
 			scanSequence();
 		}

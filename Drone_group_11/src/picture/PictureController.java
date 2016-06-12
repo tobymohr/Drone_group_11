@@ -104,6 +104,8 @@ public class PictureController {
 	private Label qrCode;
 	@FXML
 	private Label qrDist;
+	@FXML
+	private Label headingLbl;
 
 	public void setUpKeys() {
 		borderpane.getScene().setOnKeyPressed(new EventHandler<KeyEvent>() {
@@ -265,6 +267,7 @@ public class PictureController {
 
 	public void grabFromDrone() {
 
+		NavDataTracker nav = new NavDataTracker();
 		drone.getVideoManager().start();
 		drone.getVideoManager().addImageListener(new ImageListener() {
 			boolean isFirst = true;
@@ -275,6 +278,7 @@ public class PictureController {
 					new Thread(ofvideo = new OFVideo(mainFrame, qrCode, qrDist,
 							arg0, cC)).start();
 					isFirst = false;
+					nav.initCompass(drone, headingLbl);
 				}
 				ofvideo.setArg0(arg0);
 			}
