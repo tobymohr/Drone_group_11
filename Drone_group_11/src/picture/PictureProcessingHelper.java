@@ -272,7 +272,8 @@ public class PictureProcessingHelper {
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
-			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > 40000) {
+			
+			if (matContour.get(i).total() == 4  && contourArea(matContour.get(i)) > 6500) {
 				RotatedRect rect = minAreaRect(matContour.get(i));
 				drawContours(srcImage, matContour, i, Scalar.WHITE, 3, 8, null, 1, null);
 				img1 = warpImage(srcImage, rect);
@@ -283,6 +284,10 @@ public class PictureProcessingHelper {
 				distance = calcDistance(rect);
 				putText(srcImage, "" + distance,
 						new Point((int) rect.center().x() - 25, (int) rect.center().y() + 60), 1, 2, Scalar.BLUE, 2, 8,
+						false);
+				
+				putText(srcImage, "" + contourArea(matContour.get(i)),
+						new Point((int) rect.center().x() - 25, (int) rect.center().y() + 150), 1, 2, Scalar.BLACK, 2, 8,
 						false);
 				double center = center(rect);
 				if (center < ScanSequence.CENTER_UPPER && center > ScanSequence.CENTER_LOWER && isCenterInImage(srcImage, rect) == 0) {
@@ -346,8 +351,7 @@ public class PictureProcessingHelper {
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
-			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > 40000) {
-				System.out.println(contourArea(matContour.get(i)));
+			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > 6500) {
 				result.add(matContour.get(i));
 			}
 		}

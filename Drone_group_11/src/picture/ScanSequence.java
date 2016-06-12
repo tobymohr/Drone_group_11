@@ -2,6 +2,7 @@ package picture;
 
 import static org.bytedeco.javacpp.opencv_imgproc.minAreaRect;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
@@ -16,7 +17,7 @@ public class ScanSequence implements Runnable {
 	//#TODO Tweak these values based on testing
 	public static final double CENTER_UPPER = 0.1;
 	public static final double CENTER_LOWER = -0.1;
-	public static final double CENTER_DIFFERENCE = -0.05;
+	public static final double CENTER_DIFFERENCE = 0.05;
 		
 	private CommandController commandController;
 	private double previousCenter = -1;
@@ -36,22 +37,49 @@ public class ScanSequence implements Runnable {
 	
 	@Override
 	public void run() {
-//		commandController.dC.takeOff();
-//		try {
-//			Thread.sleep(5000);
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
-//		System.out.println("SLEEP 1 DONE");
-//		//#TODO Adjust height to line up with QR codes.
-//		commandController.dC.setSpeed(30);
-//		commandController.addCommand(Command.UP, 6000);
-//		try {
-//			Thread.sleep(6000);
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
-//		System.out.println("SLEEP 2 DONE");
+		commandController.dC.takeOff();
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		System.out.println("HOVER");
+		commandController.dC.hover();
+
+		try {
+			Thread.sleep(6000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		System.out.println("UP");
+		commandController.dC.setSpeed(20);
+		commandController.addCommand(Command.UP, 2000);
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		System.out.println("HOVER");
+		commandController.dC.hover();
+
+		try {
+			Thread.sleep(6000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	
+		System.out.println("UP");
+		commandController.dC.setSpeed(20);
+		commandController.addCommand(Command.UP, 2000);
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		
 		while(PictureController.shouldScan) {
 			scanSequence();
 		}
@@ -59,6 +87,10 @@ public class ScanSequence implements Runnable {
 	
 	private void scanSequence() {
 		boolean wallClose = false;
+		System.out.println("HOVER");
+		commandController.dC.hover();
+		sleep(2000);
+		
 		if (wallClose) {
 			//#TODO Fly backwards (4-5 meters)
 			//#TODO Rotate 90 degrees
@@ -72,18 +104,28 @@ public class ScanSequence implements Runnable {
 		List<Mat> contours = OFC.findQrContours(camMat);
 
 		if(contours.size() != 0) {
-			RotatedRect rect = minAreaRect(contours.get(0));
+			double distanceFomCenter = 5000;
+			RotatedRect rect = new RotatedRect();
+			for (int i = 0; i < contours.size(); i++) {
+				 RotatedRect rect2 = minAreaRect(contours.get(i));
+				 double distance = (camMat.arrayWidth() / 2) - rect.center().x();
+				 if (distanceFomCenter > distance) {
+					 distanceFomCenter = Math.abs(distance);
+					 rect = rect2;
+				 }
+			}
+			
 			double positionFromCenter = OFC.isCenterInImage(camMat.clone(), rect);
 			if (positionFromCenter != 0) {
 				System.out.println("PositionFromCenter: " + positionFromCenter);
 				//#TODO Rotate <positionFromCenter> pixels to center the QR code in image
-				commandController.dC.setSpeed(20);
+				commandController.dC.setSpeed(15);
 				if (positionFromCenter > 0) {
-//					System.out.println("SPINRIGHT");
+					System.out.println("SPINRIGHT");
 					commandController.addCommand(Command.SPINRIGHT, 300);
 					sleep(1000);
 				} else {
-//					System.out.println("SPINLEFT");
+					System.out.println("SPINLEFT");
 					commandController.addCommand(Command.SPINLEFT, 300);
 					sleep(1000);
 				}
@@ -94,23 +136,34 @@ public class ScanSequence implements Runnable {
 				//#TODO Strafe the drone <center> amount. Right is chosen as standard.
 				commandController.dC.setSpeed(10);
 				if (strafeRight) {
-//					System.out.println("STRAFERIGHT");
-					commandController.addCommand(Command.RIGHT, 500);
+					System.out.println("STRAFERIGHT");
+					commandController.addCommand(Command.RIGHT, 650);
 					sleep(1000);
+//					System.out.println("FORWARD ");
+//					commandController.dC.setSpeed(15);
+//					commandController.addCommand(Command.FORWARD, 600);
+//					sleep(1000);
 				} else {
-//					System.out.println("STRAFELEFT");
-					commandController.addCommand(Command.LEFT, 500);
+					System.out.println("STRAFELEFT");
+					commandController.addCommand(Command.LEFT, 650);
 					sleep(1000);
+//					System.out.println("FORWARD ");
+//					commandController.dC.setSpeed(15);
+//					commandController.addCommand(Command.FORWARD, 600);
+//					sleep(1000);
 				}
 				if (previousCenter == -1) {
 					// Record center in order to react to it next iteration
 					previousCenter = center;
 				} else {
-					double difference = previousCenter - center;
-					if (difference < CENTER_DIFFERENCE) {
+					double difference = center - previousCenter;
+					System.out.println("PREV " + previousCenter);
+					System.out.println("CENTER " + center);
+					if (difference > CENTER_DIFFERENCE) {
 						// We moved the wrong way. Change strafe direction.
 						strafeRight = !strafeRight;
-//						System.out.println("CHANGE STRAFE DIRECTION");
+						previousCenter = center;
+						System.out.println("CHANGE STRAFE DIRECTION");
 					}
 				}
 				return;
@@ -167,18 +220,21 @@ public class ScanSequence implements Runnable {
 //				}
 //			}
 		} else {
-			if (rotateCount != 40) {
+			if (rotateCount!= 5) {
 				//#TODO Rotate 90 degrees
-//				System.out.println("ROTATE");
-				commandController.dC.setSpeed(30);
-				commandController.addCommand(Command.SPINRIGHT, 400);
-				sleep(400);
+				System.out.println("ROTATE");
+				commandController.dC.setSpeed(10);
+				commandController.addCommand(Command.SPINRIGHT, 1000);
+				sleep(800);
 				rotateCount++;
+//				if(rotateCount > 40){
+//					rotateCount = 0;
+//				}
 			} else {
 				//#TODO Fly forwards (1 meter)
-//				System.out.println("FORWARD (DISABLED)");
+				System.out.println("Forward");
 				commandController.dC.setSpeed(15);
-				commandController.addCommand(Command.FORWARD, 500);
+				commandController.addCommand(Command.FORWARD, 1500);
 				sleep(1000);
 			}
 			return;
