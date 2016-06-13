@@ -25,6 +25,7 @@ import static org.bytedeco.javacpp.opencv_imgproc.Canny;
 import static org.bytedeco.javacpp.opencv_imgproc.MORPH_RECT;
 import static org.bytedeco.javacpp.opencv_imgproc.RETR_LIST;
 import static org.bytedeco.javacpp.opencv_imgproc.approxPolyDP;
+import static org.bytedeco.javacpp.opencv_imgproc.*;
 import static org.bytedeco.javacpp.opencv_imgproc.arcLength;
 import static org.bytedeco.javacpp.opencv_imgproc.contourArea;
 import static org.bytedeco.javacpp.opencv_imgproc.cvCvtColor;
@@ -44,10 +45,11 @@ import static org.bytedeco.javacpp.opencv_imgproc.putText;
 import static org.bytedeco.javacpp.opencv_imgproc.warpPerspective;
 
 import java.awt.image.BufferedImage;
+import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bytedeco.javacpp.opencv_core;
+import org.bytedeco.javacpp.opencv_core.*;
 import org.bytedeco.javacpp.opencv_core.CvMemStorage;
 import org.bytedeco.javacpp.opencv_core.CvPoint;
 import org.bytedeco.javacpp.opencv_core.CvPoint2D32f;
@@ -63,8 +65,21 @@ import org.bytedeco.javacpp.opencv_core.Rect;
 import org.bytedeco.javacpp.opencv_core.RotatedRect;
 import org.bytedeco.javacpp.opencv_core.Scalar;
 import org.bytedeco.javacpp.opencv_core.Size;
+import org.bytedeco.javacv.Blobs;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
+import org.bytedeco.javacpp.opencv_imgcodecs.*;
+import org.bytedeco.javacpp.opencv_imgproc.*;
+import org.bytedeco.javacpp.indexer.ByteBufferIndexer;
+import org.bytedeco.javacpp.indexer.DoubleIndexer;
+import org.bytedeco.javacpp.indexer.FloatBufferIndexer;
+import org.bytedeco.javacpp.indexer.IntBufferIndexer;
+import org.bytedeco.javacpp.indexer.ShortBufferIndexer;
+import org.bytedeco.javacpp.indexer.UByteBufferIndexer;
+import org.bytedeco.javacpp.indexer.UByteIndexer;
+import org.bytedeco.javacpp.opencv_highgui.*;
+import org.bytedeco.javacpp.*;
+
 
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.LuminanceSource;
@@ -261,12 +276,28 @@ public class PictureProcessingHelper {
 		cvtColor(srcImage, img1, CV_RGB2GRAY);
 		Canny(img1, img1, 75, 200);
 		MatVector matContour = new MatVector();
-		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
 			RotatedRect rect = minAreaRect(matContour.get(i));
-			
 			if (matContour.get(i).total() == 4  && contourArea(matContour.get(i)) > MIN_AREA && checkAngles(rect)) {
+
+//				IntBufferIndexer idx = matContour.get(i).createIndexer();
+//				System.out.println("------------------------");
+//				for (int j = 0; j < matContour.get(i).rows(); j++) {
+//					for (int k = 0; k < matContour.get(i).cols(); k++) {
+//						int pixel = (int) idx.get(j, k);
+//						if (pixel > 10) {
+//							circle(srcImage, new Point( j, k ), 5,  Scalar.RED, 2, 8, 0 );
+//							opencv_core.getSeq
+//							System.out.println(matContour.get(i));
+//						}
+//					}
+//				}
+//				System.out.println("------------------------");
+				List<Point> points = new ArrayList<>();
+				
+				
 				drawContours(srcImage, matContour, i, Scalar.WHITE, 3, 8, null, 1, null);
 				img1 = warpImage(srcImage, rect);
 				if (scanQrCode(img1) != null) {
@@ -456,8 +487,6 @@ public class PictureProcessingHelper {
 		double trAngle = calculateAngle(tr, tl, br);
 		double blAngle = calculateAngle(bl, tl, br);
 		double brAngle = calculateAngle(br, tr, bl);
-		
-		System.out.println((int)tlAngle + "|" + (int)trAngle + "|" + (int)blAngle + "|" + (int)brAngle + "|" + angle);
 		
 		if (tlAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND) {
 			return false;
