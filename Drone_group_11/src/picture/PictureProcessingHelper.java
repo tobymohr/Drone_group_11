@@ -1,60 +1,77 @@
 package picture;
 
-import static org.bytedeco.javacpp.helper.opencv_core.*;
+import static org.bytedeco.javacpp.opencv_core.CV_32FC1;
+import static org.bytedeco.javacpp.opencv_core.CV_8U;
+import static org.bytedeco.javacpp.opencv_core.CV_8UC1;
+import static org.bytedeco.javacpp.opencv_core.CV_8UC3;
+import static org.bytedeco.javacpp.opencv_core.CV_PI;
+import static org.bytedeco.javacpp.opencv_core.addWeighted;
+import static org.bytedeco.javacpp.opencv_core.cvCreateImage;
+import static org.bytedeco.javacpp.opencv_core.cvGetSeqElem;
+import static org.bytedeco.javacpp.opencv_core.cvGetSize;
+import static org.bytedeco.javacpp.opencv_core.cvPointFrom32f;
+import static org.bytedeco.javacpp.opencv_core.inRange;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_AA;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_BGR2GRAY;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_BGR2HSV;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_CHAIN_APPROX_NONE;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_FILLED;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_HOUGH_GRADIENT;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_LINK_RUNS;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_RETR_EXTERNAL;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_RGB2GRAY;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_RGB2HSV;
+import static org.bytedeco.javacpp.opencv_imgproc.Canny;
+import static org.bytedeco.javacpp.opencv_imgproc.MORPH_RECT;
+import static org.bytedeco.javacpp.opencv_imgproc.RETR_LIST;
+import static org.bytedeco.javacpp.opencv_imgproc.approxPolyDP;
+import static org.bytedeco.javacpp.opencv_imgproc.arcLength;
+import static org.bytedeco.javacpp.opencv_imgproc.contourArea;
+import static org.bytedeco.javacpp.opencv_imgproc.cvCvtColor;
+import static org.bytedeco.javacpp.opencv_imgproc.cvHoughCircles;
+import static org.bytedeco.javacpp.opencv_imgproc.cvSmooth;
+import static org.bytedeco.javacpp.opencv_imgproc.cvtColor;
+import static org.bytedeco.javacpp.opencv_imgproc.dilate;
+import static org.bytedeco.javacpp.opencv_imgproc.drawContours;
+import static org.bytedeco.javacpp.opencv_imgproc.erode;
+import static org.bytedeco.javacpp.opencv_imgproc.findContours;
+import static org.bytedeco.javacpp.opencv_imgproc.getPerspectiveTransform;
+import static org.bytedeco.javacpp.opencv_imgproc.getStructuringElement;
+import static org.bytedeco.javacpp.opencv_imgproc.line;
+import static org.bytedeco.javacpp.opencv_imgproc.minAreaRect;
+import static org.bytedeco.javacpp.opencv_imgproc.moments;
+import static org.bytedeco.javacpp.opencv_imgproc.putText;
+import static org.bytedeco.javacpp.opencv_imgproc.warpPerspective;
 
-import picture.PictureController;
-import static org.bytedeco.javacpp.helper.opencv_imgproc.*;
-import static org.bytedeco.javacpp.helper.opencv_imgproc.cvDrawContours;
-import static org.bytedeco.javacpp.helper.opencv_imgproc.cvFindContours;
-import static org.bytedeco.javacpp.opencv_imgproc.*;
-import static org.bytedeco.javacpp.opencv_imgproc.cvDrawContours;
-import static org.bytedeco.javacpp.opencv_imgproc.cvFindContours;
-import static org.bytedeco.javacpp.opencv_video.*;
-import static org.bytedeco.javacpp.helper.opencv_core.*;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
 
-import picture.PictureController;
-import static org.bytedeco.javacpp.helper.opencv_imgproc.*;
-import static org.bytedeco.javacpp.helper.opencv_imgproc.cvDrawContours;
-import static org.bytedeco.javacpp.helper.opencv_imgproc.cvFindContours;
-import static org.bytedeco.javacpp.opencv_imgproc.*;
-import static org.bytedeco.javacpp.opencv_imgproc.cvDrawContours;
-import static org.bytedeco.javacpp.opencv_imgproc.cvFindContours;
-import static org.bytedeco.javacpp.opencv_video.*;
-import static org.bytedeco.javacpp.opencv_imgcodecs.*;
+import org.bytedeco.javacpp.opencv_core;
+import org.bytedeco.javacpp.opencv_core.CvMemStorage;
+import org.bytedeco.javacpp.opencv_core.CvPoint;
+import org.bytedeco.javacpp.opencv_core.CvPoint2D32f;
+import org.bytedeco.javacpp.opencv_core.CvPoint3D32f;
+import org.bytedeco.javacpp.opencv_core.CvSeq;
+import org.bytedeco.javacpp.opencv_core.IplImage;
+import org.bytedeco.javacpp.opencv_core.Mat;
+import org.bytedeco.javacpp.opencv_core.MatVector;
+import org.bytedeco.javacpp.opencv_core.Moments;
+import org.bytedeco.javacpp.opencv_core.Point;
+import org.bytedeco.javacpp.opencv_core.Point2f;
+import org.bytedeco.javacpp.opencv_core.Rect;
+import org.bytedeco.javacpp.opencv_core.RotatedRect;
+import org.bytedeco.javacpp.opencv_core.Scalar;
+import org.bytedeco.javacpp.opencv_core.Size;
+import org.bytedeco.javacv.Java2DFrameConverter;
+import org.bytedeco.javacv.OpenCVFrameConverter;
 
 import com.google.zxing.BinaryBitmap;
-import com.google.zxing.ChecksumException;
-import com.google.zxing.FormatException;
 import com.google.zxing.LuminanceSource;
-import com.google.zxing.NotFoundException;
 import com.google.zxing.Result;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
-
-import org.bytedeco.javacpp.*;
-import org.bytedeco.javacpp.opencv_core.*;
-import org.bytedeco.javacpp.opencv_imgproc.CvMoments;
-import org.bytedeco.javacpp.indexer.FloatIndexer;
-import org.bytedeco.javacv.CanvasFrame;
-import org.bytedeco.javacv.Frame;
-import org.bytedeco.javacv.Java2DFrameConverter;
-import org.bytedeco.javacv.OpenCVFrameConverter;
-
-import static org.bytedeco.javacpp.opencv_core.*;
-
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.awt.image.BufferedImage;
-import java.awt.image.ColorConvertOp;
-import java.awt.image.ConvolveOp;
-import java.awt.image.ImageProducer;
-import java.awt.image.Kernel;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import javax.swing.JFrame;
 
 import helper.Circle;
 import helper.CustomPoint;
@@ -66,7 +83,6 @@ public class PictureProcessingHelper {
 	private OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
 	private double distance;
 	private Java2DFrameConverter converter1 = new Java2DFrameConverter();
-	private CvMemStorage storage = CvMemStorage.create();
 	int blueMin = 110;
 	int blueMax = 130;
 	public String code = "";
@@ -75,6 +91,9 @@ public class PictureProcessingHelper {
 	private LuminanceSource source;
 	private BinaryBitmap bitmap;
 	private Point2f vertices;
+	private static final int MIN_AREA = 5000;
+	private static final int ANGLE_UPPER_BOUND = 95;
+	private static final int ANGLE_LOWER_BOUND = 85;
 
 	public PictureProcessingHelper() {
 	}
@@ -88,20 +107,6 @@ public class PictureProcessingHelper {
 		return (dx1 * dx2 + dy1 * dy2) / Math.sqrt((dx1 * dx1 + dy1 * dy1) * (dx2 * dx2 + dy2 * dy2) + 1e-10);
 	}
 
-	private int closestPoint(List<CvSeq> pointsList, CvSeq markerMiddle) {
-		double qrMarkerSize = cvContourArea(markerMiddle);
-		double distance = Math.abs(cvContourArea(pointsList.get(0)) - qrMarkerSize);
-		int index = 0;
-		for (int i = 1; i < pointsList.size(); i++) {
-			double newDistance = Math.abs(cvContourArea(pointsList.get(i)) - qrMarkerSize);
-			if (newDistance < distance) {
-				index = i;
-				distance = newDistance;
-			}
-		}
-		return index;
-	}
-
 	public Mat findContoursBlueMat(Mat img) {
 
 		MatVector contoursSwagger = new MatVector();
@@ -112,12 +117,6 @@ public class PictureProcessingHelper {
 		Mat scalarBlue2 = new Mat(new Scalar(blueMax, 255, 255, 0));
 		inRange(mathsv3, scalarBlue1, scalarBlue2, mathsv3);
 		findContours(mathsv3, contoursSwagger, RETR_LIST , CV_LINK_RUNS, new opencv_core.Point());
-//		System.out.println(contoursSwagger.size());
-		for (int i = 0; i < contoursSwagger.size(); i++) {
-			drawContours(mathsv3, contoursSwagger, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 2,
-					new opencv_core.Point());
-		}
-
 		return mathsv3;
 	}
 
@@ -129,11 +128,6 @@ public class PictureProcessingHelper {
 		Mat scalar2 = new Mat(new Scalar(180, 255, 38, 0));
 
 		inRange(matHSV, scalar1, scalar2, matHSV);
-		findContours(matHSV, contour1, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
-
-		for (int i = 0; i < contour1.size(); i++) {
-			drawContours(matHSV, contour1, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 1, new opencv_core.Point());
-		}
 		return matHSV;
 	}
 
@@ -152,11 +146,6 @@ public class PictureProcessingHelper {
 		inRange(mathsv3, scalar1, scalar2, mathueLower);
 		inRange(mathsv3, scalar3, scalar4, mathueUpper);
 		addWeighted(mathueLower, 1.0, mathueUpper, 1.0, 0.0, imgbin3);
-		findContours(imgbin3, matContour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
-		for (int i = 0; i < matContour.size(); i++) {
-			drawContours(imgbin3, matContour, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 1,
-					new opencv_core.Point());
-		}
 		return imgbin3;
 	}
 
@@ -169,28 +158,13 @@ public class PictureProcessingHelper {
 		Mat scalar2 = new Mat(new Scalar(75, 220, 220, 0));
 		// Two ranges to get full color spectrum
 		inRange(imghsv, scalar1, scalar2, imgbin);
-		findContours(imgbin, matContour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
-		for (int i = 0; i < matContour.size(); i++) {
-			drawContours(imgbin, matContour, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 1, new opencv_core.Point());
-		}
 		return imgbin;
 	}
 
 	public Mat warpImage(Mat crop, RotatedRect rect) {
 		vertices = new Point2f(4);
-		CvMemStorage storage = CvMemStorage.create();
 		rect.points(vertices);
 		int angle = Math.abs((int) rect.angle());
-		float w = crop.cols();
-		Double x = distance;
-		float y = 28;
-		float z = vertices.position(1).x() - vertices.position(0).x();
-		z = Math.abs(z);
-		// System.out.println("Width in pix " + z);
-		double sum = (w * y) / (2 * x * z);
-		double AOV = Math.atan(sum) * 2;
-		AOV = Math.toDegrees(AOV);
-		// System.out.println("AOV " + AOV);
 
 		Point tl = null;
 		Point tr = null;
@@ -213,29 +187,28 @@ public class PictureProcessingHelper {
 			height = rect.size().width();
 			width = rect.size().height();
 		}
-
-		float[] sourcePoints = { tl.x(), tl.y(), tr.x(), tr.y(), bl.x(), bl.y(), br.x(), br.y() };
-		float[] destinationPoints = { 0.0f, 0.0f, width, 0.0f, 0.0f, height, width, height };
-		CvMat homography = cvCreateMat(3, 3, CV_32FC1);
-		cvGetPerspectiveTransform(sourcePoints, destinationPoints, homography);
-		Mat copy = crop.clone();
-		IplImage dest = new IplImage(copy);
-		cvWarpPerspective(dest, dest, homography, CV_INTER_LINEAR, CvScalar.ZERO);
-		dest = cropImage(dest, 0, 0, (int) width, (int) height);
-		Mat m = cvarrToMat(dest.clone());
-		cvRelease(dest);
-		cvClearMemStorage(storage);
-
-		return m;
-
-	}
-
-	private IplImage cropImage(IplImage dest, int fromX, int fromY, int toWidth, int toHeight) {
-		cvSetImageROI(dest, cvRect(fromX, fromY, toWidth, toHeight));
-		IplImage dest2 = cvCloneImage(dest);
-		cvCopy(dest, dest2);
-
-		return dest2;
+		
+		Point2f source = new Point2f(4);
+		Point2f destination = new Point2f(4);
+		
+		source.position(0).x(tl.x()).y(tl.y());
+		source.position(1).x(tr.x()).y(tr.y());
+		source.position(2).x(bl.x()).y(bl.y());
+		source.position(3).x(br.x()).y(br.y());
+		
+		destination.position(0).x(0.0f).y(0.0f);
+		destination.position(1).x(width).y(0.0f);
+		destination.position(2).x(0.0f).y(height);
+		destination.position(3).x(width).y(height);
+		
+		Mat homograpyMat = new Mat(3, 3, CV_32FC1);
+		Mat copyMat = crop.clone();
+		
+		homograpyMat = getPerspectiveTransform(source.position(0), destination.position(0));
+		warpPerspective(copyMat, copyMat, homograpyMat, copyMat.size());
+		copyMat.adjustROI(0, 0, (int) width, (int)height);
+		Mat result = new Mat(copyMat, new Rect(0, 0, (int) width, (int) height));
+		return result;
 	}
 
 
@@ -264,7 +237,6 @@ public class PictureProcessingHelper {
 	}
 
 	public Mat extractQRImage(Mat srcImage) {
-		
 		Mat img1 = new Mat(srcImage.arraySize(), CV_8UC1, 1);
 		cvtColor(srcImage, img1, CV_RGB2GRAY);
 		Canny(img1, img1, 75, 200);
@@ -272,8 +244,9 @@ public class PictureProcessingHelper {
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
-			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > 40000) {
-				RotatedRect rect = minAreaRect(matContour.get(i));
+			RotatedRect rect = minAreaRect(matContour.get(i));
+			
+			if (matContour.get(i).total() == 4  && contourArea(matContour.get(i)) > MIN_AREA && checkAngles(rect)) {
 				drawContours(srcImage, matContour, i, Scalar.WHITE, 3, 8, null, 1, null);
 				img1 = warpImage(srcImage, rect);
 				if (scanQrCode(img1) != null) {
@@ -283,6 +256,10 @@ public class PictureProcessingHelper {
 				distance = calcDistance(rect);
 				putText(srcImage, "" + distance,
 						new Point((int) rect.center().x() - 25, (int) rect.center().y() + 60), 1, 2, Scalar.BLUE, 2, 8,
+						false);
+				
+				putText(srcImage, "" + contourArea(matContour.get(i)),
+						new Point((int) rect.center().x() - 25, (int) rect.center().y() + 150), 1, 2, Scalar.BLACK, 2, 8,
 						false);
 				double center = center(rect);
 				if (center < ScanSequence.CENTER_UPPER && center > ScanSequence.CENTER_LOWER && isCenterInImage(srcImage, rect) == 0) {
@@ -346,8 +323,7 @@ public class PictureProcessingHelper {
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
-			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > 40000) {
-				System.out.println(contourArea(matContour.get(i)));
+			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > MIN_AREA) {
 				result.add(matContour.get(i));
 			}
 		}
@@ -421,10 +397,25 @@ public class PictureProcessingHelper {
 		return calcedPoints;
 	}
 
-	public void checkAngles(RotatedRect rect) {
-		Point2f vertices = new Point2f(4);
+	public String scanQrCode(Mat srcImage) {
+		BufferedImage qrCode = converter1.convert(converter.convert(srcImage));
+		source = new BufferedImageLuminanceSource(qrCode);
+		bitmap = new BinaryBitmap(new HybridBinarizer(source));
+		try {
+			Result detectionResult = reader.decode(bitmap);
+			code = detectionResult.getText();
+			return code;
+		} catch (Exception e) {
+			return null;
+		}
+
+	}
+	
+	public boolean checkAngles(RotatedRect rect) {
+		vertices = new Point2f(4);
 		rect.points(vertices);
 		int angle = Math.abs((int) rect.angle());
+
 		Point tl = null;
 		Point tr = null;
 		Point br = null;
@@ -440,30 +431,37 @@ public class PictureProcessingHelper {
 			br = new Point((int) vertices.position(0).x(), (int) vertices.position(0).y());
 			bl = new Point((int) vertices.position(1).x(), (int) vertices.position(1).y());
 		}
-		// System.out.println("----------");
-		// System.out.println(Math.toDegrees(calculateAngle(tl, tr, bl)));
-		// System.out.println(Math.toDegrees(calculateAngle(tr, tl, br)));
-		// System.out.println(Math.toDegrees(calculateAngle(bl, tl, br)));
-		// System.out.println(Math.toDegrees(calculateAngle(br, bl, tr)));
-		// System.out.println("----------");
-	}
-
-	public String scanQrCode(Mat srcImage) {
-		BufferedImage qrCode = converter1.convert(converter.convert(srcImage));
-		source = new BufferedImageLuminanceSource(qrCode);
-		bitmap = new BinaryBitmap(new HybridBinarizer(source));
-		try {
-			Result detectionResult = reader.decode(bitmap);
-			code = detectionResult.getText();
-			return code;
-		} catch (Exception e) {
-			return null;
+		
+		double tlAngle = calculateAngle(tl, tr, bl);
+		double trAngle = calculateAngle(tr, tl, br);
+		double blAngle = calculateAngle(bl, tl, br);
+		double brAngle = calculateAngle(br, tr, bl);
+		
+		System.out.println((int)tlAngle + "|" + (int)trAngle + "|" + (int)blAngle + "|" + (int)brAngle + "|" + angle);
+		
+		if (tlAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND) {
+			return false;
+		} if (trAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND) {
+			return false;
+		} if (blAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND) {
+			return false;
+		} if (tlAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND) {
+			return false;
+		} else {
+			return true;
 		}
-
+	}
+	
+	private double calculateAngle(Point A, Point B, Point C) {
+		double a = Math.sqrt(Math.pow(C.x()-B.x(), 2) + Math.pow(C.y()-B.y(), 2));
+		double b = Math.sqrt(Math.pow(A.x()-C.x(), 2) + Math.pow(A.y()-C.y(), 2));
+		double c = Math.sqrt(Math.pow(B.x()-A.x(), 2) + Math.pow(B.y()-A.y(), 2));
+		double cosA = (Math.pow(b, 2) + Math.pow(c, 2) - Math.pow(a, 2)) / (2 * b * c);
+		return Math.toDegrees(Math.acos(cosA));
 	}
 	
 	public boolean checkDecodedQR(Mat img){
-		String OURQR = "AF.04";
+		String OURQR = "AF.01";
 		
 		BufferedImage qrCode = converter1.convert(converter.convert(img));
 		source = new BufferedImageLuminanceSource(qrCode);
@@ -472,7 +470,7 @@ public class PictureProcessingHelper {
 			Result detectionResult = reader.decode(bitmap);
 			code = detectionResult.getText();
 			if(code.equals(OURQR)){
-//				System.out.println(code);
+				System.out.println(code);
 				return true;	
 			}
 			
@@ -611,20 +609,20 @@ public class PictureProcessingHelper {
 		return img;
 	}
 
-	public Mat circle(Mat img) {
-
-		MatVector matCircles = new MatVector();
-
-		Mat img1 = new Mat(img.arraySize(), CV_8UC1, 1);
-
-		cvtColor(img, img1, CV_RGB2GRAY);
-
-		GaussianBlur(img1, img, new Size(9, 9), 2.0);
-
-		HoughCircles(img, img, HOUGH_GRADIENT, 1, 100, 100, 100, 15, 500);
-
-		return img;
-	}
+//	public Mat circle(Mat img) {
+//
+//		MatVector matCircles = new MatVector();
+//
+//		Mat img1 = new Mat(img.arraySize(), CV_8UC1, 1);
+//
+//		cvtColor(img, img1, CV_RGB2GRAY);
+//
+//		GaussianBlur(img1, img, new Size(9, 9), 2.0);
+//
+//		HoughCircles(img, img, HOUGH_GRADIENT, 1, 100, 100, 100, 15, 500);
+//
+//		return img;
+//	}
 
 	public IplImage convertMatToIplImage(Mat mat) {
 		return converter.convert(converter.convert(mat));
@@ -803,8 +801,37 @@ public class PictureProcessingHelper {
 		return circles.total();
 	}
 	
-//	public Mat optFlow(Mat matterino){
-//		calcOpticalFlowPyrLK(arg0, arg1, arg2, arg3, arg4, arg5);
+//	public Mat calcOptFlow(Mat prevImg, Mat img, Mat prevPts){
+//		Mat status = new Mat(), error = new Mat(), nextPts = new Mat(), goodPoints = new Mat();
+//		  	Mat pFrame = imread("image0.png");
+//	        Mat cFrame = imread("image1.png");
+//	        Mat pGray = new Mat();
+//	        Mat cGray = new Mat();
+//
+//	        pFrame.convertTo(pGray, CV_32FC1);
+//	        cFrame.convertTo(cGray, CV_32FC1);
+//	        Mat Optical_Flow = new Mat();
+//
+//	        DenseOpticalFlow tvl1 = createOptFlow_DualTVL1();
+//	        tvl1.calc(pGray, cGray, Optical_Flow);
+//
+//	        Mat OF = new Mat(pGray.rows(), pGray.cols(), CV_32FC1);
+//	        FloatBuffer in = Optical_Flow.getFloatBuffer();
+//	        FloatBuffer out = OF.getFloatBuffer();
+//
+//	        int height = pGray.rows();
+//	        int width = pGray.cols();
+//
+//	        for(int y = 0; y < height; y++) {
+//	            for(int x = 0; x < width; x++) {
+//	                float xVelocity = in.get();
+//	                float yVelocity = in.get();
+//	                float pixelVelocity = (float)Math.sqrt(xVelocity*xVelocity + yVelocity*yVelocity);
+//	                out.put(pixelVelocity);
+//	            }
+//	        }
+//	        imwrite("OF.png", OF);
+//		return img;
 //		
 //		
 //	}
