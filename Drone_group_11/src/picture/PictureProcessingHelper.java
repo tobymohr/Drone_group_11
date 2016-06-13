@@ -169,8 +169,8 @@ public class PictureProcessingHelper {
 		Mat imghsv = new Mat(img.arraySize(), 8, 3);
 		Mat imgbin = new Mat(img.arraySize(), 8, 1);
 		cvtColor(img, imghsv, CV_BGR2HSV);
-		Mat scalar1 = new Mat(new Scalar(35, 75, 6, 0));
-		Mat scalar2 = new Mat(new Scalar(75, 220, 220, 0));
+		Mat scalar1 = new Mat(new Scalar(43, 55, 6, 0));
+		Mat scalar2 = new Mat(new Scalar(75, 200, 220, 0));
 		// Two ranges to get full color spectrum
 		inRange(imghsv, scalar1, scalar2, imgbin);
 		return imgbin;

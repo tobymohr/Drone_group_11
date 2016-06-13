@@ -273,9 +273,10 @@ public class PictureController {
 		drone.start();
 		cC = new CommandController(drone);
 		drone.getCommandManager().setVideoCodec(VideoCodec.H264_720P);
-		cC.dC.setFrontCamera();
+		//cC.dC.setFrontCamera();
+		cC.dC.setBottomCamera();
 		new Thread(cC).start();
-		// droneCommunicator.setBottomCamera();
+		
 	}
 
 	public void grabFromDrone() {
@@ -290,7 +291,6 @@ public class PictureController {
 					new Thread(ofvideo = new OFVideo(mainFrame, qrCode, qrDist,
 							arg0, cC)).start();
 					isFirst = false;
-					nav.initCompass(drone, headingLbl);
 				}
 				ofvideo.setArg0(arg0);
 			}
