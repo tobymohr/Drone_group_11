@@ -387,13 +387,6 @@ public class PictureController {
 		Mat landing = mat;
 		int circles = 0;
 		
-//		if (PictureController.shouldScan) {
-//			scanSequence.setImage(mat.clone());
-//			if (isFirst) {
-//				new Thread(scanSequence).start();
-//				isFirst = false;
-//			}
-//		}
 		
 		boolean check = OFC.checkDecodedQR(mat);
 		if(check){
