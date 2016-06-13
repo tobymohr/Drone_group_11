@@ -12,6 +12,7 @@ import app.CommandController;
 import helper.Command;
 import helper.CustomPoint;
 import helper.Move;
+import javafx.scene.control.Label;
 
 public class ScanSequence implements Runnable {
 	//#TODO Tweak these values based on testing
@@ -27,6 +28,8 @@ public class ScanSequence implements Runnable {
 	private int frameCount = 0;
 	private Mat camMat;
 	private PictureProcessingHelper OFC = new PictureProcessingHelper();
+	private Label qrCode;
+	private Label qrDist;
 	
 	public ScanSequence(CommandController commandController) {
 		this.commandController = commandController;
@@ -95,6 +98,11 @@ public class ScanSequence implements Runnable {
 		
 		frameCount = 0;
 		boolean wallClose = false;		
+		
+		if(OFC.getDistance() == 100){
+			
+		}
+		
 		if (wallClose) {
 			//#TODO Fly backwards (4-5 meters)
 			//#TODO Rotate 90 degrees
