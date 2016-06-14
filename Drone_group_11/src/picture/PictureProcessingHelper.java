@@ -49,7 +49,7 @@ import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bytedeco.javacpp.opencv_core.*;
+import org.bytedeco.javacpp.opencv_core;
 import org.bytedeco.javacpp.opencv_core.CvMemStorage;
 import org.bytedeco.javacpp.opencv_core.CvPoint;
 import org.bytedeco.javacpp.opencv_core.CvPoint2D32f;
@@ -70,16 +70,15 @@ import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacpp.opencv_imgcodecs.*;
 import org.bytedeco.javacpp.opencv_imgproc.*;
-import org.bytedeco.javacpp.indexer.ByteBufferIndexer;
 import org.bytedeco.javacpp.indexer.DoubleIndexer;
-import org.bytedeco.javacpp.indexer.FloatBufferIndexer;
-import org.bytedeco.javacpp.indexer.IntBufferIndexer;
-import org.bytedeco.javacpp.indexer.ShortBufferIndexer;
 import org.bytedeco.javacpp.indexer.UByteBufferIndexer;
 import org.bytedeco.javacpp.indexer.UByteIndexer;
 import org.bytedeco.javacpp.opencv_highgui.*;
 import org.bytedeco.javacpp.*;
-
+import java.nio.FloatBuffer;
+import static org.bytedeco.javacpp.opencv_core.*;
+import static org.bytedeco.javacpp.opencv_imgcodecs.*;
+import static org.bytedeco.javacpp.opencv_video.*;
 
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.LuminanceSource;
@@ -132,6 +131,12 @@ public class PictureProcessingHelper {
 		Mat scalarBlue2 = new Mat(new Scalar(blueMax, 255, 255, 0));
 		inRange(mathsv3, scalarBlue1, scalarBlue2, mathsv3);
 		findContours(mathsv3, contoursSwagger, RETR_LIST , CV_LINK_RUNS, new opencv_core.Point());
+//		System.out.println(contoursSwagger.size());
+		for (int i = 0; i < contoursSwagger.size(); i++) {
+			drawContours(mathsv3, contoursSwagger, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 2,
+					new opencv_core.Point());
+		}
+
 		return mathsv3;
 	}
 
@@ -143,6 +148,11 @@ public class PictureProcessingHelper {
 		Mat scalar2 = new Mat(new Scalar(180, 255, 38, 0));
 
 		inRange(matHSV, scalar1, scalar2, matHSV);
+		findContours(matHSV, contour1, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
+
+		for (int i = 0; i < contour1.size(); i++) {
+			drawContours(matHSV, contour1, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 1, new opencv_core.Point());
+		}
 		return matHSV;
 	}
 
@@ -161,6 +171,11 @@ public class PictureProcessingHelper {
 		inRange(mathsv3, scalar1, scalar2, mathueLower);
 		inRange(mathsv3, scalar3, scalar4, mathueUpper);
 		addWeighted(mathueLower, 1.0, mathueUpper, 1.0, 0.0, imgbin3);
+		findContours(imgbin3, matContour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
+		for (int i = 0; i < matContour.size(); i++) {
+			drawContours(imgbin3, matContour, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 1,
+					new opencv_core.Point());
+		}
 		return imgbin3;
 	}
 
@@ -173,6 +188,10 @@ public class PictureProcessingHelper {
 		Mat scalar2 = new Mat(new Scalar(75, 220, 220, 0));
 		// Two ranges to get full color spectrum
 		inRange(imghsv, scalar1, scalar2, imgbin);
+		findContours(imgbin, matContour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
+		for (int i = 0; i < matContour.size(); i++) {
+			drawContours(imgbin, matContour, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 1, new opencv_core.Point());
+		}
 		return imgbin;
 	}
 
@@ -256,27 +275,19 @@ public class PictureProcessingHelper {
 		cvtColor(srcImage, img1, CV_RGB2GRAY);
 		Canny(img1, img1, 75, 200);
 		MatVector matContour = new MatVector();
-		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
 			RotatedRect rect = minAreaRect(matContour.get(i));
 			if (matContour.get(i).total() == 4  && contourArea(matContour.get(i)) > MIN_AREA && checkAngles(rect)) {
-
-//				IntBufferIndexer idx = matContour.get(i).createIndexer();
-//				System.out.println("------------------------");
-//				for (int j = 0; j < matContour.get(i).rows(); j++) {
-//					for (int k = 0; k < matContour.get(i).cols(); k++) {
-//						int pixel = (int) idx.get(j, k);
-//						if (pixel > 10) {
-//							circle(srcImage, new Point( j, k ), 5,  Scalar.RED, 2, 8, 0 );
-//							opencv_core.getSeq
-//							System.out.println(matContour.get(i));
-//						}
-//					}
-//				}
-//				System.out.println("------------------------");
-				List<Point> points = new ArrayList<>();
-				
+				Mat corners = new Mat(srcImage.arraySize(), CV_32FC1, 1);
+				corners.zero();
+				cornerHarris(img1, corners, 2, 3, 0.04);
+				UByteIndexer idx = corners.createIndexer();
+				for (int j = 0; j < corners.rows(); j++) {
+					for (int k = 0; k < corners.cols(); k++) {
+					}
+				}
 				
 				drawContours(srcImage, matContour, i, Scalar.WHITE, 3, 8, null, 1, null);
 				img1 = warpImage(srcImage, rect);
@@ -637,6 +648,8 @@ public class PictureProcessingHelper {
 
 		return img;
 	}
+	
+	
 
 //	public Mat circle(Mat img) {
 //
