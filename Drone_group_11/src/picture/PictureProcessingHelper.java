@@ -80,6 +80,8 @@ import helper.Circle;
 import helper.CustomPoint;
 import helper.Move;
 import helper.Vector;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.Image;
 
 public class PictureProcessingHelper {
 
@@ -119,13 +121,6 @@ public class PictureProcessingHelper {
 		Mat scalarBlue1 = new Mat(new Scalar(blueMin, 50, 50, 0));
 		Mat scalarBlue2 = new Mat(new Scalar(blueMax, 255, 255, 0));
 		inRange(mathsv3, scalarBlue1, scalarBlue2, mathsv3);
-		findContours(mathsv3, contoursSwagger, RETR_LIST , CV_LINK_RUNS, new opencv_core.Point());
-//		System.out.println(contoursSwagger.size());
-		for (int i = 0; i < contoursSwagger.size(); i++) {
-			drawContours(mathsv3, contoursSwagger, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 2,
-					new opencv_core.Point());
-		}
-
 		return mathsv3;
 	}
 
@@ -137,11 +132,6 @@ public class PictureProcessingHelper {
 		Mat scalar2 = new Mat(new Scalar(180, 255, 38, 0));
 
 		inRange(matHSV, scalar1, scalar2, matHSV);
-		findContours(matHSV, contour1, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
-
-		for (int i = 0; i < contour1.size(); i++) {
-			drawContours(matHSV, contour1, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 1, new opencv_core.Point());
-		}
 		return matHSV;
 	}
 
@@ -160,11 +150,6 @@ public class PictureProcessingHelper {
 		inRange(mathsv3, scalar1, scalar2, mathueLower);
 		inRange(mathsv3, scalar3, scalar4, mathueUpper);
 		addWeighted(mathueLower, 1.0, mathueUpper, 1.0, 0.0, imgbin3);
-		findContours(imgbin3, matContour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
-		for (int i = 0; i < matContour.size(); i++) {
-			drawContours(imgbin3, matContour, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 1,
-					new opencv_core.Point());
-		}
 		return imgbin3;
 	}
 
@@ -173,14 +158,10 @@ public class PictureProcessingHelper {
 		Mat imghsv = new Mat(img.arraySize(), 8, 3);
 		Mat imgbin = new Mat(img.arraySize(), 8, 1);
 		cvtColor(img, imghsv, CV_BGR2HSV);
-		Mat scalar1 = new Mat(new Scalar(43, 75, 6, 0));
-		Mat scalar2 = new Mat(new Scalar(75, 220, 220, 0));
+		Mat scalar1 = new Mat(new Scalar(55, 72, 41, 0));
+		Mat scalar2 = new Mat(new Scalar(77, 88, 192, 0));
 		// Two ranges to get full color spectrum
 		inRange(imghsv, scalar1, scalar2, imgbin);
-		findContours(imgbin, matContour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
-		for (int i = 0; i < matContour.size(); i++) {
-			drawContours(imgbin, matContour, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 1, new opencv_core.Point());
-		}
 		return imgbin;
 	}
 
