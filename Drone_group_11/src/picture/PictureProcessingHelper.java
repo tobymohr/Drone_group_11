@@ -282,10 +282,7 @@ public class PictureProcessingHelper {
 		if(!Double.isNaN(allSpeeds/matContours.size())){
 			return (int) (allSpeeds/matContours.size());
 		}
-		
 		return 0;
-	
-				
 	}
 
 	public Mat extractQRImage(Mat srcImage) {
