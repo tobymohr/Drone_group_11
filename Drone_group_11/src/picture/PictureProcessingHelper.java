@@ -169,8 +169,8 @@ public class PictureProcessingHelper {
 		Mat imghsv = new Mat(img.arraySize(), 8, 3);
 		Mat imgbin = new Mat(img.arraySize(), 8, 1);
 		cvtColor(img, imghsv, CV_BGR2HSV);
-		Mat scalar1 = new Mat(new Scalar(43, 55, 6, 0));
-		Mat scalar2 = new Mat(new Scalar(75, 200, 220, 0));
+		Mat scalar1 = new Mat(new Scalar(43, 75, 6, 0));
+		Mat scalar2 = new Mat(new Scalar(75, 220, 220, 0));
 		// Two ranges to get full color spectrum
 		inRange(imghsv, scalar1, scalar2, imgbin);
 		return imgbin;
@@ -664,7 +664,7 @@ public class PictureProcessingHelper {
 
 		for (int i = 0; i < contour.size(); i++) {
 			approxPolyDP(contour.get(i), contour.get(i), 0.02 * arcLength(contour.get(i), true), true);
-			if (contour.get(i).total() == 4 && contourArea(contour.get(i)) > 150) {
+			if (contour.get(i).total() > 2 && contour.get(i).total() < 6 && contourArea(contour.get(i)) > 150) {
 				Point2f centerPoint = minAreaRect(contour.get(i)).center();
 				opencv_core.Point p = new opencv_core.Point((int) centerPoint.x(), (int) centerPoint.y());
 				line(coloredImage, p, p, new Scalar(255, 0, 0, 0), 16, CV_AA, 0);
