@@ -118,6 +118,12 @@ public class PictureProcessingHelper {
 		Mat scalarBlue2 = new Mat(new Scalar(blueMax, 255, 255, 0));
 		inRange(mathsv3, scalarBlue1, scalarBlue2, mathsv3);
 		findContours(mathsv3, contoursSwagger, RETR_LIST , CV_LINK_RUNS, new opencv_core.Point());
+//		System.out.println(contoursSwagger.size());
+		for (int i = 0; i < contoursSwagger.size(); i++) {
+			drawContours(mathsv3, contoursSwagger, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 2,
+					new opencv_core.Point());
+		}
+
 		return mathsv3;
 	}
 
@@ -129,6 +135,11 @@ public class PictureProcessingHelper {
 		Mat scalar2 = new Mat(new Scalar(180, 255, 38, 0));
 
 		inRange(matHSV, scalar1, scalar2, matHSV);
+		findContours(matHSV, contour1, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
+
+		for (int i = 0; i < contour1.size(); i++) {
+			drawContours(matHSV, contour1, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 1, new opencv_core.Point());
+		}
 		return matHSV;
 	}
 
@@ -147,6 +158,11 @@ public class PictureProcessingHelper {
 		inRange(mathsv3, scalar1, scalar2, mathueLower);
 		inRange(mathsv3, scalar3, scalar4, mathueUpper);
 		addWeighted(mathueLower, 1.0, mathueUpper, 1.0, 0.0, imgbin3);
+		findContours(imgbin3, matContour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
+		for (int i = 0; i < matContour.size(); i++) {
+			drawContours(imgbin3, matContour, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 1,
+					new opencv_core.Point());
+		}
 		return imgbin3;
 	}
 
@@ -159,6 +175,10 @@ public class PictureProcessingHelper {
 		Mat scalar2 = new Mat(new Scalar(75, 220, 220, 0));
 		// Two ranges to get full color spectrum
 		inRange(imghsv, scalar1, scalar2, imgbin);
+		findContours(imgbin, matContour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
+		for (int i = 0; i < matContour.size(); i++) {
+			drawContours(imgbin, matContour, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 1, new opencv_core.Point());
+		}
 		return imgbin;
 	}
 
@@ -236,12 +256,30 @@ public class PictureProcessingHelper {
 		return 0;
 
 	}
+	
+	public int getSpinSpeed(List<Mat> matContours){
+		double allSpeeds = 0;
+		for(int i = 0; i<matContours.size(); i++){
+			double area = contourArea(matContours.get(i)) / 1000;
+			double constant = 9;
+			double result = constant/area;
+			allSpeeds +=result*10;
+		}
+		if(!Double.isNaN(allSpeeds/matContours.size())){
+			return (int) (allSpeeds/matContours.size());
+		}
+		
+		return 0;
+	
+				
+	}
 
 	public Mat extractQRImage(Mat srcImage) {
 		Mat img1 = new Mat(srcImage.arraySize(), CV_8UC1, 1);
 		cvtColor(srcImage, img1, CV_RGB2GRAY);
 		Canny(img1, img1, 75, 200);
 		MatVector matContour = new MatVector();
+		getSpinSpeed(findQrContours(srcImage));
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
@@ -250,7 +288,7 @@ public class PictureProcessingHelper {
 					&& checkAngles(matContour.get(i), rect)) {
 				drawContours(srcImage, matContour, i, Scalar.WHITE, 3, 8, null, 1, null);
 				
-
+				
 				img1 = warpImage(srcImage, rect);
 				if (scanQrCode(img1) != null) {
 					putText(srcImage, code, new Point((int) rect.center().x() - 25, (int) rect.center().y() + 80), 1, 2,
@@ -586,6 +624,8 @@ public class PictureProcessingHelper {
 
 		return img;
 	}
+	
+	
 
 //	public Mat circle(Mat img) {
 //

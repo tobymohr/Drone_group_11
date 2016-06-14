@@ -1,5 +1,6 @@
 package picture;
 
+import static org.bytedeco.javacpp.opencv_imgproc.contourArea;
 import static org.bytedeco.javacpp.opencv_imgproc.minAreaRect;
 
 import java.util.ArrayList;
@@ -133,13 +134,21 @@ public class ScanSequence implements Runnable {
 			 }
 		}
 		
+		
+		
 		double positionFromCenter = OFC.isCenterInImage(camMat.clone(), rect);
 		if (positionFromCenter != 0) {
 			System.out.println("HOVER");
 			commandController.dC.hover();
 			sleep(HOVER_TIME);
 			//#TODO Rotate <positionFromCenter> pixels to center the QR code in image
-			commandController.dC.setSpeed(SPIN_SPEED);
+			int speed = SPIN_SPEED;
+			int newSpeed = OFC.getSpinSpeed(contours);
+			if(newSpeed > 0){
+				speed = newSpeed; 
+			}
+			
+			commandController.dC.setSpeed(speed);
 			if (positionFromCenter > 0) {
 				System.out.println("SPINRIGHT");
 				commandController.addCommand(Command.SPINRIGHT, SPIN_TIME);
