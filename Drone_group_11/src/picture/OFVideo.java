@@ -35,6 +35,7 @@ public class OFVideo implements Runnable {
 	private ImageView polyFrame;
 	private ImageView qrFrame;
 	private ImageView landingFrame;
+	private ImageView bufferedframe;
 	private Label qrCode;
 	private Label qrDist;
 	private BufferedImage arg0;
@@ -49,9 +50,10 @@ public class OFVideo implements Runnable {
 	private boolean isFirst = true;
 	
 	public OFVideo(ImageView mainFrame, Label qrCode,
-			Label qrDist, BufferedImage arg0, CommandController cC) {
+			Label qrDist, BufferedImage arg0, CommandController cC, ImageView bufferedframe) {
 		this.arg0 = arg0;
 		this.mainFrame = mainFrame;
+		this.bufferedframe = bufferedframe;
 		this.qrDist = qrDist;
 		this.qrCode = qrCode;
 		converter = new OpenCVFrameConverter.ToIplImage();
@@ -81,6 +83,9 @@ public class OFVideo implements Runnable {
 					break;
 				case 3:
 					filteredImage = OFC.findContoursGreenMat(newImg);
+					BufferedImage bufferedImageCont = MatToBufferedImage(filteredImage);
+					Image imageCont = SwingFXUtils.toFXImage(bufferedImageCont, null);
+					bufferedframe.setImage(imageCont);
 					break;
 				default:
 					filteredImage = OFC.findContoursBlueMat(newImg);

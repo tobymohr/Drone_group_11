@@ -43,6 +43,7 @@
       <children>
         <HBox prefHeight="100.0" prefWidth="200.0">
           <children>
+          	<ImageView fx:id="bufferedframe" fitHeight="607.0" fitWidth="607.0" pickOnBounds="true" preserveRatio="true" />
             <ImageView fx:id="mainFrame" fitHeight="607.0" fitWidth="607.0" pickOnBounds="true" preserveRatio="true" />
           </children>
         </HBox>
