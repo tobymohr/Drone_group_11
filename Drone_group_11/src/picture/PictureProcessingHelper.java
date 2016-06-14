@@ -107,8 +107,8 @@ public class PictureProcessingHelper {
 	private BinaryBitmap bitmap;
 	private Point2f vertices;
 	private static final int MIN_AREA = 5000;
-	private static final int ANGLE_UPPER_BOUND = 95;
-	private static final int ANGLE_LOWER_BOUND = 85;
+	private static final int ANGLE_UPPER_BOUND = 105;
+	private static final int ANGLE_LOWER_BOUND = 75;
 
 	public PictureProcessingHelper() {
 	}
@@ -260,25 +260,11 @@ public class PictureProcessingHelper {
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
 			RotatedRect rect = minAreaRect(matContour.get(i));
-			if (matContour.get(i).total() == 4  && contourArea(matContour.get(i)) > MIN_AREA && checkAngles(rect)) {
-
-//				IntBufferIndexer idx = matContour.get(i).createIndexer();
-//				System.out.println("------------------------");
-//				for (int j = 0; j < matContour.get(i).rows(); j++) {
-//					for (int k = 0; k < matContour.get(i).cols(); k++) {
-//						int pixel = (int) idx.get(j, k);
-//						if (pixel > 10) {
-//							circle(srcImage, new Point( j, k ), 5,  Scalar.RED, 2, 8, 0 );
-//							opencv_core.getSeq
-//							System.out.println(matContour.get(i));
-//						}
-//					}
-//				}
-//				System.out.println("------------------------");
-				List<Point> points = new ArrayList<>();
-				
-				
+			if (matContour.get(i).total() == 4  && contourArea(matContour.get(i)) > MIN_AREA 
+					&& checkAngles(matContour.get(i), rect)) {
 				drawContours(srcImage, matContour, i, Scalar.WHITE, 3, 8, null, 1, null);
+				
+
 				img1 = warpImage(srcImage, rect);
 				if (scanQrCode(img1) != null) {
 					putText(srcImage, code, new Point((int) rect.center().x() - 25, (int) rect.center().y() + 80), 1, 2,
@@ -354,7 +340,9 @@ public class PictureProcessingHelper {
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
-			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > MIN_AREA) {
+			RotatedRect rect = minAreaRect(matContour.get(i));
+			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > MIN_AREA
+					&& checkAngles(matContour.get(i), rect)) {
 				result.add(matContour.get(i));
 			}
 		}
@@ -442,43 +430,72 @@ public class PictureProcessingHelper {
 
 	}
 	
-	public boolean checkAngles(RotatedRect rect) {
+	public boolean checkAngles(Mat contour, RotatedRect rect) {
+		List<Point> points = new ArrayList<>();
+		IntBufferIndexer idx = contour.createIndexer();
+		for (int j = 0; j < contour.rows(); j++) {
+			for (int k = 0; k < contour.cols(); k++) {
+				int x = (int) idx.get(j, k, 0);
+				int y = idx.get(j, k, 1);
+				points.add(new Point(x, y));
+			}
+		}
+		
 		vertices = new Point2f(4);
 		rect.points(vertices);
 		int angle = Math.abs((int) rect.angle());
 
-		Point tl = null;
-		Point tr = null;
-		Point br = null;
-		Point bl = null;
+		Point tlRect = null;
+		Point trRect = null;
+		Point brRect = null;
+		Point blRect = null;
 		if (angle >= 0 && angle < 10) {
-			tl = new Point((int) vertices.position(1).x(), (int) vertices.position(1).y());
-			tr = new Point((int) vertices.position(2).x(), (int) vertices.position(2).y());
-			br = new Point((int) vertices.position(3).x(), (int) vertices.position(3).y());
-			bl = new Point((int) vertices.position(0).x(), (int) vertices.position(0).y());
+			tlRect = new Point((int) vertices.position(1).x(), (int) vertices.position(1).y());
+			trRect = new Point((int) vertices.position(2).x(), (int) vertices.position(2).y());
+			brRect = new Point((int) vertices.position(3).x(), (int) vertices.position(3).y());
+			blRect = new Point((int) vertices.position(0).x(), (int) vertices.position(0).y());
 		} else {
-			tl = new Point((int) vertices.position(2).x(), (int) vertices.position(2).y());
-			tr = new Point((int) vertices.position(3).x(), (int) vertices.position(3).y());
-			br = new Point((int) vertices.position(0).x(), (int) vertices.position(0).y());
-			bl = new Point((int) vertices.position(1).x(), (int) vertices.position(1).y());
+			tlRect = new Point((int) vertices.position(2).x(), (int) vertices.position(2).y());
+			trRect = new Point((int) vertices.position(3).x(), (int) vertices.position(3).y());
+			brRect = new Point((int) vertices.position(0).x(), (int) vertices.position(0).y());
+			blRect = new Point((int) vertices.position(1).x(), (int) vertices.position(1).y());
 		}
+		
+		Point tl = nearestPoint(points, tlRect);
+		Point tr = nearestPoint(points, trRect);
+		Point br = nearestPoint(points, brRect);
+		Point bl = nearestPoint(points, blRect);
+		
 		
 		double tlAngle = calculateAngle(tl, tr, bl);
 		double trAngle = calculateAngle(tr, tl, br);
 		double blAngle = calculateAngle(bl, tl, br);
 		double brAngle = calculateAngle(br, tr, bl);
-		
-		if (tlAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND) {
+
+		if (tlAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND || Double.isNaN(tlAngle)) {
 			return false;
-		} if (trAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND) {
+		} if (trAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND || Double.isNaN(trAngle)) {
 			return false;
-		} if (blAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND) {
+		} if (blAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND || Double.isNaN(blAngle)) {
 			return false;
-		} if (tlAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND) {
+		} if (brAngle > ANGLE_UPPER_BOUND || brAngle < ANGLE_LOWER_BOUND || Double.isNaN(brAngle)) {
 			return false;
 		} else {
 			return true;
 		}
+	}
+	
+	private Point nearestPoint(List<Point> points, Point point) {
+		double minDist = Double.MAX_VALUE;
+		Point result = new Point();
+		for (Point p : points) {
+			double dist = Math.sqrt(Math.pow((point.x() - p.x()), 2) + Math.pow((point.y() - p.y()), 2));
+			if (dist < minDist) {
+				minDist = dist;
+				result = p;
+			}
+		}
+		return result;
 	}
 	
 	private double calculateAngle(Point A, Point B, Point C) {

@@ -14,6 +14,18 @@ import helper.CustomPoint;
 import helper.Move;
 
 public class ScanSequence implements Runnable {
+	private static final int FORWARD_TIME_2 = 500;
+	private static final int BACKWARD_TIME = 500;
+	private static final int BACKWARD_SPEED = 15;
+	private static final int STRAFE_TIME = 650;
+	private static final int STRAFE_SPEED = 20;
+	private static final int SPIN_TIME = 300;
+	private static final int SPIN_SPEED = 15;
+	private static final int FORWARD_TIME = 1500;
+	private static final int FORWARD_SPEED = 20;
+	private static final int ROTATE_TIME = 4500;
+	private static final int ROTATE_SPEED = 18;
+	private static final int HOVER_TIME = 2000;
 	//#TODO Tweak these values based on testing
 	public static final double CENTER_UPPER = 0.1;
 	public static final double CENTER_LOWER = -0.1;
@@ -44,24 +56,24 @@ public class ScanSequence implements Runnable {
 		System.out.println("HOVER");
 		commandController.dC.hover();
 		sleep(6000);
-//		System.out.println("UP");
-//		commandController.dC.setSpeed(20);
-//		commandController.addCommand(Command.UP, 2000);
-//		sleep(2000);
-//		
-//		System.out.println("HOVER");
-//		commandController.dC.hover();
-//		sleep(6000);
-//
-//	
-//		System.out.println("UP");
-//		commandController.dC.setSpeed(20);
-//		commandController.addCommand(Command.UP, 2000);
-//		sleep(2000);
-//		
-//		while(PictureController.shouldScan) {
-//			scanSequence();
-//		}
+		System.out.println("UP");
+		commandController.dC.setSpeed(20);
+		commandController.addCommand(Command.UP, 2000);
+		sleep(2000);
+		
+		System.out.println("HOVER");
+		commandController.dC.hover();
+		sleep(6000);
+
+	
+		System.out.println("UP");
+		commandController.dC.setSpeed(20);
+		commandController.addCommand(Command.UP, 2000);
+		sleep(2000);
+		
+		while(PictureController.shouldScan) {
+			scanSequence();
+		}
 	}
 	
 	private void scanSequence() {
@@ -74,20 +86,20 @@ public class ScanSequence implements Runnable {
 			} else {
 				System.out.println("HOVER");
 				commandController.dC.hover();
-				sleep(4000);
+				sleep(HOVER_TIME);
 				if (rotateCount < 15) {
 					//#TODO Rotate 90 degrees
 					System.out.println("ROTATE");
-					commandController.dC.setSpeed(10);
-					commandController.addCommand(Command.SPINRIGHT, 3500);
-					sleep(2500);
+					commandController.dC.setSpeed(ROTATE_SPEED);
+					commandController.addCommand(Command.SPINRIGHT, ROTATE_TIME);
+					sleep(ROTATE_TIME);
 					rotateCount++;
 				} else {
 					//#TODO Fly forwards (1 meter)
 					System.out.println("Forward");
-					commandController.dC.setSpeed(20);
-					commandController.addCommand(Command.FORWARD, 1500);
-					sleep(1000);
+					commandController.dC.setSpeed(FORWARD_SPEED);
+					commandController.addCommand(Command.FORWARD, FORWARD_TIME);
+					sleep(FORWARD_TIME);
 					rotateCount = 0;
 				}
 			}
@@ -98,10 +110,6 @@ public class ScanSequence implements Runnable {
 		if (wallClose) {
 			//#TODO Fly backwards (4-5 meters)
 			//#TODO Rotate 90 degrees
-			commandController.addCommand(Command.BACKWARDS, 2000);
-			sleep(2000);
-			commandController.addCommand(Command.SPINRIGHT, 1500);
-			sleep(1500);
 			return;
 		}
 
@@ -110,7 +118,7 @@ public class ScanSequence implements Runnable {
 		for (int i = 0; i < contours.size(); i++) {
 			 RotatedRect rect2 = minAreaRect(contours.get(i));
 			 double distance = (camMat.arrayWidth() / 2) - rect.center().x();
-			 if (distanceFomCenter > distance && OFC.checkAngles(rect2)) {
+			 if (distanceFomCenter > distance) {
 				 distanceFomCenter = Math.abs(distance);
 				 rect = rect2;
 			 }
@@ -120,18 +128,18 @@ public class ScanSequence implements Runnable {
 		if (positionFromCenter != 0) {
 			System.out.println("HOVER");
 			commandController.dC.hover();
-			sleep(4000);
+			sleep(HOVER_TIME);
 			System.out.println("PositionFromCenter: " + positionFromCenter);
 			//#TODO Rotate <positionFromCenter> pixels to center the QR code in image
-			commandController.dC.setSpeed(15);
+			commandController.dC.setSpeed(SPIN_SPEED);
 			if (positionFromCenter > 0) {
 				System.out.println("SPINRIGHT");
-				commandController.addCommand(Command.SPINRIGHT, 300);
-				sleep(1000);
+				commandController.addCommand(Command.SPINRIGHT, SPIN_TIME);
+				sleep(SPIN_TIME);
 			} else {
 				System.out.println("SPINLEFT");
-				commandController.addCommand(Command.SPINLEFT, 300);
-				sleep(1000);
+				commandController.addCommand(Command.SPINLEFT, SPIN_TIME);
+				sleep(SPIN_TIME);
 			}
 			return;
 		}
@@ -139,17 +147,17 @@ public class ScanSequence implements Runnable {
 		if (center > CENTER_UPPER || center < CENTER_LOWER) {
 			System.out.println("HOVER");
 			commandController.dC.hover();
-			sleep(4000);
+			sleep(HOVER_TIME);
 			//#TODO Strafe the drone <center> amount. Right is chosen as standard.
-			commandController.dC.setSpeed(20);
+			commandController.dC.setSpeed(STRAFE_SPEED);
 			if (strafeRight) {
 				System.out.println("STRAFERIGHT");
-				commandController.addCommand(Command.RIGHT, 650);
-				sleep(1000);
+				commandController.addCommand(Command.RIGHT, STRAFE_TIME);
+				sleep(STRAFE_TIME);
 			} else {
 				System.out.println("STRAFELEFT");
-				commandController.addCommand(Command.LEFT, 650);
-				sleep(1000);
+				commandController.addCommand(Command.LEFT, STRAFE_TIME);
+				sleep(STRAFE_TIME);
 			}
 			if (previousCenter == -1) {
 				// Record center in order to react to it next iteration
@@ -195,30 +203,28 @@ public class ScanSequence implements Runnable {
 			} else {
 				System.out.println("HOVER");
 				commandController.dC.hover();
-				sleep(4000);
+				sleep(HOVER_TIME);
 				//#TODO Fly backwards (0.5 meters)
-				commandController.addCommand(Command.BACKWARDS, 500);
-				sleep(500);
+				commandController.dC.setSpeed(BACKWARD_SPEED);
+				commandController.addCommand(Command.BACKWARDS, BACKWARD_TIME);
+				sleep(BACKWARD_TIME);
 				return;
 			}
 		} else {
 			double distanceToSquare = OFC.calcDistance(rect);
 			System.out.println("HOVER");
 			commandController.dC.hover();
-			sleep(4000);
+			sleep(HOVER_TIME);
 			// It might still be a QR code, we're too far away to know
 			if (distanceToSquare > 100) {
 				//#TODO Fly closer to the square (0.5 meters)
-				commandController.addCommand(Command.FORWARD, 500);
-				sleep(500);
+				commandController.dC.setSpeed(FORWARD_SPEED);
+				commandController.addCommand(Command.FORWARD, FORWARD_TIME_2);
+				sleep(FORWARD_TIME_2);
 				return;
 			} else {
 				//#TODO Fly backwards (4-5 meters)
 				//#TODO Rotate 90 degrees
-				commandController.addCommand(Command.BACKWARDS, 2000);
-				sleep(2000);
-				commandController.addCommand(Command.SPINRIGHT, 1500);
-				sleep(1500);
 				return;
 			}
 		}

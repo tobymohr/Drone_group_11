@@ -75,7 +75,7 @@ import javafx.stage.Stage;
 
 public class PictureController {
 
-	NavDataTracker nav = new NavDataTracker();
+	//NavDataTracker nav = new NavDataTracker();
 	private PictureProcessingHelper OFC = new PictureProcessingHelper();
 	private CommandController cC;
 	private IARDrone drone;
@@ -290,7 +290,7 @@ public class PictureController {
 					new Thread(ofvideo = new OFVideo(mainFrame, qrCode, qrDist,
 							arg0, cC)).start();
 					isFirst = false;
-					nav.initCompass(drone, headingLbl);
+					//nav.initCompass(drone, headingLbl);
 				}
 				ofvideo.setArg0(arg0);
 			}
@@ -513,11 +513,11 @@ public class PictureController {
 
 	public void takeOff() throws InterruptedException {
 		System.out.println("TAKEOFF");
-//		shouldScan = false;
-		cC.dC.takeOff();
-		Thread.sleep(5);
-		cC.dC.hover();
-		Thread.sleep(5);
+		shouldScan = true;
+//		cC.dC.takeOff();
+//		Thread.sleep(5);
+//		cC.dC.hover();
+//		Thread.sleep(5);
 		
 	}
 	
