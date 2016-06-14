@@ -41,7 +41,7 @@ public class ScanSequence implements Runnable {
 	
 	@Override
 	public void run() {
-		commandController.dC.takeOff();
+//		commandController.dC.takeOff();
 		sleep(2000);
 		System.out.println("HOVER");
 		commandController.dC.hover();
@@ -99,9 +99,10 @@ public class ScanSequence implements Runnable {
 		frameCount = 0;
 		boolean wallClose = false;		
 		
-		if(OFC.getDistance() == 100){
-			
-		}
+//		if(OFC.getDistance() <= 200){
+//			System.out.println("WallClose");
+//			wallClose = true;
+//		}
 		
 		if (wallClose) {
 			//#TODO Fly backwards (4-5 meters)
@@ -215,9 +216,10 @@ public class ScanSequence implements Runnable {
 			commandController.dC.hover();
 			sleep(4000);
 			// It might still be a QR code, we're too far away to know
-			if (distanceToSquare > 100) {
+			if (distanceToSquare >= 100) {
 				//#TODO Fly closer to the square (0.5 meters)
 				commandController.addCommand(Command.FORWARD, 500);
+				System.out.println("get closer");
 				sleep(500);
 				return;
 			} else {
