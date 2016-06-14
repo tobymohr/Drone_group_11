@@ -4,6 +4,7 @@ import static org.bytedeco.javacpp.opencv_imgproc.contourArea;
 import static org.bytedeco.javacpp.opencv_imgproc.minAreaRect;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
@@ -38,6 +39,7 @@ public class ScanSequence implements Runnable {
 	private String code = null;
 	private int rotateCount = 0;
 	private int frameCount = 0;
+	private int foundFrameCount = 0;
 	private Mat camMat;
 	private PictureProcessingHelper OFC = new PictureProcessingHelper();
 	
@@ -85,6 +87,7 @@ public class ScanSequence implements Runnable {
 				frameCount++;
 				return;
 			} else {
+				code = null;
 				System.out.println("HOVER");
 				commandController.dC.hover();
 				sleep(HOVER_TIME);
@@ -106,7 +109,13 @@ public class ScanSequence implements Runnable {
 			}
 		}
 		
+		if (foundFrameCount < 2) {
+			foundFrameCount++;
+			return;
+		}
+		
 		frameCount = 0;
+		foundFrameCount = 0;
 		boolean wallClose = false;		
 		if (wallClose) {
 			//#TODO Fly backwards (4-5 meters)
@@ -132,7 +141,6 @@ public class ScanSequence implements Runnable {
 			System.out.println("HOVER");
 			commandController.dC.hover();
 			sleep(HOVER_TIME);
-			System.out.println("PositionFromCenter: " + positionFromCenter);
 			//#TODO Rotate <positionFromCenter> pixels to center the QR code in image
 			int speed = SPIN_SPEED;
 			int newSpeed = OFC.getSpinSpeed(contours);
@@ -203,7 +211,8 @@ public class ScanSequence implements Runnable {
 			// #TODO Implement some way to check squares across more than one frame
 			if (contours.size() == 3) {
 				//#TODO Calculate distance and placement in coordinate system
-				CustomPoint placement = new CustomPoint();
+				CustomPoint placement = calculatePlacement(camMat, contours);
+				System.out.println(placement.getX() + "|" + placement.getY());
 				moveDroneToStart(placement);
 				code = null;
 				rotateCount = 0;
@@ -247,10 +256,36 @@ public class ScanSequence implements Runnable {
 		}
 	}
 	
+	private CustomPoint calculatePlacement(Mat srcImage, List<Mat> contours) {
+		CustomPoint placement = new CustomPoint();
+		List<Double> positions = new ArrayList<>();
+		for (Mat mat : contours) {
+			positions.add(OFC.isCenterInImage(srcImage, minAreaRect(mat)));
+		}
+		int minIndex = positions.indexOf(Collections.min(positions));
+		int maxIndex = positions.indexOf(Collections.max(positions));
+		int middleIndex = 3 - minIndex - maxIndex;
+		
+		RotatedRect leftQR = minAreaRect(contours.get(minIndex));
+		RotatedRect middleQR = minAreaRect(contours.get(middleIndex));
+		RotatedRect rightQR = minAreaRect(contours.get(maxIndex));
+		
+		CustomPoint[] points = OFC.calcPosition(OFC.calcDistance(leftQR), 
+				OFC.calcDistance(middleQR), OFC.calcDistance(rightQR), code);
+		CustomPoint scannedPoint = CustomPoint.parseQRText(code);
+		for (CustomPoint e : points) {
+			if (e.getX() != scannedPoint.getX() || e.getY() != scannedPoint.getY()) {
+				placement = e;
+			}
+		}
+		
+		return placement;
+	}
+	
 	private void moveDroneToStart(CustomPoint placement) {
 		List<Move> moves = OFC.calcMoves(placement.getX(), placement.getY());
 		for (Move move : moves) {
-			//#TODO Actually move the drone according to moves
+			//#TODO Actually move the drone according to movess
 		}
 	}
 }
