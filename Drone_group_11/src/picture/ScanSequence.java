@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_core.RotatedRect;
+import org.bytedeco.javacpp.opencv_imgcodecs;
 
 import app.CommandController;
 import helper.Command;
@@ -40,8 +41,11 @@ public class ScanSequence implements Runnable {
 	private int rotateCount = 0;
 	private int frameCount = 0;
 	private int foundFrameCount = 0;
+	private int scannedCount = 0;
 	private Mat camMat;
 	private PictureProcessingHelper OFC = new PictureProcessingHelper();
+	
+	public static volatile boolean imageChanged;
 	
 	public ScanSequence(CommandController commandController) {
 		this.commandController = commandController;
@@ -80,6 +84,10 @@ public class ScanSequence implements Runnable {
 	}
 	
 	private void scanSequence() {
+		if (!imageChanged) {
+			return;
+		}
+		imageChanged = false;
 		List<Mat> contours = OFC.findQrContours(camMat);
 		
 		if (contours.size() == 0) {
@@ -142,13 +150,13 @@ public class ScanSequence implements Runnable {
 			commandController.dC.hover();
 			sleep(HOVER_TIME);
 			//#TODO Rotate <positionFromCenter> pixels to center the QR code in image
-			int speed = SPIN_SPEED;
-			int newSpeed = OFC.getSpinSpeed(contours);
-			if(newSpeed > 0){
-				speed = newSpeed; 
-			}
+//			int speed = SPIN_SPEED;
+//			int newSpeed = OFC.getSpinSpeed(contours);
+//			if(newSpeed > 0){
+//				speed = newSpeed; 
+//			}
 			
-			commandController.dC.setSpeed(speed);
+//			commandController.dC.setSpeed(speed);
 			if (positionFromCenter > 0) {
 				System.out.println("SPINRIGHT");
 				commandController.addCommand(Command.SPINRIGHT, SPIN_TIME);
@@ -209,16 +217,21 @@ public class ScanSequence implements Runnable {
 		if(code != null) {
 			// Check amount of squares found
 			// #TODO Implement some way to check squares across more than one frame
+			System.out.println(contours.size());
 			if (contours.size() == 3) {
 				//#TODO Calculate distance and placement in coordinate system
 				CustomPoint placement = calculatePlacement(camMat, contours);
-				System.out.println(placement.getX() + "|" + placement.getY());
 				moveDroneToStart(placement);
 				code = null;
 				rotateCount = 0;
 				PictureController.shouldScan = false;
 				return;
-			} else {
+			} else if (scannedCount < 50) {
+				scannedCount++;
+				return;
+			}
+			else {
+				scannedCount = 0;
 				System.out.println("HOVER");
 				commandController.dC.hover();
 				sleep(HOVER_TIME);
@@ -274,7 +287,8 @@ public class ScanSequence implements Runnable {
 				OFC.calcDistance(middleQR), OFC.calcDistance(rightQR), code);
 		CustomPoint scannedPoint = CustomPoint.parseQRText(code);
 		for (CustomPoint e : points) {
-			if (e.getX() != scannedPoint.getX() || e.getY() != scannedPoint.getY()) {
+			System.out.println(e.toString());
+			if (Math.round(e.getX()) != scannedPoint.getX() || Math.round(e.getY()) != scannedPoint.getY()) {
 				placement = e;
 			}
 		}

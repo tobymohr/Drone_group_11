@@ -63,6 +63,8 @@ import org.bytedeco.javacpp.opencv_core.Rect;
 import org.bytedeco.javacpp.opencv_core.RotatedRect;
 import org.bytedeco.javacpp.opencv_core.Scalar;
 import org.bytedeco.javacpp.opencv_core.Size;
+import org.bytedeco.javacpp.opencv_highgui;
+import org.bytedeco.javacpp.helper.opencv_imgcodecs;
 import org.bytedeco.javacpp.indexer.IntBufferIndexer;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
@@ -234,7 +236,7 @@ public class PictureProcessingHelper {
 
 
 	public double isCenterInImage(Mat img, RotatedRect rect) {
-		double factor = 2.5;
+		double factor = 4;
 		double xleft = img.arrayWidth() / factor;
 		double xright = (img.arrayWidth() / factor) * (factor - 1);
 		double middleX = img.arrayWidth() / 2;
@@ -368,17 +370,24 @@ public class PictureProcessingHelper {
 	}
 
 	public CustomPoint[] calcPosition(double distanceOne, double distanceTwo, double distanceThree, String code) {
-		double distanceBetweenPointsOne = 1.5;
-		double distanceBetweenPointsTwo = 1.5;
-		double angleA = CustomPoint.calculateAngle(distanceOne, distanceBetweenPointsOne);
-		double angleB = CustomPoint.calculateAngle(distanceThree, distanceBetweenPointsTwo);
 		CustomPoint P1 = CustomPoint.parseQRTextLeft(code);
 		CustomPoint P2 = CustomPoint.parseQRText(code);
 		CustomPoint P3 = CustomPoint.parseQRTextRight(code);
-		Circle C1 = new Circle(Circle.calculateCenter(P1, P2, distanceBetweenPointsOne, angleA),
-				Circle.calculateRadius(distanceBetweenPointsOne, angleA));
-		Circle C2 = new Circle(Circle.calculateCenter(P2, P3, distanceBetweenPointsTwo, angleB),
-				Circle.calculateRadius(distanceBetweenPointsTwo, angleB));
+		
+		double distanceBetweenPointsOne = CustomPoint.calculateDistance(P1, P2);
+		double distanceBetweenPointsTwo = CustomPoint.calculateDistance(P2, P3);
+		
+		double angleA = CustomPoint.calculateAngle(distanceOne, distanceBetweenPointsOne);
+		double angleB = CustomPoint.calculateAngle(distanceThree, distanceBetweenPointsTwo);
+
+		Circle C1 = new Circle();
+		C1.setCenter(Circle.calculateCenter(P1, P2, distanceBetweenPointsOne, angleA));
+		C1.setRadius(Circle.calculateRadius(distanceBetweenPointsOne, angleA));
+		
+		Circle C2 = new Circle();
+		C2.setCenter(Circle.calculateCenter(P2, P3, distanceBetweenPointsTwo, angleB));
+		C2.setRadius(Circle.calculateRadius(distanceBetweenPointsTwo, angleB));
+		
 		CustomPoint[] points = Circle.intersection(C1, C2);
 		return points;
 	}
@@ -496,9 +505,9 @@ public class PictureProcessingHelper {
 	
 
 	public double calcDistance(RotatedRect rect) {
-		float knownDistance = 165;
-		float height = 0;
-		float focalLength = 259 * knownDistance;
+		double knownDistance = 247.5;
+		double height = 0;
+		double focalLength = 181 * knownDistance;
 		int angle = Math.abs((int) rect.angle());
 		if (angle >= 0 && angle < 10) {
 			height = rect.size().height();

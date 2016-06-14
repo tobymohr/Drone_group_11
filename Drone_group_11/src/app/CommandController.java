@@ -8,7 +8,7 @@ public class CommandController implements Runnable {
 	public DroneInterface dC;
 	private LinkedBlockingDeque<Task> q;
 	private long startTime = 0;
-	private boolean wait = false;
+	public static boolean wait = false;
 	private Task task;
 
 	class Task{

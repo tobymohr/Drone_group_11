@@ -119,6 +119,7 @@ public class OFVideo implements Runnable {
 						new Thread(scanSequence).start();
 						isFirst = false;
 					}
+					scanSequence.imageChanged = true;
 				}
 			}
 		} catch (Exception e) {
