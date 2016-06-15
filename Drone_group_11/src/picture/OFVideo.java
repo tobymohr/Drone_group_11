@@ -21,6 +21,7 @@ import de.yadrone.base.IARDrone;
 import helper.Command;
 import helper.CustomPoint;
 import helper.Move;
+import javacvdemo.ChrisKiller;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.control.Label;
@@ -35,6 +36,7 @@ public class OFVideo implements Runnable {
 	private ImageView polyFrame;
 	private ImageView qrFrame;
 	private ImageView landingFrame;
+	private ImageView bufferedframe;
 	private Label qrCode;
 	private Label qrDist;
 	private BufferedImage arg0;
@@ -47,17 +49,21 @@ public class OFVideo implements Runnable {
 	// Scansequence fields
 	private ScanSequence scanSequence;
 	private boolean isFirst = true;
+	public boolean wallClose = false;
+	private ChrisKiller CK;
 	
 	public OFVideo(ImageView mainFrame, Label qrCode,
-			Label qrDist, BufferedImage arg0, CommandController cC) {
+			Label qrDist, BufferedImage arg0, CommandController cC, ImageView bufferedframe) {
 		this.arg0 = arg0;
 		this.mainFrame = mainFrame;
+		this.bufferedframe = bufferedframe;
 		this.qrDist = qrDist;
 		this.qrCode = qrCode;
 		converter = new OpenCVFrameConverter.ToIplImage();
 		converterMat = new ToMat();
 		converter1 = new Java2DFrameConverter();
 		scanSequence = new ScanSequence(cC);
+		CK = new ChrisKiller(cC);
 	}
 
 	public void setArg0(BufferedImage arg0) {
@@ -81,6 +87,9 @@ public class OFVideo implements Runnable {
 					break;
 				case 3:
 					filteredImage = OFC.findContoursGreenMat(newImg);
+					BufferedImage bufferedImageCont = MatToBufferedImage(filteredImage);
+					Image imageCont = SwingFXUtils.toFXImage(bufferedImageCont, null);
+					bufferedframe.setImage(imageCont);
 					break;
 				default:
 					filteredImage = OFC.findContoursBlueMat(newImg);
@@ -113,10 +122,17 @@ public class OFVideo implements Runnable {
 
 					}
 				});
-				if (PictureController.shouldScan) {
-					scanSequence.setImage(newImg.clone());
-					if (isFirst) {
-						new Thread(scanSequence).start();
+//				if (PictureController.shouldScan) {
+//					scanSequence.setImage(newImg.clone());
+//					if (isFirst) {
+//						new Thread(scanSequence).start();
+//						isFirst = false;
+//					}
+//				}
+				if (PictureController.shouldScan){
+					CK.setImage(newImg.clone());
+					if(isFirst){
+						new Thread(CK).start();
 						isFirst = false;
 					}
 				}
@@ -128,6 +144,7 @@ public class OFVideo implements Runnable {
 	}
 
 	public void showQr(Mat camMat) {
+		
 		Mat qrMat = OFC.extractQRImage(camMat);
 		BufferedImage bufferedImageQr = MatToBufferedImage(qrMat);
 		Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);

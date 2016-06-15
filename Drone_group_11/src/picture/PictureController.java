@@ -44,6 +44,7 @@ import static org.bytedeco.javacpp.opencv_core.*;
 import app.CommandController;
 import app.DroneCommunicator;
 import app.DroneInterface;
+import app.NavDataTracker;
 import de.yadrone.base.ARDrone;
 import de.yadrone.base.IARDrone;
 import de.yadrone.base.command.VideoBitRateMode;
@@ -74,6 +75,7 @@ import javafx.stage.Stage;
 
 public class PictureController {
 
+	//NavDataTracker nav = new NavDataTracker();
 	private PictureProcessingHelper OFC = new PictureProcessingHelper();
 	private CommandController cC;
 	private IARDrone drone;
@@ -115,6 +117,10 @@ public class PictureController {
 	private Label qrCode;
 	@FXML
 	private Label qrDist;
+	@FXML
+	private Label headingLbl;
+	@FXML
+	private ImageView bufferedframe;
 
 	public void setUpKeys() {
 		borderpane.getScene().setOnKeyPressed(new EventHandler<KeyEvent>() {
@@ -127,16 +133,16 @@ public class PictureController {
 					pressedKeys.add(note);
 					switch (event.getCode()) {
 					case W:
-						cC.addCommand(1, duration);
+						cC.addCommand(Command.FORWARD, duration);
 						break;
 					case S:
-						cC.addCommand(2, duration);
+						cC.addCommand(Command.BACKWARDS, duration);
 						break;
 					case A:
-						cC.addCommand(3, duration);
+						cC.addCommand(Command.LEFT, duration);
 						break;
 					case D:
-						cC.addCommand(4, duration);
+						cC.addCommand(Command.RIGHT, duration);
 						break;
 					case M:
 						cC.dC.land();
@@ -158,16 +164,16 @@ public class PictureController {
 						cC.emergencyStop();
 						break;
 					case UP:
-						cC.addCommand(5, duration);
+						cC.addCommand(Command.UP, duration);
 						break;
 					case DOWN:
-						cC.addCommand(6, duration);
+						cC.addCommand(Command.DOWN, duration);
 						break;
 					case LEFT:
-						cC.dC.spinLeft(duration);
+						cC.addCommand(Command.SPINLEFT, duration);
 						break;
 					case RIGHT:
-						cC.dC.spinRight(duration);
+						cC.addCommand(Command.SPINRIGHT, duration);
 						break;
 					case ENTER:
 						cC.dC.hover();
@@ -269,9 +275,10 @@ public class PictureController {
 		drone.start();
 		cC = new CommandController(drone);
 		drone.getCommandManager().setVideoCodec(VideoCodec.H264_720P);
+		//cC.dC.setFrontCamera();
 		cC.dC.setFrontCamera();
 		new Thread(cC).start();
-		// droneCommunicator.setBottomCamera();
+		
 	}
 
 	public void grabFromDrone() {
@@ -284,8 +291,9 @@ public class PictureController {
 			public void imageUpdated(BufferedImage arg0) {
 				if (isFirst) {
 					new Thread(ofvideo = new OFVideo(mainFrame, qrCode, qrDist,
-							arg0, cC)).start();
+							arg0, cC, bufferedframe)).start();
 					isFirst = false;
+					//nav.initCompass(drone, headingLbl);
 				}
 				ofvideo.setArg0(arg0);
 			}
@@ -508,7 +516,7 @@ public class PictureController {
 
 	public void takeOff() throws InterruptedException {
 		System.out.println("TAKEOFF");
-//		shouldScan = false;
+		shouldScan = true;
 		cC.dC.takeOff();
 		Thread.sleep(5);
 		cC.dC.hover();

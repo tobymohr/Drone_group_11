@@ -3,7 +3,6 @@ package picture;
 import static org.bytedeco.javacpp.opencv_core.CV_32FC1;
 import static org.bytedeco.javacpp.opencv_core.CV_8U;
 import static org.bytedeco.javacpp.opencv_core.CV_8UC1;
-import static org.bytedeco.javacpp.opencv_core.CV_8UC3;
 import static org.bytedeco.javacpp.opencv_core.CV_PI;
 import static org.bytedeco.javacpp.opencv_core.addWeighted;
 import static org.bytedeco.javacpp.opencv_core.cvCreateImage;
@@ -15,6 +14,7 @@ import static org.bytedeco.javacpp.opencv_imgproc.CV_AA;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_BGR2GRAY;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_BGR2HSV;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_CHAIN_APPROX_NONE;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_CHAIN_APPROX_SIMPLE;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_FILLED;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_HOUGH_GRADIENT;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_LINK_RUNS;
@@ -25,7 +25,6 @@ import static org.bytedeco.javacpp.opencv_imgproc.Canny;
 import static org.bytedeco.javacpp.opencv_imgproc.MORPH_RECT;
 import static org.bytedeco.javacpp.opencv_imgproc.RETR_LIST;
 import static org.bytedeco.javacpp.opencv_imgproc.approxPolyDP;
-import static org.bytedeco.javacpp.opencv_imgproc.*;
 import static org.bytedeco.javacpp.opencv_imgproc.arcLength;
 import static org.bytedeco.javacpp.opencv_imgproc.contourArea;
 import static org.bytedeco.javacpp.opencv_imgproc.cvCvtColor;
@@ -45,11 +44,10 @@ import static org.bytedeco.javacpp.opencv_imgproc.putText;
 import static org.bytedeco.javacpp.opencv_imgproc.warpPerspective;
 
 import java.awt.image.BufferedImage;
-import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bytedeco.javacpp.opencv_core.*;
+import org.bytedeco.javacpp.opencv_core;
 import org.bytedeco.javacpp.opencv_core.CvMemStorage;
 import org.bytedeco.javacpp.opencv_core.CvPoint;
 import org.bytedeco.javacpp.opencv_core.CvPoint2D32f;
@@ -65,21 +63,9 @@ import org.bytedeco.javacpp.opencv_core.Rect;
 import org.bytedeco.javacpp.opencv_core.RotatedRect;
 import org.bytedeco.javacpp.opencv_core.Scalar;
 import org.bytedeco.javacpp.opencv_core.Size;
-import org.bytedeco.javacv.Blobs;
+import org.bytedeco.javacpp.indexer.IntBufferIndexer;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
-import org.bytedeco.javacpp.opencv_imgcodecs.*;
-import org.bytedeco.javacpp.opencv_imgproc.*;
-import org.bytedeco.javacpp.indexer.ByteBufferIndexer;
-import org.bytedeco.javacpp.indexer.DoubleIndexer;
-import org.bytedeco.javacpp.indexer.FloatBufferIndexer;
-import org.bytedeco.javacpp.indexer.IntBufferIndexer;
-import org.bytedeco.javacpp.indexer.ShortBufferIndexer;
-import org.bytedeco.javacpp.indexer.UByteBufferIndexer;
-import org.bytedeco.javacpp.indexer.UByteIndexer;
-import org.bytedeco.javacpp.opencv_highgui.*;
-import org.bytedeco.javacpp.*;
-
 
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.LuminanceSource;
@@ -92,11 +78,13 @@ import helper.Circle;
 import helper.CustomPoint;
 import helper.Move;
 import helper.Vector;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.Image;
 
 public class PictureProcessingHelper {
 
 	private OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
-	private double distance;
+	private double distance = 500;
 	private Java2DFrameConverter converter1 = new Java2DFrameConverter();
 	int blueMin = 110;
 	int blueMax = 130;
@@ -107,8 +95,8 @@ public class PictureProcessingHelper {
 	private BinaryBitmap bitmap;
 	private Point2f vertices;
 	private static final int MIN_AREA = 5000;
-	private static final int ANGLE_UPPER_BOUND = 95;
-	private static final int ANGLE_LOWER_BOUND = 85;
+	private static final int ANGLE_UPPER_BOUND = 105;
+	private static final int ANGLE_LOWER_BOUND = 75;
 
 	public PictureProcessingHelper() {
 	}
@@ -131,13 +119,6 @@ public class PictureProcessingHelper {
 		Mat scalarBlue1 = new Mat(new Scalar(blueMin, 50, 50, 0));
 		Mat scalarBlue2 = new Mat(new Scalar(blueMax, 255, 255, 0));
 		inRange(mathsv3, scalarBlue1, scalarBlue2, mathsv3);
-		findContours(mathsv3, contoursSwagger, RETR_LIST , CV_LINK_RUNS, new opencv_core.Point());
-//		System.out.println(contoursSwagger.size());
-		for (int i = 0; i < contoursSwagger.size(); i++) {
-			drawContours(mathsv3, contoursSwagger, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 2,
-					new opencv_core.Point());
-		}
-
 		return mathsv3;
 	}
 
@@ -149,11 +130,6 @@ public class PictureProcessingHelper {
 		Mat scalar2 = new Mat(new Scalar(180, 255, 38, 0));
 
 		inRange(matHSV, scalar1, scalar2, matHSV);
-		findContours(matHSV, contour1, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
-
-		for (int i = 0; i < contour1.size(); i++) {
-			drawContours(matHSV, contour1, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 1, new opencv_core.Point());
-		}
 		return matHSV;
 	}
 
@@ -172,11 +148,6 @@ public class PictureProcessingHelper {
 		inRange(mathsv3, scalar1, scalar2, mathueLower);
 		inRange(mathsv3, scalar3, scalar4, mathueUpper);
 		addWeighted(mathueLower, 1.0, mathueUpper, 1.0, 0.0, imgbin3);
-		findContours(imgbin3, matContour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
-		for (int i = 0; i < matContour.size(); i++) {
-			drawContours(imgbin3, matContour, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 1,
-					new opencv_core.Point());
-		}
 		return imgbin3;
 	}
 
@@ -185,14 +156,10 @@ public class PictureProcessingHelper {
 		Mat imghsv = new Mat(img.arraySize(), 8, 3);
 		Mat imgbin = new Mat(img.arraySize(), 8, 1);
 		cvtColor(img, imghsv, CV_BGR2HSV);
-		Mat scalar1 = new Mat(new Scalar(35, 75, 6, 0));
-		Mat scalar2 = new Mat(new Scalar(75, 220, 220, 0));
+		Mat scalar1 = new Mat(new Scalar(55, 72, 41, 0));
+		Mat scalar2 = new Mat(new Scalar(77, 88, 192, 0));
 		// Two ranges to get full color spectrum
 		inRange(imghsv, scalar1, scalar2, imgbin);
-		findContours(imgbin, matContour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
-		for (int i = 0; i < matContour.size(); i++) {
-			drawContours(imgbin, matContour, i, new Scalar(0, 0, 0, 0), 3, CV_FILLED, null, 1, new opencv_core.Point());
-		}
 		return imgbin;
 	}
 
@@ -270,35 +237,36 @@ public class PictureProcessingHelper {
 		return 0;
 
 	}
+	
+	public int getSpinSpeed(List<Mat> matContours){
+		double allSpeeds = 0;
+		for(int i = 0; i<matContours.size(); i++){
+			double area = contourArea(matContours.get(i)) / 1000;
+			double constant = 9;
+			double result = constant/area;
+			allSpeeds +=result*10;
+		}
+		if(!Double.isNaN(allSpeeds/matContours.size())){
+			return (int) (allSpeeds/matContours.size());
+		}
+		return 0;
+	}
 
 	public Mat extractQRImage(Mat srcImage) {
 		Mat img1 = new Mat(srcImage.arraySize(), CV_8UC1, 1);
 		cvtColor(srcImage, img1, CV_RGB2GRAY);
 		Canny(img1, img1, 75, 200);
 		MatVector matContour = new MatVector();
+		getSpinSpeed(findQrContours(srcImage));
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
 			RotatedRect rect = minAreaRect(matContour.get(i));
-			if (matContour.get(i).total() == 4  && contourArea(matContour.get(i)) > MIN_AREA && checkAngles(rect)) {
-
-//				IntBufferIndexer idx = matContour.get(i).createIndexer();
-//				System.out.println("------------------------");
-//				for (int j = 0; j < matContour.get(i).rows(); j++) {
-//					for (int k = 0; k < matContour.get(i).cols(); k++) {
-//						int pixel = (int) idx.get(j, k);
-//						if (pixel > 10) {
-//							circle(srcImage, new Point( j, k ), 5,  Scalar.RED, 2, 8, 0 );
-//							opencv_core.getSeq
-//							System.out.println(matContour.get(i));
-//						}
-//					}
-//				}
-//				System.out.println("------------------------");
-				List<Point> points = new ArrayList<>();
-				
-				
+			if (matContour.get(i).total() == 4  && contourArea(matContour.get(i)) > MIN_AREA 
+					&& checkAngles(matContour.get(i), rect)) {
 				drawContours(srcImage, matContour, i, Scalar.WHITE, 3, 8, null, 1, null);
+				
+				
 				img1 = warpImage(srcImage, rect);
 				if (scanQrCode(img1) != null) {
 					putText(srcImage, code, new Point((int) rect.center().x() - 25, (int) rect.center().y() + 80), 1, 2,
@@ -322,49 +290,6 @@ public class PictureProcessingHelper {
 		return srcImage;
 	}
 
-	public boolean moreSquares(Mat img0) {
-		Mat img1 = new Mat(img0.arraySize(), CV_8UC1, 1);
-		cvtColor(img0, img1, CV_RGB2GRAY);
-		Canny(img1, img1, 75, 200);
-		MatVector matContour = new MatVector();
-		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
-		Mat crop = new Mat(img0.rows(), img0.cols(), CV_8UC3, Scalar.BLACK);
-		Mat mask = new Mat(img1.rows(), img1.cols(), CV_8UC1, Scalar.BLACK);
-
-		for (int i = 0; i < matContour.size(); i++) {
-			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
-
-			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > 1000) {
-
-				drawContours(mask, matContour, i, Scalar.WHITE, CV_FILLED, 8, null, 1, null);
-				img0.copyTo(crop, mask);
-				RotatedRect rect = minAreaRect(matContour.get(i));
-				crop = warpImage(crop, rect);
-				if (scanQrCode(crop) != null) {
-					putText(img0, code, new Point((int) rect.center().x() - 25, (int) rect.center().y() + 80), 1, 2,
-							Scalar.GREEN, 2, 8, false);
-				}
-				distance = calcDistance(rect);
-				// List<Long> points = calcPosition(3, 3.3, 3);
-				// printMoves(calcMoves(points.get(0), points.get(1)));
-
-				drawContours(img0, matContour, i, Scalar.WHITE, 2, 8, null, 1, null);
-				putText(img0, "" + (int) distance,
-						new Point((int) rect.center().x() - 25, (int) rect.center().y() + 60), 1, 2, Scalar.BLUE, 2, 8,
-						false);
-				double center = center(rect);
-				if (center < 0.2 && center > -0.5) {
-					putText(img0, "CENTER", new Point((int) rect.center().x() - 25, (int) rect.center().y() + 20), 1, 2,
-							Scalar.RED, 2, 8, false);
-				}
-				crop = new Mat(img0.rows(), img0.cols(), CV_8UC3, Scalar.BLACK);
-				mask = new Mat(img1.rows(), img1.cols(), CV_8UC1, Scalar.BLACK);
-			}
-
-		}
-		return false;
-	}
-
 	public List<Mat> findQrContours(Mat srcImage) {
 		Mat img1 = new Mat(srcImage.arraySize(), CV_8UC1, 1);
 		cvtColor(srcImage, img1, CV_RGB2GRAY);
@@ -374,7 +299,9 @@ public class PictureProcessingHelper {
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
-			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > MIN_AREA) {
+			RotatedRect rect = minAreaRect(matContour.get(i));
+			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > MIN_AREA
+					&& checkAngles(matContour.get(i), rect)) {
 				result.add(matContour.get(i));
 			}
 		}
@@ -421,31 +348,20 @@ public class PictureProcessingHelper {
 		}
 	}
 
-	public List<Long> calcPosition(double distanceOne, double distanceTwo, double distanceThree) {
-		List<Long> calcedPoints = new ArrayList<>();
+	public CustomPoint[] calcPosition(double distanceOne, double distanceTwo, double distanceThree, String code) {
 		double distanceBetweenPointsOne = 1.5;
 		double distanceBetweenPointsTwo = 1.5;
 		double angleA = CustomPoint.calculateAngle(distanceOne, distanceBetweenPointsOne);
 		double angleB = CustomPoint.calculateAngle(distanceThree, distanceBetweenPointsTwo);
-		CustomPoint P1 = new CustomPoint(6, 0);
-		CustomPoint P2 = new CustomPoint(5, 0);
-		CustomPoint P3 = new CustomPoint(4, 0);
+		CustomPoint P1 = CustomPoint.parseQRTextLeft(code);
+		CustomPoint P2 = CustomPoint.parseQRText(code);
+		CustomPoint P3 = CustomPoint.parseQRTextRight(code);
 		Circle C1 = new Circle(Circle.calculateCenter(P1, P2, distanceBetweenPointsOne, angleA),
 				Circle.calculateRadius(distanceBetweenPointsOne, angleA));
-		// System.out.println(C1.getCenter().getX() + "|" +
-		// C1.getCenter().getY() + "|" + C1.getRadius());
 		Circle C2 = new Circle(Circle.calculateCenter(P2, P3, distanceBetweenPointsTwo, angleB),
 				Circle.calculateRadius(distanceBetweenPointsTwo, angleB));
-		// System.out.println(C2.getCenter().getX() + "|" +
-		// C2.getCenter().getY() + "|" + C2.getRadius());
 		CustomPoint[] points = Circle.intersection(C1, C2);
-		for (CustomPoint p : points) {
-//			System.out.println(Math.round(p.getX()) + "|" + Math.round(p.getY()));
-			calcedPoints.add(Math.round(p.getX()));
-			calcedPoints.add(Math.round(p.getY()));
-		}
-
-		return calcedPoints;
+		return points;
 	}
 
 	public String scanQrCode(Mat srcImage) {
@@ -462,43 +378,72 @@ public class PictureProcessingHelper {
 
 	}
 	
-	public boolean checkAngles(RotatedRect rect) {
+	public boolean checkAngles(Mat contour, RotatedRect rect) {
+		List<Point> points = new ArrayList<>();
+		IntBufferIndexer idx = contour.createIndexer();
+		for (int j = 0; j < contour.rows(); j++) {
+			for (int k = 0; k < contour.cols(); k++) {
+				int x = (int) idx.get(j, k, 0);
+				int y = idx.get(j, k, 1);
+				points.add(new Point(x, y));
+			}
+		}
+		
 		vertices = new Point2f(4);
 		rect.points(vertices);
 		int angle = Math.abs((int) rect.angle());
 
-		Point tl = null;
-		Point tr = null;
-		Point br = null;
-		Point bl = null;
+		Point tlRect = null;
+		Point trRect = null;
+		Point brRect = null;
+		Point blRect = null;
 		if (angle >= 0 && angle < 10) {
-			tl = new Point((int) vertices.position(1).x(), (int) vertices.position(1).y());
-			tr = new Point((int) vertices.position(2).x(), (int) vertices.position(2).y());
-			br = new Point((int) vertices.position(3).x(), (int) vertices.position(3).y());
-			bl = new Point((int) vertices.position(0).x(), (int) vertices.position(0).y());
+			tlRect = new Point((int) vertices.position(1).x(), (int) vertices.position(1).y());
+			trRect = new Point((int) vertices.position(2).x(), (int) vertices.position(2).y());
+			brRect = new Point((int) vertices.position(3).x(), (int) vertices.position(3).y());
+			blRect = new Point((int) vertices.position(0).x(), (int) vertices.position(0).y());
 		} else {
-			tl = new Point((int) vertices.position(2).x(), (int) vertices.position(2).y());
-			tr = new Point((int) vertices.position(3).x(), (int) vertices.position(3).y());
-			br = new Point((int) vertices.position(0).x(), (int) vertices.position(0).y());
-			bl = new Point((int) vertices.position(1).x(), (int) vertices.position(1).y());
+			tlRect = new Point((int) vertices.position(2).x(), (int) vertices.position(2).y());
+			trRect = new Point((int) vertices.position(3).x(), (int) vertices.position(3).y());
+			brRect = new Point((int) vertices.position(0).x(), (int) vertices.position(0).y());
+			blRect = new Point((int) vertices.position(1).x(), (int) vertices.position(1).y());
 		}
+		
+		Point tl = nearestPoint(points, tlRect);
+		Point tr = nearestPoint(points, trRect);
+		Point br = nearestPoint(points, brRect);
+		Point bl = nearestPoint(points, blRect);
+		
 		
 		double tlAngle = calculateAngle(tl, tr, bl);
 		double trAngle = calculateAngle(tr, tl, br);
 		double blAngle = calculateAngle(bl, tl, br);
 		double brAngle = calculateAngle(br, tr, bl);
-		
-		if (tlAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND) {
+
+		if (tlAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND || Double.isNaN(tlAngle)) {
 			return false;
-		} if (trAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND) {
+		} if (trAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND || Double.isNaN(trAngle)) {
 			return false;
-		} if (blAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND) {
+		} if (blAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND || Double.isNaN(blAngle)) {
 			return false;
-		} if (tlAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND) {
+		} if (brAngle > ANGLE_UPPER_BOUND || brAngle < ANGLE_LOWER_BOUND || Double.isNaN(brAngle)) {
 			return false;
 		} else {
 			return true;
 		}
+	}
+	
+	private Point nearestPoint(List<Point> points, Point point) {
+		double minDist = Double.MAX_VALUE;
+		Point result = new Point();
+		for (Point p : points) {
+			double dist = Math.sqrt(Math.pow((point.x() - p.x()), 2) + Math.pow((point.y() - p.y()), 2));
+			if (dist < minDist) {
+				minDist = dist;
+				result = p;
+			}
+		}
+		return result;
 	}
 	
 	private double calculateAngle(Point A, Point B, Point C) {
@@ -657,6 +602,8 @@ public class PictureProcessingHelper {
 
 		return img;
 	}
+	
+	
 
 //	public Mat circle(Mat img) {
 //
@@ -684,7 +631,7 @@ public class PictureProcessingHelper {
 
 		for (int i = 0; i < contour.size(); i++) {
 			approxPolyDP(contour.get(i), contour.get(i), 0.02 * arcLength(contour.get(i), true), true);
-			if (contour.get(i).total() == 4 && contourArea(contour.get(i)) > 150) {
+			if (contour.get(i).total() > 2 && contour.get(i).total() < 6 && contourArea(contour.get(i)) > 150) {
 				Point2f centerPoint = minAreaRect(contour.get(i)).center();
 				opencv_core.Point p = new opencv_core.Point((int) centerPoint.x(), (int) centerPoint.y());
 				line(coloredImage, p, p, new Scalar(255, 0, 0, 0), 16, CV_AA, 0);
