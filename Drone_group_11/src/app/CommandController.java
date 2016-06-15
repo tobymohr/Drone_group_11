@@ -115,22 +115,22 @@ public class CommandController implements Runnable {
 					
 					System.out.println("TIME " + (int) (task.time) + " SPEED " + (task.speed));
 					
-					if(task.task == Command.ROTATELEFT){
-						System.out.println("COUNTER SPIN RIGHT");
-						dC.setSpeed((int)(task.speed/COUNTERSPEED_FACTOR));
-						dC.spinRight((int)(task.time/COUNTER_FACTOR));
-						wait((int)(task.time/COUNTER_FACTOR));
-					}
-					
-					if(task.task == Command.ROTATERIGHT){
-						System.out.println("COUNTER SPIN LEFT");
-						dC.setSpeed((int)(task.speed/COUNTERSPEED_FACTOR));
-						dC.spinLeft((int)(task.time/COUNTER_FACTOR));
-						wait((int)(task.time/COUNTER_FACTOR));
-					}
-					
-					dC.hover();
-					wait(1500);
+//					if(task.task == Command.ROTATELEFT){
+//						System.out.println("COUNTER SPIN RIGHT");
+//						dC.setSpeed((int)(task.speed/COUNTERSPEED_FACTOR));
+//						dC.spinRight((int)(task.time/COUNTER_FACTOR));
+//						wait((int)(task.time/COUNTER_FACTOR));
+//					}
+//					
+//					if(task.task == Command.ROTATERIGHT){
+//						System.out.println("COUNTER SPIN LEFT");
+//						dC.setSpeed((int)(task.speed/COUNTERSPEED_FACTOR));
+//						dC.spinLeft((int)(task.time/COUNTER_FACTOR));
+//						wait((int)(task.time/COUNTER_FACTOR));
+//					}
+//					
+//					dC.hover();
+//					wait(1500);
 					
 //					System.out.println("TIME " + (int) (task.time/COUNTER_FACTOR) + " SPEED " + (task.speed/COUNTER_FACTOR));
 					

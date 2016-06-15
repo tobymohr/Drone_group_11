@@ -72,6 +72,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 public class PictureController {
 
@@ -123,6 +124,18 @@ public class PictureController {
 	private ImageView bufferedframe;
 
 	public void setUpKeys() {
+		borderpane.getScene().getWindow().setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent t) {
+            	System.out.println("EXIT");
+            	if(cC.dC.getDroneFlying()){
+            		land();
+            	}
+                Platform.exit();
+                System.exit(0);
+            }
+		});
+		
 		borderpane.getScene().setOnKeyPressed(new EventHandler<KeyEvent>() {
 			@Override
 			public void handle(KeyEvent event) {
@@ -252,6 +265,8 @@ public class PictureController {
 		setUpKeys();
 		grabFromDrone();
 		land();
+		
+		
 	}
 
 	public static double getMinThresh() {
@@ -306,7 +321,7 @@ public class PictureController {
 
 		OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
 		OpenCVFrameConverter.ToMat converterMat = new OpenCVFrameConverter.ToMat();
-		FrameGrabber grabber = new VideoInputFrameGrabber(1);
+		FrameGrabber grabber = new VideoInputFrameGrabber(0);
 		grabber.start();
 		
 		Runnable frameGrabber = new Runnable() {
