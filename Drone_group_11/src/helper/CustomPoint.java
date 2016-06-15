@@ -1,9 +1,15 @@
 package helper;
 
-public class CustomPoint {
-	private static final int MAX_Y_COORDINATE = 6; //TODO FIGURE OUT THE REAL MAX Y COORDINATE
-	private static final int MAX_X_COORDINATE = 5; //TODO FIGURE OUT THE REAL MAX x COORDINATE
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashMap;
 
+public class CustomPoint {
+	private static final int MAX_Y_COORDINATE = 5;
+	private static final int MAX_X_COORDINATE = 5;
+	
 	private double x;
 	private double y;
 	
@@ -48,52 +54,60 @@ public class CustomPoint {
 		return new CustomPoint(this.x * s, this.y * s);
 	}
 	
+	public String toString() {
+		return x + "|" + y;
+	}
+	
 	public static double calculateAngle(double distanceToPoint, double distanceBetweenPoints) {
-		return Math.toDegrees(Math.atan(distanceBetweenPoints / distanceToPoint));
+		return Math.atan(distanceBetweenPoints / distanceToPoint);
+	}
+	
+	public static double calculateDistance(CustomPoint P1, CustomPoint P2) {
+		return Math.sqrt(Math.pow(P1.getX() - P2.getX(), 2) + Math.pow(P1.getY() - P2.getY(), 2));
 	}
 	
 	public static CustomPoint parseQRText(String text) {
-		text = text.substring(1);
-		if (text.startsWith("00")) {
-			return new CustomPoint(Double.parseDouble(text.substring(4)) + 1, MAX_Y_COORDINATE);
-		} else if (text.startsWith("01")) {
-			return new CustomPoint(MAX_X_COORDINATE, Double.parseDouble(text.substring(4)) + 1);
-		} else if (text.startsWith("02")) {
-			return new CustomPoint(Double.parseDouble(text.substring(4)) + 1, 0);
-		} else if (text.startsWith("03")) {
-			return new CustomPoint(0, Double.parseDouble(text.substring(4)) + 1);
-		} else {
-			return null;
+		String csvFile = "WallCoordinates.csv";
+		BufferedReader br = null;
+		String line = "";
+		String cvsSplitBy = ";";
+		CustomPoint result = new CustomPoint();
+		
+		try {
+			br = new BufferedReader(new FileReader(csvFile));
+			while ((line = br.readLine()) != null) {
+				String[] coordinate = line.split(cvsSplitBy);
+				if (coordinate[0].equals(text)) {
+					result.setX(Integer.parseInt(coordinate[1]));
+					result.setY(Integer.parseInt(coordinate[2]));
+				}
+			}
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		}
+		return result;
 	}
 	
 	public static CustomPoint parseQRTextLeft(String text) {
-		text = text.substring(1);
-		if (text.startsWith("00")) {
-			return new CustomPoint(Double.parseDouble(text.substring(4)), MAX_Y_COORDINATE);
-		} else if (text.startsWith("01")) {
-			return new CustomPoint(MAX_X_COORDINATE, Double.parseDouble(text.substring(4)) + 2);
-		} else if (text.startsWith("02")) {
-			return new CustomPoint(Double.parseDouble(text.substring(4)) + 2, 0);
-		} else if (text.startsWith("03")) {
-			return new CustomPoint(0, Double.parseDouble(text.substring(4)));
-		} else {
-			return null;
-		}
+		int coordinate = Integer.parseInt(text.substring(4));
+		coordinate--;
+		return parseQRText(text.substring(0, 5) + coordinate);
 	}
 	
 	public static CustomPoint parseQRTextRight(String text) {
-		text = text.substring(1);
-		if (text.startsWith("00")) {
-			return new CustomPoint(Double.parseDouble(text.substring(4)) + 2, MAX_Y_COORDINATE);
-		} else if (text.startsWith("01")) {
-			return new CustomPoint(MAX_X_COORDINATE, Double.parseDouble(text.substring(4)));
-		} else if (text.startsWith("02")) {
-			return new CustomPoint(Double.parseDouble(text.substring(4)), 0);
-		} else if (text.startsWith("03")) {
-			return new CustomPoint(0, Double.parseDouble(text.substring(4)) + 2);
-		} else {
-			return null;
-		}
+		int coordinate = Integer.parseInt(text.substring(4));
+		coordinate++;
+		return parseQRText(text.substring(0, 5) + coordinate);
 	}
 }

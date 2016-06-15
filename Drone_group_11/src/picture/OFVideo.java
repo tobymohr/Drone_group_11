@@ -135,6 +135,7 @@ public class OFVideo implements Runnable {
 						new Thread(CK).start();
 						isFirst = false;
 					}
+					scanSequence.imageChanged = true;
 				}
 			}
 		} catch (Exception e) {

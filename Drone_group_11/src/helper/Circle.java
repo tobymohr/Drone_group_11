@@ -26,27 +26,39 @@ public class Circle {
 		this.radius = r;
 	}
 	
+	public String toString() {
+		return center.getX() + "|" + center.getY() + "|" + radius;
+	}
+	
 	public static double calculateRadius(double distanceBetweenPoints, double angle) {
 		return 0.5 * (distanceBetweenPoints / Math.sin(angle));
 	}
 	
-	public static CustomPoint calculateCenter(CustomPoint P1, CustomPoint P2, double distanceBetweenPoints, double angle) {
-		double x, y, a;
-		a = distanceBetweenPoints;
+	public static CustomPoint calculateCenter(CustomPoint P1, CustomPoint P2, double a, double angle) {
+		double x1, y1, x2, y2, xCenter, yCenter;
 		
-		x = 0.5 * (P2.getY() - P1.getY())
-				/(Math.sqrt(Math.pow(Math.abs(-1 * P2.getY() + P1.getY()), 2) 
-						+ Math.pow(Math.abs(-1 * P2.getX() + P1.getX()), 2)))
-				* Math.sqrt((Math.pow(a, 2))/(Math.pow(Math.sin(angle), 2)) - Math.pow(a, 2))
-				+ 0.5 * P1.getX() + 0.5 * P2.getX();
+		x1 = P1.getX();
+		y1 = P1.getY();
+		x2 = P2.getX();
+		y2 = P2.getY();
+				
+		double t1 = y2 - y1;
+		double t2 = x1 - x2;
+		double b1 = Math.pow(y1-y2, 2);
+		double b2 = Math.pow(x1 - x2, 2);
+		double b3 = Math.sqrt(b1 + b2);
+		double e1 = x1/2.0 + x2/2.0;
+		double e2 = y1/2.0 + y2/2.0;
+		
+		double aPow = Math.pow(a, 2);
+		double aSine = Math.pow(Math.sin(angle), 2);
+		double t = Math.sqrt(1.0 / aSine * aPow - aPow);
+		
+		
+		xCenter = t1 / b3 / 2.0 * t + e1;
+		yCenter = t2 / b3 / 2.0 * t + e2;
 
-		y = 0.5 * (-1 * P2.getX() + P1.getX())
-				/(Math.sqrt(Math.pow(Math.abs(-1 * P2.getY() + P1.getY()), 2) 
-						+ Math.pow(Math.abs(-1 * P2.getX() + P1.getX()), 2)))
-				* Math.sqrt((Math.pow(a, 2))/(Math.pow(Math.sin(angle), 2)) - Math.pow(a, 2))
-				+ 0.5 * P1.getY() + 0.5 * P2.getY();
-
-		return new CustomPoint(x, y);
+		return new CustomPoint(xCenter, yCenter);
 	}
 	
 	//Source: http://paulbourke.net/geometry/circlesphere/
