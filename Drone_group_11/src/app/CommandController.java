@@ -112,7 +112,7 @@ public class CommandController implements Runnable {
 						dC.land();
 					}
 					
-					Thread.sleep(task.time + 1000);
+					Thread.sleep(task.time);
 					
 					System.out.println("TIME " + (int) (task.time) + " SPEED " + (task.speed));
 //					

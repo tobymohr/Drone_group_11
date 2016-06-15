@@ -22,8 +22,8 @@ public class ScanSequence implements Runnable {
 	private static final int BACKWARD_SPEED = 10;
 	private static final int STRAFE_TIME = 650;
 	private static final int STRAFE_SPEED = 10;
-	private static final int SPIN_TIME = 400;
-	private static final int SPIN_SPEED = 4;
+	private static final int SPIN_TIME = 1000;
+	private static final int SPIN_SPEED = 10;
 	private static final int FORWARD_TIME = 1500;
 	private static final int FORWARD_SPEED = 8;
 	private static final int ROTATE_TIME =1000;
@@ -220,6 +220,11 @@ public class ScanSequence implements Runnable {
 	private void addCommand(int task, int duration, int speed) {
 		if (commandController.isDroneReady()) {
 			commandController.addCommand(task, duration, speed);
+			try {
+				Thread.sleep(duration+500);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
