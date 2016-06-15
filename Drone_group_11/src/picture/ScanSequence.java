@@ -19,20 +19,20 @@ import helper.Move;
 public class ScanSequence implements Runnable {
 	private static final int FORWARD_TIME_2 = 500;
 	private static final int BACKWARD_TIME = 500;
-	private static final int BACKWARD_SPEED = 15;
+	private static final int BACKWARD_SPEED = 10;
 	private static final int STRAFE_TIME = 650;
 	private static final int STRAFE_SPEED = 10;
-	private static final int SPIN_TIME = 300;
-	private static final int SPIN_SPEED = 15;
+	private static final int SPIN_TIME = 400;
+	private static final int SPIN_SPEED = 4;
 	private static final int FORWARD_TIME = 1500;
-	private static final int FORWARD_SPEED = 10;
-	private static final int ROTATE_TIME = 4000;
-	private static final int ROTATE_SPEED = 15;
+	private static final int FORWARD_SPEED = 8;
+	private static final int ROTATE_TIME =1000;
+	private static final int ROTATE_SPEED = 18;
 	
 	//#TODO Tweak these values based on testing
 	public static final double CENTER_UPPER = 0.1;
 	public static final double CENTER_LOWER = -0.1;
-	public static final double CENTER_DIFFERENCE = 0.05;
+	public static final double CENTER_DIFFERENCE = 0.03;
 		
 	private CommandController commandController;
 	private double previousCenter = -1;
@@ -40,9 +40,9 @@ public class ScanSequence implements Runnable {
 	private String code = null;
 	private int rotateCount = 0;
 	private int frameCount = 0;
-	private int foundFrameCount = 0;
 	private int scannedCount = 0;
 	private Mat camMat;
+	private int foundFrameCount = 0;
 	private PictureProcessingHelper OFC = new PictureProcessingHelper();
 	
 	public ScanSequence(CommandController commandController) {
@@ -62,14 +62,8 @@ public class ScanSequence implements Runnable {
 		commandController.dC.hover();
 		sleep(6000);
 		System.out.println("UP");
-		commandController.addCommand(Command.UP, 2000, 20);
-		sleep(2000);
-		System.out.println("HOVER");
-		commandController.dC.hover();
-		sleep(6000);
-		System.out.println("UP");
-		commandController.addCommand(Command.UP, 2000, 20);
-		sleep(2000);
+		commandController.addCommand(Command.UP, 4000, 15);
+	
 		
 		while(PictureController.shouldScan) {
 			if (OFVideo.imageChanged) {
@@ -85,36 +79,31 @@ public class ScanSequence implements Runnable {
 		List<Mat> contours = OFC.findQrContours(camMat);
 		
 		if (contours.size() == 0) {
-			if (frameCount < 20) {
+			if (frameCount < 50) {
 				frameCount++;
 				return;
 			} else {
 				code = null;
 				if (rotateCount < 15) {
 					//#TODO Rotate 90 degrees
-					addCommand(Command.SPINRIGHT, ROTATE_TIME, ROTATE_SPEED);
+					addCommand(Command.ROTATERIGHT, ROTATE_TIME, ROTATE_SPEED);
 					rotateCount++;
 				} else {
 					//#TODO Fly forwards (1 meter)
 //					addCommand(Command.FORWARD, FORWARD_TIME, FORWARD_SPEED);
 					rotateCount = 0;
 				}
+				frameCount = 0;
 			}
 		}
 		
-		if (foundFrameCount < 2) {
+		if(foundFrameCount < 2){
 			foundFrameCount++;
 			return;
 		}
-		
-		frameCount = 0;
 		foundFrameCount = 0;
-		boolean wallClose = false;
-		if (wallClose) {
-			//#TODO Fly backwards (4-5 meters)
-			//#TODO Rotate 90 degrees
-			return;
-		}
+		frameCount = 0;
+		
 
 		double distanceFomCenter = Double.MAX_VALUE;
 		RotatedRect rect = new RotatedRect();
@@ -127,6 +116,7 @@ public class ScanSequence implements Runnable {
 			 }
 		}
 		
+		
 		double positionFromCenter = OFC.isCenterInImage(camMat.clone(), rect);
 		if (positionFromCenter != 0) {
 			//#TODO Rotate <positionFromCenter> pixels to center the QR code in image
@@ -137,6 +127,11 @@ public class ScanSequence implements Runnable {
 			}
 			return;
 		}
+		
+		if (true) {
+			return;
+		}
+		
 		double center = OFC.center(rect);
 		if (center > CENTER_UPPER || center < CENTER_LOWER) {
 			//#TODO Strafe the drone <center> amount. Right is chosen as standard.
@@ -161,7 +156,11 @@ public class ScanSequence implements Runnable {
 		}
 		// Reset the previous center
 		previousCenter = -1;
-		
+		double distanceToDrone = OFC.calcDistance(rect);
+		if (distanceToDrone < 300) {
+			addCommand(Command.BACKWARDS, BACKWARD_TIME, BACKWARD_SPEED);
+			return;
+		}
 		Mat qrImg = OFC.warpImage(camMat.clone(), rect);
 		
 		String tempCode = OFC.scanQrCode(qrImg);
@@ -198,7 +197,7 @@ public class ScanSequence implements Runnable {
 		} else {
 			double distanceToSquare = OFC.calcDistance(rect);
 			// It might still be a QR code, we're too far away to know
-			if (distanceToSquare > 100) {
+			if (distanceToSquare > 300) {
 				//#TODO Fly closer to the square (0.5 meters)
 				addCommand(Command.FORWARD, FORWARD_TIME_2, FORWARD_SPEED);
 				return;

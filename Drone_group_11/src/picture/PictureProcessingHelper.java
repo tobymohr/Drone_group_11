@@ -96,7 +96,7 @@ public class PictureProcessingHelper {
 	private LuminanceSource source;
 	private BinaryBitmap bitmap;
 	private Point2f vertices;
-	private static final int MIN_AREA = 5000;
+	private static final int MIN_AREA = 4000;
 	private static final int ANGLE_UPPER_BOUND = 105;
 	private static final int ANGLE_LOWER_BOUND = 75;
 
@@ -217,7 +217,7 @@ public class PictureProcessingHelper {
 
 
 	public double isCenterInImage(Mat img, RotatedRect rect) {
-		double factor = 4;
+		double factor = 3;
 		double xleft = img.arrayWidth() / factor;
 		double xright = (img.arrayWidth() / factor) * (factor - 1);
 		double middleX = img.arrayWidth() / 2;

@@ -56,9 +56,10 @@ public class CommandController implements Runnable {
 					case Command.FORWARD:
 						startTime = System.currentTimeMillis();
 						dC.goForward(task.time);
-						System.out.println("Forward");
+						System.out.println("FORWARD");
 						break;
 					case Command.BACKWARDS:
+						System.out.println("BACKWARDS");
 						startTime = System.currentTimeMillis();
 						dC.goBackwards(task.time);
 						break;
@@ -111,22 +112,22 @@ public class CommandController implements Runnable {
 						dC.land();
 					}
 					
-					Thread.sleep(task.time);
+					Thread.sleep(task.time + 1000);
 					
 					System.out.println("TIME " + (int) (task.time) + " SPEED " + (task.speed));
-					
+//					
 //					if(task.task == Command.ROTATELEFT){
 //						System.out.println("COUNTER SPIN RIGHT");
 //						dC.setSpeed((int)(task.speed/COUNTERSPEED_FACTOR));
 //						dC.spinRight((int)(task.time/COUNTER_FACTOR));
-//						wait((int)(task.time/COUNTER_FACTOR));
+//						Thread.sleep((int)(task.time/COUNTER_FACTOR));
 //					}
 //					
 //					if(task.task == Command.ROTATERIGHT){
 //						System.out.println("COUNTER SPIN LEFT");
 //						dC.setSpeed((int)(task.speed/COUNTERSPEED_FACTOR));
 //						dC.spinLeft((int)(task.time/COUNTER_FACTOR));
-//						wait((int)(task.time/COUNTER_FACTOR));
+//						Thread.sleep((int)(task.time/COUNTER_FACTOR));
 //					}
 					
 //					
