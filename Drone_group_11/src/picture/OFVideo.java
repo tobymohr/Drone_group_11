@@ -53,9 +53,9 @@ public class OFVideo implements Runnable {
 	private boolean isFirst = true;
 	public boolean wallClose = false;
 	private AvoidWallDemo CK;
-	
-	public OFVideo(ImageView mainFrame, Label qrCode,
-			Label qrDist, BufferedImage arg0, CommandController cC, ImageView bufferedframe) {
+
+	public OFVideo(ImageView mainFrame, Label qrCode, Label qrDist, BufferedImage arg0, CommandController cC,
+			ImageView bufferedframe) {
 		this.arg0 = arg0;
 		this.mainFrame = mainFrame;
 		this.bufferedframe = bufferedframe;
@@ -97,7 +97,7 @@ public class OFVideo implements Runnable {
 					filteredImage = OFC.findContoursBlueMat(newImg);
 					break;
 				}
-				
+
 				switch (PictureController.imageInt) {
 				case PictureController.SHOW_QR:
 					showQr(newImg.clone());
@@ -116,7 +116,6 @@ public class OFVideo implements Runnable {
 					break;
 				}
 
-				
 				Platform.runLater(new Runnable() {
 					@Override
 					public void run() {
@@ -133,23 +132,23 @@ public class OFVideo implements Runnable {
 						isFirst = false;
 					}
 				}
-//				if (PictureController.shouldScan){
-//					CK.setImage(newImg.clone());
-//					if(isFirst){
-//						new Thread(CK).start();
-//						isFirst = false;
-//					}
-//					scanSequence.imageChanged = true;
-//				}
+				// if (PictureController.shouldScan){
+				// CK.setImage(newImg.clone());
+				// if(isFirst){
+				// new Thread(CK).start();
+				// isFirst = false;
+				// }
+				// scanSequence.imageChanged = true;
+				// }
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 	}
 
 	public void showQr(Mat camMat) {
-		
+
 		Mat qrMat = OFC.extractQRImage(camMat);
 		BufferedImage bufferedImageQr = MatToBufferedImage(qrMat);
 		Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
@@ -159,55 +158,54 @@ public class OFVideo implements Runnable {
 	public void showLanding(Mat mat, Mat filteredMat) throws InterruptedException {
 		Mat landing = mat;
 		int circles = 0;
-		
-//		if (PictureController.shouldScan) {
-//			scanSequence.setImage(mat.clone());
-//			if (isFirst) {
-//				new Thread(scanSequence).start();
-//				isFirst = false;
-//			}
-//		}
-		
+
+		// if (PictureController.shouldScan) {
+		// scanSequence.setImage(mat.clone());
+		// if (isFirst) {
+		// new Thread(scanSequence).start();
+		// isFirst = false;
+		// }
+		// }
+
 		boolean check = OFC.checkDecodedQR(mat);
-		if(check){
-			
+		if (check) {
+
 			circles = OFC.myCircle(mat);
-			
-//			for(int i = 0; i < 4; ){
-				if (circles > 0) {
-					aboveLanding = true;
-					// If false restart landing sequence
-					//Drone skal flye lidt ned
-					System.out.println("going down");
-//					Thread.sleep(10);
-					cC.dC.goDown(6);
-					Thread.sleep(10);
-					counts++;
-					System.out.println(counts);
-					}
-				else {
-						circles = 0;
-						circleCounter++;
-						System.out.println(circleCounter);
-						
-					}
-				if(circleCounter>=120){
-					aboveLanding = false;
-					circleCounter = 0;
-					counts = 0;
-				}
-				if(counts == 3){
-					System.out.println("landing");
-					
-					cC.dC.land();
-				}
-//			}
+
+			// for(int i = 0; i < 4; ){
+			if (circles > 0) {
+				aboveLanding = true;
+				// If false restart landing sequence
+				// Drone skal flye lidt ned
+				System.out.println("going down");
+				// Thread.sleep(10);
+				cC.dC.goDown(6);
+				Thread.sleep(10);
+				counts++;
+				System.out.println(counts);
+			} else {
+				circles = 0;
+				circleCounter++;
+				System.out.println(circleCounter);
+
+			}
+			if (circleCounter >= 120) {
+				aboveLanding = false;
+				circleCounter = 0;
+				counts = 0;
+			}
+			if (counts == 3) {
+				System.out.println("landing");
+
+				cC.dC.land();
+			}
+			// }
 		}
 		BufferedImage bufferedImageLanding = MatToBufferedImage(landing);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
 		mainFrame.setImage(imageLanding);
 		// System.out.println(aboveLanding);
-		
+
 	}
 
 	public void showFilter(Mat filteredMat) {
