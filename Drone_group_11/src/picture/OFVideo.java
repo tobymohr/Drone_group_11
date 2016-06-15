@@ -6,6 +6,8 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bytedeco.javacpp.helper.opencv_calib3d;
+import org.bytedeco.javacpp.helper.opencv_core;
 import org.bytedeco.javacpp.opencv_core.IplImage;
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_core.RotatedRect;
@@ -114,6 +116,7 @@ public class OFVideo implements Runnable {
 					break;
 				}
 
+				
 				Platform.runLater(new Runnable() {
 					@Override
 					public void run() {

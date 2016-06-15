@@ -116,14 +116,10 @@ public class ScanSequence implements Runnable {
 
 	@Override
 	public void run() {
-
 		commandController.dC.takeOff();
-
 		sleep(2000);
-		// //System.out.println("HOVER");
 		commandController.dC.hover();
 		sleep(6000);
-		// System.out.println("UP");
 		commandController.addCommand(Command.UP, 3000, 30);
 		sleep(2000);
 
@@ -143,7 +139,6 @@ public class ScanSequence implements Runnable {
 
 		if (imageChanged) {
 			imageChanged = false;
-
 			List<Mat> contours = OFC.findQrContours(camMat);
 
 			frameCount++;

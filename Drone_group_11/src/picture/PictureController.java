@@ -311,6 +311,7 @@ public class PictureController {
 					//nav.initCompass(drone, headingLbl);
 				}
 				ofvideo.setArg0(arg0);
+				billede = arg0;
 			}
 		});
 		drone.getCommandManager().setVideoBitrate(100000);
