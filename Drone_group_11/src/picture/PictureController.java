@@ -3,11 +3,7 @@ package picture;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
-import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -15,54 +11,27 @@ import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
 
-import static org.bytedeco.javacpp.helper.opencv_core.*;
-
-import org.bytedeco.javacpp.opencv_videoio.CvCapture;
+import org.bytedeco.javacpp.opencv_core.IplImage;
+import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacv.Frame;
-
-import static org.bytedeco.javacpp.helper.opencv_imgproc.*;
-import static org.bytedeco.javacpp.opencv_imgcodecs.*;
-
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameGrabber;
 import org.bytedeco.javacv.VideoInputFrameGrabber;
 
-import com.google.zxing.Result;
-
-import org.bytedeco.javacpp.*;
-import org.bytedeco.javacpp.opencv_core.*;
-import org.bytedeco.javacpp.indexer.FloatIndexer;
-
-import static org.bytedeco.javacpp.opencv_imgproc.*;
-import static org.bytedeco.javacpp.opencv_video.*;
-
-import org.bytedeco.javacv.*;
-
-import static org.bytedeco.javacpp.opencv_core.*;
 import app.CommandController;
-import app.DroneCommunicator;
-import app.DroneInterface;
-import app.NavDataTracker;
 import de.yadrone.base.ARDrone;
 import de.yadrone.base.IARDrone;
-import de.yadrone.base.command.VideoBitRateMode;
 import de.yadrone.base.command.VideoCodec;
-import de.yadrone.base.configuration.ConfigurationListener;
 import de.yadrone.base.exception.ARDroneException;
 import de.yadrone.base.exception.IExceptionListener;
 import de.yadrone.base.video.ImageListener;
-import de.yadrone.base.video.VideoManager;
-import helper.Circle;
 import helper.Command;
-import helper.CustomPoint;
-import helper.Move;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
@@ -71,7 +40,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 public class PictureController {
@@ -101,6 +69,8 @@ public class PictureController {
 	public static final int SHOW_LANDING= 3;
 	public static int imageInt = SHOW_POLYGON;
 	private static int counts = 0;
+	
+	public static volatile boolean imageChanged;
 
 
 	// CAMERA
@@ -312,6 +282,7 @@ public class PictureController {
 				}
 				ofvideo.setArg0(arg0);
 				billede = arg0;
+				imageChanged = true;
 			}
 		});
 		drone.getCommandManager().setVideoBitrate(100000);
@@ -533,11 +504,6 @@ public class PictureController {
 	public void takeOff() throws InterruptedException {
 		System.out.println("TAKEOFF");
 		shouldScan = true;
-		cC.dC.takeOff();
-		Thread.sleep(5);
-		cC.dC.hover();
-		Thread.sleep(5);
-		
 	}
 	
 	public void showQr(){

@@ -1,30 +1,22 @@
 package picture;
 
-import static org.bytedeco.javacpp.opencv_imgproc.contourArea;
 import static org.bytedeco.javacpp.opencv_imgproc.minAreaRect;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_core.RotatedRect;
-import org.bytedeco.javacpp.opencv_imgcodecs;
 
 import app.CommandController;
-import de.yadrone.base.command.CommandManager;
 import helper.Command;
 import helper.CustomPoint;
 import helper.Move;
-import javafx.scene.control.Label;
 
 public class ScanSequence implements Runnable {
-	private static final int FORWARD_TIME_2 = 500;
-	private static final int BACKWARD_TIME = 500;
-	private static final int BACKWARD_SPEED = 15;
 	private static final int STRAFE_TIME = 650;
 	private static final int STRAFE_SPEED = 20;
 	private static final int SPIN_TIME = 300;
@@ -33,12 +25,13 @@ public class ScanSequence implements Runnable {
 	private static final int FORWARD_SPEED = 10;
 	private static final int ROTATE_TIME = 2000;
 	private static final int ROTATE_SPEED = 10;
-	private static final int HOVER_TIME = 2000;
-	private static final int READY_TO_MOVE = 12;
+	private static final int READY_TO_MOVE = 1;
+
 	// #TODO Tweak these values based on testing
 	public static final double CENTER_UPPER = 0.1;
 	public static final double CENTER_LOWER = -0.1;
 	public static final double CENTER_DIFFERENCE = 0.05;
+	
 	private Map<Integer, Integer> moveSet = new HashMap<>();
 	private CommandController commandController;
 	private double previousCenter = -1;
@@ -54,8 +47,6 @@ public class ScanSequence implements Runnable {
 	private long startTime = 0;
 	private PictureProcessingHelper OFC = new PictureProcessingHelper();
 
-	public static volatile boolean imageChanged;
-
 	public ScanSequence(CommandController commandController) {
 		moveSet.put(Command.LEFT, 0);
 		moveSet.put(Command.RIGHT, 0);
@@ -69,29 +60,27 @@ public class ScanSequence implements Runnable {
 	}
 
 	public void findMove() {
-		startTime = System.currentTimeMillis();
-		while (System.currentTimeMillis() - 2000 < startTime);
-		
-			for (Integer key : moveSet.keySet()) {
-				Integer pair = moveSet.get(key);
-				if (pair >= READY_TO_MOVE) {
-					commandController.addCommand(pair, getTimeForCommand(pair), getSpeedForCommand(pair));
-					frameCount = 0;
-					moveSet.clear();
-					return;
-				}
-				if (rotateCount < 6) {
-					commandController.addCommand(Command.ROTATERIGHT, ROTATE_TIME, ROTATE_SPEED);
-					rotateCount++;
-					moveSet.clear();
-					return;
-				} else {
-					commandController.addCommand(Command.FORWARD, FORWARD_TIME, FORWARD_SPEED);
-					rotateCount = 0;
-					moveSet.clear();
-					return;
-				}
+		for (Integer key : moveSet.keySet()) {
+			Integer pair = moveSet.get(key);
+			System.out.println(pair + "|" + key);
+			if (pair >= READY_TO_MOVE) {
+				commandController.addCommand(pair, getTimeForCommand(pair), getSpeedForCommand(pair));
+				frameCount = 0;
+				moveSet.clear();
+				return;
 			}
+			if (rotateCount < 6) {
+				commandController.addCommand(Command.ROTATERIGHT, ROTATE_TIME, ROTATE_SPEED);
+				rotateCount++;
+				moveSet.clear();
+				return;
+			} else {
+				commandController.addCommand(Command.FORWARD, FORWARD_TIME, FORWARD_SPEED);
+				rotateCount = 0;
+				moveSet.clear();
+				return;
+			}
+		}
 	}
 
 	public int getTimeForCommand(int command) {
@@ -125,6 +114,7 @@ public class ScanSequence implements Runnable {
 
 		while (PictureController.shouldScan) {
 			scanSequence();
+			findMove();
 		}
 	}
 
@@ -137,8 +127,8 @@ public class ScanSequence implements Runnable {
 			moveSet.put(Command.SPINRIGHT, 0);
 		}
 
-		if (imageChanged) {
-			imageChanged = false;
+		if (OFVideo.imageChanged) {
+			OFVideo.imageChanged = false;
 			List<Mat> contours = OFC.findQrContours(camMat);
 
 			frameCount++;
@@ -175,6 +165,7 @@ public class ScanSequence implements Runnable {
 				} else {
 					moveSet.put(Command.SPINLEFT, moveSet.get(Command.SPINLEFT) + 1);
 				}
+				return;
 			}
 			double center = OFC.center(rect);
 			if (center > CENTER_UPPER || center < CENTER_LOWER) {
@@ -196,7 +187,9 @@ public class ScanSequence implements Runnable {
 						previousCenter = center;
 					}
 				}
+				return;
 			}
+			System.out.println("CENTERED");
 			// Reset the previous center
 			previousCenter = -1;
 			//
@@ -256,8 +249,8 @@ public class ScanSequence implements Runnable {
 			// return;
 			// }
 			// }
-
-			findMove();
+		} else {
+			sleep(50);
 		}
 	}
 
