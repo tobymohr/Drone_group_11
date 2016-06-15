@@ -119,6 +119,8 @@ public class PictureController {
 	private Label qrDist;
 	@FXML
 	private Label headingLbl;
+	
+	
 
 	public void setUpKeys() {
 		borderpane.getScene().setOnKeyPressed(new EventHandler<KeyEvent>() {
@@ -131,16 +133,16 @@ public class PictureController {
 					pressedKeys.add(note);
 					switch (event.getCode()) {
 					case W:
-						cC.addCommand(Command.FORWARD, duration);
+						cC.addCommand(Command.FORWARD, duration, speed);
 						break;
 					case S:
-						cC.addCommand(Command.BACKWARDS, duration);
+						cC.addCommand(Command.BACKWARDS, duration, speed);
 						break;
 					case A:
-						cC.addCommand(Command.LEFT, duration);
+						cC.addCommand(Command.LEFT, duration, speed);
 						break;
 					case D:
-						cC.addCommand(Command.RIGHT, duration);
+						cC.addCommand(Command.RIGHT, duration, speed);
 						break;
 					case M:
 						cC.dC.land();
@@ -162,16 +164,16 @@ public class PictureController {
 						cC.emergencyStop();
 						break;
 					case UP:
-						cC.addCommand(Command.UP, duration);
+						cC.addCommand(Command.UP, duration, speed);
 						break;
 					case DOWN:
-						cC.addCommand(Command.DOWN, duration);
+						cC.addCommand(Command.DOWN, duration, speed);
 						break;
 					case LEFT:
-						cC.addCommand(Command.SPINLEFT, duration);
+						cC.addCommand(Command.SPINLEFT, duration, speed);
 						break;
 					case RIGHT:
-						cC.addCommand(Command.SPINRIGHT, duration);
+						cC.addCommand(Command.SPINRIGHT, duration, speed);
 						break;
 					case ENTER:
 						cC.dC.hover();
@@ -273,8 +275,8 @@ public class PictureController {
 		drone.start();
 		cC = new CommandController(drone);
 		drone.getCommandManager().setVideoCodec(VideoCodec.H264_720P);
-		//cC.dC.setFrontCamera();
-		cC.dC.setBottomCamera();
+		cC.dC.setFrontCamera();
+//		cC.dC.setBottomCamera();
 		new Thread(cC).start();
 		
 	}

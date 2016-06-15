@@ -5,12 +5,16 @@ import static org.bytedeco.javacpp.opencv_imgproc.minAreaRect;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_core.RotatedRect;
 
 import app.CommandController;
+import de.yadrone.base.command.CommandManager;
 import helper.Command;
 import helper.CustomPoint;
 import helper.Move;
@@ -23,16 +27,17 @@ public class ScanSequence implements Runnable {
 	private static final int STRAFE_SPEED = 20;
 	private static final int SPIN_TIME = 300;
 	private static final int SPIN_SPEED = 15;
-	private static final int FORWARD_TIME = 1500;
-	private static final int FORWARD_SPEED = 20;
-	private static final int ROTATE_TIME = 4500;
-	private static final int ROTATE_SPEED = 18;
+	private static final int FORWARD_TIME = 4000;
+	private static final int FORWARD_SPEED = 10;
+	private static final int ROTATE_TIME = 2000;
+	private static final int ROTATE_SPEED = 10;
 	private static final int HOVER_TIME = 2000;
+	private static final int READY_TO_MOVE = 12;
 	//#TODO Tweak these values based on testing
 	public static final double CENTER_UPPER = 0.1;
 	public static final double CENTER_LOWER = -0.1;
 	public static final double CENTER_DIFFERENCE = 0.05;
-		
+	private Map<Integer,Integer> moveSet = new HashMap<>();
 	private CommandController commandController;
 	private double previousCenter = -1;
 	private boolean strafeRight = true;
@@ -40,10 +45,17 @@ public class ScanSequence implements Runnable {
 	private int rotateCount = 0;
 	private int frameCount = 0;
 	private int foundFrameCount = 0;
+	private int centerCount = 0;
 	private Mat camMat;
+	private double centerOfImage = 0;
+	private long startTime = 0;
 	private PictureProcessingHelper OFC = new PictureProcessingHelper();
 	
 	public ScanSequence(CommandController commandController) {
+		moveSet.put(Command.LEFT, 0);
+		moveSet.put(Command.RIGHT, 0);
+		moveSet.put(Command.SPINLEFT, 0);
+		moveSet.put(Command.SPINRIGHT, 0);
 		this.commandController = commandController;
 	}
 	
@@ -51,28 +63,66 @@ public class ScanSequence implements Runnable {
 		this.camMat = camMat;
 	}
 	
+	public void findMove(){
+		
+		startTime = System.currentTimeMillis();
+		
+		while(System.currentTimeMillis() - 2000 < startTime);
+		
+		for (Integer key : moveSet.keySet()) {
+	        Integer pair = moveSet.get(key);
+	        if(pair >= READY_TO_MOVE){
+	        	commandController.addCommand(pair, getTimeForCommand(pair), getSpeedForCommand(pair));
+	        	frameCount = 0;
+	        	moveSet.clear();
+	        	return;
+	        }
+	        if(rotateCount < 4 ){
+	        	commandController.addCommand(Command.ROTATERIGHT, ROTATE_TIME, ROTATE_SPEED);
+				rotateCount++;
+				moveSet.clear();
+				return;
+	        }else {
+	        	commandController.addCommand(Command.FORWARD, FORWARD_TIME, FORWARD_SPEED);
+				rotateCount = 0;
+				moveSet.clear();
+				return;
+	        }
+	    }
+	}
+	
+	public int getTimeForCommand(int command){
+		if(command == Command.SPINLEFT || command == Command.SPINRIGHT){
+			return SPIN_TIME;
+		}
+		if(command == Command.RIGHT || command == Command.LEFT){
+			return STRAFE_TIME;
+		}
+		return 2000;
+	}
+	
+	public int getSpeedForCommand(int command){
+		if(command == Command.SPINLEFT || command == Command.SPINRIGHT){
+			return SPIN_SPEED;
+		}
+		if(command == Command.RIGHT || command == Command.LEFT){
+			return STRAFE_SPEED;
+		}
+		return 15;
+	}
+	
 	@Override
 	public void run() {
 		commandController.dC.takeOff();
 
 		sleep(2000);
-		System.out.println("HOVER");
+//		//System.out.println("HOVER");
 		commandController.dC.hover();
 		sleep(6000);
-		System.out.println("UP");
-		commandController.dC.setSpeed(20);
-		commandController.addCommand(Command.UP, 2000);
+//		System.out.println("UP");
+		commandController.addCommand(Command.UP, 3000, 30);
 		sleep(2000);
-		
-		System.out.println("HOVER");
-		commandController.dC.hover();
-		sleep(6000);
 
-	
-		System.out.println("UP");
-		commandController.dC.setSpeed(20);
-		commandController.addCommand(Command.UP, 2000);
-		sleep(2000);
 		
 		while(PictureController.shouldScan) {
 			scanSequence();
@@ -80,41 +130,15 @@ public class ScanSequence implements Runnable {
 	}
 	
 	private void scanSequence() {
+		if(moveSet.isEmpty()){
+			moveSet.put(Command.LEFT, 0);
+			moveSet.put(Command.RIGHT, 0);
+			moveSet.put(Command.SPINLEFT, 0);
+			moveSet.put(Command.SPINRIGHT, 0);
+		}
 		List<Mat> contours = OFC.findQrContours(camMat);
 		
-		if (contours.size() == 0) {
-			if (frameCount < 20) {
-				frameCount++;
-				return;
-			} else {
-				code = null;
-				System.out.println("HOVER");
-				commandController.dC.hover();
-				sleep(HOVER_TIME);
-				if (rotateCount < 15) {
-					//#TODO Rotate 90 degrees
-					System.out.println("ROTATE");
-					commandController.dC.setSpeed(ROTATE_SPEED);
-					commandController.addCommand(Command.SPINRIGHT, ROTATE_TIME);
-					sleep(ROTATE_TIME);
-					rotateCount++;
-				} else {
-					//#TODO Fly forwards (1 meter)
-					System.out.println("Forward");
-					commandController.dC.setSpeed(FORWARD_SPEED);
-					commandController.addCommand(Command.FORWARD, FORWARD_TIME);
-					sleep(FORWARD_TIME);
-					rotateCount = 0;
-				}
-			}
-		}
-		
-		if (foundFrameCount < 2) {
-			foundFrameCount++;
-			return;
-		}
-		
-		frameCount = 0;
+		frameCount ++;
 		foundFrameCount = 0;
 		boolean wallClose = false;		
 		if (wallClose) {
@@ -134,118 +158,95 @@ public class ScanSequence implements Runnable {
 			 }
 		}
 		
-		
-		
 		double positionFromCenter = OFC.isCenterInImage(camMat.clone(), rect);
 		if (positionFromCenter != 0) {
-			System.out.println("HOVER");
-			commandController.dC.hover();
-			sleep(HOVER_TIME);
-			//#TODO Rotate <positionFromCenter> pixels to center the QR code in image
-			int speed = SPIN_SPEED;
-			int newSpeed = OFC.getSpinSpeed(contours);
-			if(newSpeed > 0){
-				speed = newSpeed; 
+			//System.out.println("HOVER");
+			if (positionFromCenter > 0 ) {
+				//System.out.println("SPINRIGHT");
+				moveSet.put(Command.SPINRIGHT, moveSet.get(Command.SPINRIGHT) +1);
+			} else  {
+				//System.out.println("SPINLEFT");
+				moveSet.put(Command.SPINLEFT, moveSet.get(Command.SPINLEFT) +1);
 			}
-			
-			commandController.dC.setSpeed(speed);
-			if (positionFromCenter > 0) {
-				System.out.println("SPINRIGHT");
-				commandController.addCommand(Command.SPINRIGHT, SPIN_TIME);
-				sleep(SPIN_TIME);
-			} else {
-				System.out.println("SPINLEFT");
-				commandController.addCommand(Command.SPINLEFT, SPIN_TIME);
-				sleep(SPIN_TIME);
-			}
-			return;
 		}
 		double center = OFC.center(rect);
 		if (center > CENTER_UPPER || center < CENTER_LOWER) {
-			System.out.println("HOVER");
-			commandController.dC.hover();
-			sleep(HOVER_TIME);
+			//System.out.println("HOVER");
 			//#TODO Strafe the drone <center> amount. Right is chosen as standard.
-			commandController.dC.setSpeed(STRAFE_SPEED);
 			if (strafeRight) {
-				System.out.println("STRAFERIGHT");
-				commandController.addCommand(Command.RIGHT, STRAFE_TIME);
-				sleep(STRAFE_TIME);
+				moveSet.put(Command.RIGHT, moveSet.get(Command.RIGHT) +1);
 			} else {
-				System.out.println("STRAFELEFT");
-				commandController.addCommand(Command.LEFT, STRAFE_TIME);
-				sleep(STRAFE_TIME);
+				moveSet.put(Command.LEFT, moveSet.get(Command.LEFT) +1);
 			}
 			if (previousCenter == -1) {
 				// Record center in order to react to it next iteration
 				previousCenter = center;
 			} else {
 				double difference = center - previousCenter;
-				System.out.println("PREV " + previousCenter);
-				System.out.println("CENTER " + center);
 				if (difference > CENTER_DIFFERENCE) {
 					// We moved the wrong way. Change strafe direction.
 					strafeRight = !strafeRight;
 					previousCenter = center;
-					System.out.println("CHANGE STRAFE DIRECTION");
+					//System.out.println("CHANGE STRAFE DIRECTION");
 				}
 			}
-			return;
 		}
 		// Reset the previous center
 		previousCenter = -1;
+//		
+//		Mat qrImg = OFC.warpImage(camMat.clone(), rect);
+//		
+//		String tempCode = OFC.scanQrCode(qrImg);
+//
+//		if (tempCode != null) {
+////				// Code stored as field, we need to use it even if we're too far away to scan it.
+////				//#TODO Ensure that the field code is set to null every time we need to reset.  
+//			code = tempCode;
+//			//System.out.println(tempCode);
+//		}
+//		//System.out.println("CENTERED");
+//		if(code != null) {
+//			// Check amount of squares found
+//			// #TODO Implement some way to check squares across more than one frame
+//			if (contours.size() == 3) {
+//				//#TODO Calculate distance and placement in coordinate system
+//				CustomPoint placement = calculatePlacement(camMat, contours);
+//				//System.out.println(placement.getX() + "|" + placement.getY());
+//				moveDroneToStart(placement);
+//				code = null;
+//				centerCount++;
+//				rotateCount = 0;
+//				PictureController.shouldScan = false;
+//				return;
+//			} else if(CommandController.droneIsReady && centerCount > 10 ) {
+//				//System.out.println("HOVER");
+//				centerCount = 0;
+//				commandController.dC.hover();
+//				sleep(HOVER_TIME);
+//				//#TODO Fly backwards (0.5 meters)
+//				commandController.addCommand(Command.BACKWARDS, BACKWARD_TIME, BACKWARD_SPEED);
+//				sleep(BACKWARD_TIME);
+//				return;
+//			}
+//		} else {
+//			double distanceToSquare = OFC.calcDistance(rect);
+//			//System.out.println("HOVER");
+//			commandController.dC.hover();
+//			sleep(HOVER_TIME);
+//			// It might still be a QR code, we're too far away to know
+//			if (distanceToSquare > 100 && CommandController.droneIsReady) {
+//				//#TODO Fly closer to the square (0.5 meters)
+//				commandController.addCommand(Command.FORWARD, FORWARD_TIME_2, BACKWARD_SPEED);
+//				sleep(FORWARD_TIME_2);
+//				return;
+//			} else {
+//				//#TODO Fly backwards (4-5 meters)
+//				//#TODO Rotate 90 degrees
+//				return;
+//			}
+//		}
 		
-		Mat qrImg = OFC.warpImage(camMat.clone(), rect);
-		
-		String tempCode = OFC.scanQrCode(qrImg);
-
-		if (tempCode != null) {
-//				// Code stored as field, we need to use it even if we're too far away to scan it.
-//				//#TODO Ensure that the field code is set to null every time we need to reset.  
-			code = tempCode;
-			System.out.println(tempCode);
-		}
-		System.out.println("CENTERED");
-		if(code != null) {
-			// Check amount of squares found
-			// #TODO Implement some way to check squares across more than one frame
-			if (contours.size() == 3) {
-				//#TODO Calculate distance and placement in coordinate system
-				CustomPoint placement = calculatePlacement(camMat, contours);
-				System.out.println(placement.getX() + "|" + placement.getY());
-				moveDroneToStart(placement);
-				code = null;
-				rotateCount = 0;
-				PictureController.shouldScan = false;
-				return;
-			} else {
-				System.out.println("HOVER");
-				commandController.dC.hover();
-				sleep(HOVER_TIME);
-				//#TODO Fly backwards (0.5 meters)
-				commandController.dC.setSpeed(BACKWARD_SPEED);
-				commandController.addCommand(Command.BACKWARDS, BACKWARD_TIME);
-				sleep(BACKWARD_TIME);
-				return;
-			}
-		} else {
-			double distanceToSquare = OFC.calcDistance(rect);
-			System.out.println("HOVER");
-			commandController.dC.hover();
-			sleep(HOVER_TIME);
-			// It might still be a QR code, we're too far away to know
-			if (distanceToSquare > 100) {
-				//#TODO Fly closer to the square (0.5 meters)
-				commandController.dC.setSpeed(FORWARD_SPEED);
-				commandController.addCommand(Command.FORWARD, FORWARD_TIME_2);
-				sleep(FORWARD_TIME_2);
-				return;
-			} else {
-				//#TODO Fly backwards (4-5 meters)
-				//#TODO Rotate 90 degrees
-				return;
-			}
-		}
+		findMove();
 	}
 	
 	private void sleep(int duration) {

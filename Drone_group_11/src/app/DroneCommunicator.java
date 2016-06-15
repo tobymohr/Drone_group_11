@@ -131,6 +131,7 @@ public class DroneCommunicator implements DroneInterface {
 			@Override
 			public void run() {
 				commandManager.down(speed).doFor(duration);
+				
 			}
 		});
 	}
