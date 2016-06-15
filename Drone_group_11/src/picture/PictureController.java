@@ -86,7 +86,10 @@ public class PictureController {
 	private Set<KeyCode> pressedKeys = new HashSet<KeyCode>();
 	private Mat camMat = null;
 	public static boolean shouldScan = false;
+	public static boolean shouldTestWall = false;
+	public static boolean shouldLand = false;
 	private static boolean aboveLanding = false;
+	
 	private static int circleCounter = 0;
 	public BufferedImage billede;
 	public int navn = 0;
@@ -275,8 +278,8 @@ public class PictureController {
 		drone.start();
 		cC = new CommandController(drone);
 		drone.getCommandManager().setVideoCodec(VideoCodec.H264_720P);
-		cC.dC.setFrontCamera();
-//		cC.dC.setBottomCamera();
+//		cC.dC.setFrontCamera();
+		cC.dC.setBottomCamera();
 		new Thread(cC).start();
 		
 	}
@@ -298,8 +301,8 @@ public class PictureController {
 				ofvideo.setArg0(arg0);
 			}
 		});
-		drone.getCommandManager().setVideoBitrate(100000);
-
+		drone.getCommandManager().setVideoBitrateControl(VideoBitRateMode.MANUAL);
+		drone.getCommandManager().setVideoBitrate(4000);
 	}
 
 	public void grabFromVideo() throws org.bytedeco.javacv.FrameGrabber.Exception {
@@ -357,11 +360,6 @@ public class PictureController {
 					showPolygons(camMat, filteredMat);
 					break;
 				}
-
-				
-				
-				
-				
 
 				Platform.runLater(new Runnable() {
 					@Override
@@ -516,7 +514,9 @@ public class PictureController {
 
 	public void takeOff() throws InterruptedException {
 		System.out.println("TAKEOFF");
-		shouldScan = true;
+//		shouldScan = true;
+//		shouldTestWall = true;
+		shouldLand = true;
 		cC.dC.takeOff();
 		Thread.sleep(5);
 		cC.dC.hover();

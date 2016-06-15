@@ -40,7 +40,7 @@ public class CommandController implements Runnable {
 					while(wait || q.peek()==null){
 						try {
 							dC.hover();
-							System.out.println("HOVER");
+//							System.out.println("HOVER");
 							wait(5000);
 						} catch (InterruptedException e) {
 							e.printStackTrace();

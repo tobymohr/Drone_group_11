@@ -72,12 +72,12 @@ public class AvoidWallDemo implements Runnable {
 		commandController.dC.hover();
 		sleep(6000);
 		while(true){
-			commandController.addCommand(Command.FORWARD, 250, 10);
+			commandController.addCommand(Command.FORWARD, 250, 5);
 			sleep(2000);
 			if(OFC.getDistance() <= 200)
 				break;
 			commandController.dC.hover();
-			sleep(500);
+			sleep(1000);
 		}
 		System.out.println("OUT");
 		commandController.dC.land();
