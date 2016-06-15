@@ -111,7 +111,7 @@ public class CommandController implements Runnable {
 						dC.land();
 					}
 					
-					wait(task.time);
+					Thread.sleep(task.time);
 					
 					System.out.println("TIME " + (int) (task.time) + " SPEED " + (task.speed));
 					
@@ -155,6 +155,10 @@ public class CommandController implements Runnable {
 
 	public void emergencyStop(){
 		dC.emergencyStop();
+	}
+	
+	public boolean isDroneReady() {
+		return droneIsReady;
 	}
 	
 	
