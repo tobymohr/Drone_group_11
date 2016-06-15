@@ -122,21 +122,21 @@ public class OFVideo implements Runnable {
 
 					}
 				});
-//				if (PictureController.shouldScan) {
-//					scanSequence.setImage(newImg.clone());
-//					if (isFirst) {
-//						new Thread(scanSequence).start();
-//						isFirst = false;
-//					}
-//				}
-				if (PictureController.shouldScan){
-					CK.setImage(newImg.clone());
-					if(isFirst){
-						new Thread(CK).start();
+				if (PictureController.shouldScan) {
+					scanSequence.setImage(newImg.clone());
+					if (isFirst) {
+						new Thread(scanSequence).start();
 						isFirst = false;
 					}
-					scanSequence.imageChanged = true;
 				}
+//				if (PictureController.shouldScan){
+//					CK.setImage(newImg.clone());
+//					if(isFirst){
+//						new Thread(CK).start();
+//						isFirst = false;
+//					}
+//					scanSequence.imageChanged = true;
+//				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
