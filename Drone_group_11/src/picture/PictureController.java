@@ -119,8 +119,8 @@ public class PictureController {
 	private Label qrDist;
 	@FXML
 	private Label headingLbl;
-	
-	
+	@FXML
+	private ImageView bufferedframe;
 
 	public void setUpKeys() {
 		borderpane.getScene().setOnKeyPressed(new EventHandler<KeyEvent>() {
@@ -291,7 +291,7 @@ public class PictureController {
 			public void imageUpdated(BufferedImage arg0) {
 				if (isFirst) {
 					new Thread(ofvideo = new OFVideo(mainFrame, qrCode, qrDist,
-							arg0, cC)).start();
+							arg0, cC, bufferedframe)).start();
 					isFirst = false;
 					//nav.initCompass(drone, headingLbl);
 				}
@@ -306,7 +306,7 @@ public class PictureController {
 
 		OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
 		OpenCVFrameConverter.ToMat converterMat = new OpenCVFrameConverter.ToMat();
-		FrameGrabber grabber = new VideoInputFrameGrabber(0);
+		FrameGrabber grabber = new VideoInputFrameGrabber(1);
 		grabber.start();
 		
 		Runnable frameGrabber = new Runnable() {
@@ -517,10 +517,10 @@ public class PictureController {
 	public void takeOff() throws InterruptedException {
 		System.out.println("TAKEOFF");
 		shouldScan = true;
-//		cC.dC.takeOff();
-//		Thread.sleep(5);
-//		cC.dC.hover();
-//		Thread.sleep(5);
+		cC.dC.takeOff();
+		Thread.sleep(5);
+		cC.dC.hover();
+		Thread.sleep(5);
 		
 	}
 	

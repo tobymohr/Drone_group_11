@@ -12,5 +12,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/JavaCVDrone"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.USER_LIBRARY/YaDrones"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Yadrone"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/YaDroneZxing"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/YaDroneCommand"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

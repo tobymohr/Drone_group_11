@@ -12,12 +12,14 @@ import java.util.Map;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_core.RotatedRect;
+import org.bytedeco.javacpp.opencv_imgcodecs;
 
 import app.CommandController;
 import de.yadrone.base.command.CommandManager;
 import helper.Command;
 import helper.CustomPoint;
 import helper.Move;
+import javafx.scene.control.Label;
 
 public class ScanSequence implements Runnable {
 	private static final int FORWARD_TIME_2 = 500;
@@ -46,10 +48,14 @@ public class ScanSequence implements Runnable {
 	private int frameCount = 0;
 	private int foundFrameCount = 0;
 	private int centerCount = 0;
+	private int scannedCount = 0;
 	private Mat camMat;
 	private double centerOfImage = 0;
 	private long startTime = 0;
 	private PictureProcessingHelper OFC = new PictureProcessingHelper();
+
+	
+	public static volatile boolean imageChanged;
 	
 	public ScanSequence(CommandController commandController) {
 		moveSet.put(Command.LEFT, 0);
@@ -63,32 +69,34 @@ public class ScanSequence implements Runnable {
 		this.camMat = camMat;
 	}
 	
-	public void findMove(){
-		
+	public void findMove() {
+
 		startTime = System.currentTimeMillis();
-		
-		while(System.currentTimeMillis() - 2000 < startTime);
-		
-		for (Integer key : moveSet.keySet()) {
-	        Integer pair = moveSet.get(key);
-	        if(pair >= READY_TO_MOVE){
-	        	commandController.addCommand(pair, getTimeForCommand(pair), getSpeedForCommand(pair));
-	        	frameCount = 0;
-	        	moveSet.clear();
-	        	return;
-	        }
-	        if(rotateCount < 4 ){
-	        	commandController.addCommand(Command.ROTATERIGHT, ROTATE_TIME, ROTATE_SPEED);
-				rotateCount++;
-				moveSet.clear();
-				return;
-	        }else {
-	        	commandController.addCommand(Command.FORWARD, FORWARD_TIME, FORWARD_SPEED);
-				rotateCount = 0;
-				moveSet.clear();
-				return;
-	        }
-	    }
+
+		while (System.currentTimeMillis() - 2000 < startTime);
+
+		if (imageChanged) {
+			for (Integer key : moveSet.keySet()) {
+				Integer pair = moveSet.get(key);
+				if (pair >= READY_TO_MOVE) {
+					commandController.addCommand(pair, getTimeForCommand(pair), getSpeedForCommand(pair));
+					frameCount = 0;
+					moveSet.clear();
+					return;
+				}
+				if (rotateCount < 4) {
+					commandController.addCommand(Command.ROTATERIGHT, ROTATE_TIME, ROTATE_SPEED);
+					rotateCount++;
+					moveSet.clear();
+					return;
+				} else {
+					commandController.addCommand(Command.FORWARD, FORWARD_TIME, FORWARD_SPEED);
+					rotateCount = 0;
+					moveSet.clear();
+					return;
+				}
+			}
+		}
 	}
 	
 	public int getTimeForCommand(int command){
@@ -113,6 +121,7 @@ public class ScanSequence implements Runnable {
 	
 	@Override
 	public void run() {
+
 		commandController.dC.takeOff();
 
 		sleep(2000);
@@ -130,22 +139,35 @@ public class ScanSequence implements Runnable {
 	}
 	
 	private void scanSequence() {
+		imageChanged = false;
+		
 		if(moveSet.isEmpty()){
 			moveSet.put(Command.LEFT, 0);
 			moveSet.put(Command.RIGHT, 0);
 			moveSet.put(Command.SPINLEFT, 0);
 			moveSet.put(Command.SPINRIGHT, 0);
 		}
+		if (!imageChanged) {
+			return;
+		}
+		imageChanged = false;
 		List<Mat> contours = OFC.findQrContours(camMat);
 		
 		frameCount ++;
 		foundFrameCount = 0;
-		boolean wallClose = false;		
-		if (wallClose) {
-			//#TODO Fly backwards (4-5 meters)
-			//#TODO Rotate 90 degrees
-			return;
-		}
+//		boolean wallClose = false;		
+//		
+//		if(OFC.getDistance() <= 200){
+//			commandController.dC.hover();
+//			System.out.println("WallClose");
+//			wallClose = true;
+//		}
+//		
+//		if (wallClose) {
+//			
+//			//#TODO Rotate 90 degrees
+//			return;
+//		}
 
 		double distanceFomCenter = 5000;
 		RotatedRect rect = new RotatedRect();
@@ -168,6 +190,7 @@ public class ScanSequence implements Runnable {
 				//System.out.println("SPINLEFT");
 				moveSet.put(Command.SPINLEFT, moveSet.get(Command.SPINLEFT) +1);
 			}
+			return;
 		}
 		double center = OFC.center(rect);
 		if (center > CENTER_UPPER || center < CENTER_LOWER) {
@@ -275,7 +298,8 @@ public class ScanSequence implements Runnable {
 				OFC.calcDistance(middleQR), OFC.calcDistance(rightQR), code);
 		CustomPoint scannedPoint = CustomPoint.parseQRText(code);
 		for (CustomPoint e : points) {
-			if (e.getX() != scannedPoint.getX() || e.getY() != scannedPoint.getY()) {
+			System.out.println(e.toString());
+			if (Math.round(e.getX()) != scannedPoint.getX() || Math.round(e.getY()) != scannedPoint.getY()) {
 				placement = e;
 			}
 		}
