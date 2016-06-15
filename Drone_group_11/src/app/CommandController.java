@@ -128,6 +128,7 @@ public class CommandController implements Runnable {
 //						dC.spinLeft((int)(task.time/COUNTER_FACTOR));
 //						wait((int)(task.time/COUNTER_FACTOR));
 //					}
+					
 //					
 //					dC.hover();
 //					wait(1500);
