@@ -101,7 +101,7 @@ public class PictureController {
             @Override
             public void handle(WindowEvent t) {
             	System.out.println("EXIT");
-            	if(cC.dC.getDroneFlying()){
+            	if(cC.droneInterface.getDroneFlying()){
             		land();
             	}
                 Platform.exit();
@@ -131,7 +131,7 @@ public class PictureController {
 						cC.addCommand(Command.RIGHT, duration, speed);
 						break;
 					case M:
-						cC.dC.land();
+						cC.droneInterface.land();
 						break;
 					case F:
 						navn++;
@@ -162,16 +162,16 @@ public class PictureController {
 						cC.addCommand(Command.SPINRIGHT, duration, speed);
 						break;
 					case ENTER:
-						cC.dC.hover();
+						cC.droneInterface.hover();
 						break;
 					case O:
 						speed += 5;
-						cC.dC.setSpeed(speed);
+						cC.droneInterface.setSpeed(speed);
 						qrCode.setText("speed: " + speed);
 						break;
 					case I:
 						speed -= 5;
-						cC.dC.setSpeed(speed);
+						cC.droneInterface.setSpeed(speed);
 						qrCode.setText("speed: " + speed);
 						break;
 					case L:
@@ -199,7 +199,7 @@ public class PictureController {
 						System.out.println("Max: " + OFC.blueMax);
 						break;
 					case T:
-						cC.dC.setBottomCamera();
+						cC.droneInterface.setBottomCamera();
 					default:
 
 						break;
@@ -263,7 +263,7 @@ public class PictureController {
 		drone.start();
 		cC = new CommandController(drone);
 		drone.getCommandManager().setVideoCodec(VideoCodec.H264_720P);
-		cC.dC.setFrontCamera();
+		cC.droneInterface.setFrontCamera();
 //		cC.dC.setBottomCamera();
 		new Thread(cC).start();
 		
@@ -437,7 +437,7 @@ public class PictureController {
 				if(counts == 3){
 					System.out.println("landing");
 					
-					cC.dC.land();
+					cC.droneInterface.land();
 				}
 //			}
 		}
@@ -526,7 +526,7 @@ public class PictureController {
 	}
 
 	public void land() {
-		cC.dC.land();
+		cC.droneInterface.land();
 		shouldScan = false;
 	}
 

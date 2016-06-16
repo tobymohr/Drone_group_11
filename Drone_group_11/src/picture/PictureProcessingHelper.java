@@ -217,7 +217,7 @@ public class PictureProcessingHelper {
 
 
 	public double isCenterInImage(Mat img, RotatedRect rect) {
-		double factor = 3;
+		double factor = 2.7;
 		double xleft = img.arrayWidth() / factor;
 		double xright = (img.arrayWidth() / factor) * (factor - 1);
 		double middleX = img.arrayWidth() / 2;
@@ -311,44 +311,7 @@ public class PictureProcessingHelper {
 	}
 
 
-	public List<Move> calcMoves(double x, double y) {
-		List<Move> moves = new ArrayList<>();
-		int minY = 0;
-		int maxX = 5;
-		int maxY = 5;
-		// Calc moves in x-axis
-		for (int i = 0; i < 5; i++) {
-			if (x < maxX) {
-				x++;
-				moves.add(new Move(Move.MOVE_RIGHT));
-			}
-		}
-		// Calc moves in y-axis
-		for (int i = 0; i < 5; i++) {
-			if (y <= maxY && y > minY) {
-				y--;
-				moves.add(new Move(Move.MOVE_DOWN));
-			}
-		}
-		return moves;
-	}
-
-	public void printMoves(List<Move> moves) {
-		for (Move move : moves) {
-			if (move.getMove() == Move.MOVE_RIGHT) {
-//				System.out.println("MOVE RIGHT");
-			}
-			if (move.getMove() == Move.MOVE_DOWN) {
-//				System.out.println("MOVE DOWN");
-			}
-			if (move.getMove() == Move.MOVE_LEFT) {
-//				System.out.println("MOVE LEFT");
-			}
-			if (move.getMove() == Move.MOVE_FORWARD) {
-//				System.out.println("MOVE FORWARD");
-			}
-		}
-	}
+	
 
 	public CustomPoint[] calcPosition(double distanceOne, double distanceTwo, double distanceThree, String code) {
 		CustomPoint P1 = CustomPoint.parseQRTextLeft(code);

@@ -173,7 +173,7 @@ public class OFVideo implements Runnable {
 					//Drone skal flye lidt ned
 					System.out.println("going down");
 //					Thread.sleep(10);
-					cC.dC.goDown(6);
+					cC.droneInterface.goDown(6);
 					Thread.sleep(10);
 					counts++;
 					System.out.println(counts);
@@ -192,7 +192,7 @@ public class OFVideo implements Runnable {
 				if(counts == 3){
 					System.out.println("landing");
 					
-					cC.dC.land();
+					cC.droneInterface.land();
 				}
 //			}
 		}

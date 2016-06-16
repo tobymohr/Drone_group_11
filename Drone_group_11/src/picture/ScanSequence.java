@@ -5,7 +5,9 @@ import static org.bytedeco.javacpp.opencv_imgproc.minAreaRect;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_core.RotatedRect;
@@ -17,22 +19,23 @@ import helper.CustomPoint;
 import helper.Move;
 
 public class ScanSequence implements Runnable {
-	private static final int FORWARD_TIME_2 = 500;
-	private static final int BACKWARD_TIME = 500;
-	private static final int BACKWARD_SPEED = 10;
-	private static final int STRAFE_TIME = 650;
+	private static final int MIN_HIT_COUNT = 6;
+	private static final int FORWARD_TIME_2 =2000;
+	private static final int BACKWARD_TIME = 1500;
+	private static final int BACKWARD_SPEED = 9;
+	private static final int STRAFE_TIME = 1200;
 	private static final int STRAFE_SPEED = 10;
-	private static final int SPIN_TIME = 1000;
-	private static final int SPIN_SPEED = 10;
-	private static final int FORWARD_TIME = 1500;
-	private static final int FORWARD_SPEED = 8;
-	private static final int ROTATE_TIME =1000;
-	private static final int ROTATE_SPEED = 18;
+	private static final int SPIN_TIME = 1500;
+	private static final int SPIN_SPEED = 6;
+	private static final int FORWARD_TIME = 1200;
+	private static final int FORWARD_SPEED = 9;
+	private static final int ROTATE_TIME = 5000;
+	private static final int ROTATE_SPEED = 17;
 	
 	//#TODO Tweak these values based on testing
-	public static final double CENTER_UPPER = 0.1;
-	public static final double CENTER_LOWER = -0.1;
-	public static final double CENTER_DIFFERENCE = 0.03;
+	public static final double CENTER_UPPER = 0.15;
+	public static final double CENTER_LOWER = -0.15;
+	public static final double CENTER_DIFFERENCE = 0.05;
 		
 	private CommandController commandController;
 	private double previousCenter = -1;
@@ -43,7 +46,10 @@ public class ScanSequence implements Runnable {
 	private int scannedCount = 0;
 	private Mat camMat;
 	private int foundFrameCount = 0;
+	private CustomPoint placement = null;
+	private boolean moveToStart = false;
 	private PictureProcessingHelper OFC = new PictureProcessingHelper();
+	private Map<Integer, Integer> moves = new HashMap<>();
 	
 	public ScanSequence(CommandController commandController) {
 		this.commandController = commandController;
@@ -55,15 +61,14 @@ public class ScanSequence implements Runnable {
 	
 	@Override
 	public void run() {
-		commandController.dC.takeOff();
+		commandController.droneInterface.takeOff();
 
 		sleep(2000);
 		System.out.println("HOVER");
-		commandController.dC.hover();
-		sleep(6000);
+		commandController.droneInterface.hover();
+		sleep(2000);
 		System.out.println("UP");
-		commandController.addCommand(Command.UP, 4000, 15);
-	
+		commandController.addCommand(Command.UP, 5000, 15);
 		
 		while(PictureController.shouldScan) {
 			if (OFVideo.imageChanged) {
@@ -72,16 +77,18 @@ public class ScanSequence implements Runnable {
 				sleep(50);
 			}
 		}
+		
+		while(moveToStart){
+			moveDroneToStart(placement);
+		}
 	}
 	
 	private void scanSequence() {
 		OFVideo.imageChanged = false;
 		List<Mat> contours = OFC.findQrContours(camMat);
-		
 		if (contours.size() == 0) {
-			if (frameCount < 50) {
+			if (frameCount < 4) {
 				frameCount++;
-				return;
 			} else {
 				code = null;
 				if (rotateCount < 15) {
@@ -95,12 +102,11 @@ public class ScanSequence implements Runnable {
 				}
 				frameCount = 0;
 			}
-		}
-		
-		if(foundFrameCount < 2){
-			foundFrameCount++;
 			return;
 		}
+		
+		
+		
 		foundFrameCount = 0;
 		frameCount = 0;
 		
@@ -116,10 +122,8 @@ public class ScanSequence implements Runnable {
 			 }
 		}
 		
-		
 		double positionFromCenter = OFC.isCenterInImage(camMat.clone(), rect);
 		if (positionFromCenter != 0) {
-			//#TODO Rotate <positionFromCenter> pixels to center the QR code in image
 			if (positionFromCenter > 0) {
 				addCommand(Command.SPINRIGHT, SPIN_TIME, SPIN_SPEED);
 			} else {
@@ -128,25 +132,18 @@ public class ScanSequence implements Runnable {
 			return;
 		}
 		
-		if (true) {
-			return;
-		}
-		
 		double center = OFC.center(rect);
 		if (center > CENTER_UPPER || center < CENTER_LOWER) {
-			//#TODO Strafe the drone <center> amount. Right is chosen as standard.
 			if (strafeRight) {
 				addCommand(Command.RIGHT, STRAFE_TIME, STRAFE_SPEED);
 			} else {
 				addCommand(Command.LEFT, STRAFE_TIME, STRAFE_SPEED);
 			}
 			if (previousCenter == -1) {
-				// Record center in order to react to it next iteration
 				previousCenter = center;
 			} else {
 				double difference = center - previousCenter;
 				if (difference > CENTER_DIFFERENCE) {
-					// We moved the wrong way. Change strafe direction.
 					strafeRight = !strafeRight;
 					previousCenter = center;
 					System.out.println("CHANGE STRAFE DIRECTION");
@@ -154,13 +151,15 @@ public class ScanSequence implements Runnable {
 			}
 			return;
 		}
+		
+		
 		// Reset the previous center
 		previousCenter = -1;
-		double distanceToDrone = OFC.calcDistance(rect);
-		if (distanceToDrone < 300) {
-			addCommand(Command.BACKWARDS, BACKWARD_TIME, BACKWARD_SPEED);
-			return;
-		}
+//		double distanceToDrone = OFC.calcDistance(rect);
+//		if (distanceToDrone < 300) {
+//			addCommand(Command.BACKWARDS, BACKWARD_TIME, BACKWARD_SPEED);
+//			return;
+//		}
 		Mat qrImg = OFC.warpImage(camMat.clone(), rect);
 		
 		String tempCode = OFC.scanQrCode(qrImg);
@@ -178,8 +177,8 @@ public class ScanSequence implements Runnable {
 			System.out.println(contours.size());
 			if (contours.size() == 3) {
 				//#TODO Calculate distance and placement in coordinate system
-				CustomPoint placement = calculatePlacement(camMat, contours);
-				moveDroneToStart(placement);
+				placement = calculatePlacement(camMat, contours);
+				moveToStart = true;
 				code = null;
 				rotateCount = 0;
 				PictureController.shouldScan = false;
@@ -219,11 +218,18 @@ public class ScanSequence implements Runnable {
 	
 	private void addCommand(int task, int duration, int speed) {
 		if (commandController.isDroneReady()) {
-			commandController.addCommand(task, duration, speed);
-			try {
-				Thread.sleep(duration+500);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+			if (moves.containsKey(task)) {
+				if ((task == Command.SPINLEFT || task == Command.SPINRIGHT) && moves.get(task) > MIN_HIT_COUNT / 2) {
+					commandController.addCommand(task, duration, speed);
+					moves.clear();
+				} else if (moves.get(task) > MIN_HIT_COUNT) {
+					commandController.addCommand(task, duration, speed);
+					moves.clear();
+				} else {
+					moves.put(task, moves.get(task) + 1);
+				}
+			} else {
+				moves.put(task, 1);
 			}
 		}
 	}
@@ -256,9 +262,61 @@ public class ScanSequence implements Runnable {
 	}
 	
 	private void moveDroneToStart(CustomPoint placement) {
-		List<Move> moves = OFC.calcMoves(placement.getX(), placement.getY());
+		OFVideo.imageChanged = false;
+//		double distanceToSquare = OFC.calcDistance(rect);
+	}
+	
+	private List<Move> calcMovesXAxis(double x, double y) {
+		List<Move> moves = new ArrayList<>();
+		int minY = 0;
+		int maxX = 5;
+		int maxY = 5;
+		// Calc moves in x-axis
+		for (int i = 0; i < 5; i++) {
+			if (x < maxX) {
+				x++;
+				moves.add(new Move(Move.MOVE_RIGHT));
+			}
+		}
+		// Calc moves in y-axis
+		for (int i = 0; i < 5; i++) {
+			if (y <= maxY && y > minY) {
+				y--;
+				moves.add(new Move(Move.MOVE_DOWN));
+			}
+		}
+		return moves;
+	}
+	
+	private List<Move> calcMovesYAxis(double x, double y) {
+		List<Move> moves = new ArrayList<>();
+		int minY = 0;
+		int maxX = 5;
+		int maxY = 5;
+		// Calc moves in x-axis
+		for (int i = 0; i < 5; i++) {
+			if (y <= maxY && y > minY) {
+				y--;
+				moves.add(new Move(Move.MOVE_DOWN));
+			}
+		}
+		return moves;
+	}
+
+	private void printMoves(List<Move> moves) {
 		for (Move move : moves) {
-			//#TODO Actually move the drone according to movess
+			if (move.getMove() == Move.MOVE_RIGHT) {
+//				System.out.println("MOVE RIGHT");
+			}
+			if (move.getMove() == Move.MOVE_DOWN) {
+//				System.out.println("MOVE DOWN");
+			}
+			if (move.getMove() == Move.MOVE_LEFT) {
+//				System.out.println("MOVE LEFT");
+			}
+			if (move.getMove() == Move.MOVE_FORWARD) {
+//				System.out.println("MOVE FORWARD");
+			}
 		}
 	}
 }
