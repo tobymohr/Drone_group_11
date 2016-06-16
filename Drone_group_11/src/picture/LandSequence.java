@@ -24,8 +24,8 @@ public class LandSequence implements Runnable {
 	private Mat camMat;
 	int circles = 0;
 	String code = null;
-	
-	
+	String checkCode = null;
+
 	public LandSequence(CommandController commandController) {
 		moveSet.put(Command.LEFT, 0);
 		moveSet.put(Command.RIGHT, 0);
@@ -49,26 +49,44 @@ public class LandSequence implements Runnable {
 	
 	
 	public void run() {
-		
+
 		System.out.println("HOVER");
 		cC.dC.hover();
-		while(true){
+		while (code == null) {
 			code = OFC.scanQrCode(camMat);
-			
-	
 			sleep(10);
-//			
 			if(code != null){
 				System.out.println(code);
 				break;
 			}
 				
 		}
-		
+		System.out.println(code);
+
 		sleep(5000);
 		cC.dC.setSpeed(5);
-		cC.addCommand(Command.UP, 2600, 20);
-		sleep(2700);
+		cC.addCommand(Command.UP, 3600, 30);
+		sleep(3700);
+		cC.dC.hover();
+
+		while(true){
+			circles = OFC.myCircle(camMat);
+			if (circles > 0) {
+				cC.addCommand(Command.DOWN, 2000, 15);
+				sleep(2000);
+				while (checkCode == null) {
+					checkCode = OFC.scanQrCode(camMat);
+					sleep(10);
+				}
+				cC.addCommand(Command.UP, 2500, 20);
+				sleep(2100);
+				if (code.equals(checkCode)){
+					System.out.println("Found");
+					break;
+				}
+				// TODO: Save coordinates
+			}
+		}
 		
 		while(true){
 			circles = OFC.myCircle(camMat);
@@ -83,44 +101,45 @@ public class LandSequence implements Runnable {
 		
 		while (true) {
 			
+
 			boolean check = OFC.checkDecodedQR(camMat);
 
 			if (check) {
 
-					circles = OFC.myCircle(camMat);
+				circles = OFC.myCircle(camMat);
 
-					if (circles > 0) {
-						aboveLanding = true;
-						// If false restart landing sequence
-						// Land
-						System.out.println("going down");
-						// Thread.sleep(10);
-						sleep(500);
-						counts++;
-						System.out.println(counts);
-						circleCounter = 0;
-					} else {
-						circles = 0;
-						circleCounter++;
-						System.out.println(circleCounter);
+				if (circles > 0) {
+					aboveLanding = true;
+					// If false restart landing sequence
+					// Land
+					System.out.println("going down");
+					// Thread.sleep(10);
+					sleep(10);
+					counts++;
+					// System.out.println(counts);
+					circleCounter = 0;
+				} else {
+					circles = 0;
+					circleCounter++;
+					System.out.println(circleCounter);
 
-					}
-					if (circleCounter >= 120) {
-						aboveLanding = false;
-						circleCounter = 0;
-						counts = 0;
-					}
-					if (counts == 3) {
-						System.out.println("landing");
+				}
+				if (circleCounter >= 120) {
+					aboveLanding = false;
+					circleCounter = 0;
+					counts = 0;
+				}
+				if (counts >= 3) {
+					System.out.println("landing");
 
-						cC.addCommand(Command.LAND, 6000, 2);
-						break;
-					}
-					// }
+					cC.addCommand(Command.LAND, 6000, 2);
+					break;
 				}
 			}
 		}
-	//	}
+	}
+
+	// }
 
 	private void sleep(int duration) {
 		try {

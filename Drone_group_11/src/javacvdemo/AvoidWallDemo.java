@@ -24,8 +24,7 @@ public class AvoidWallDemo implements Runnable {
 	//#TODO Tweak these values based on testing
 	public static final double CENTER_UPPER = 0.1;
 	public static final double CENTER_LOWER = -0.1;
-	public static final double CENTER_DIFFERENCE = 0.05;
-		
+	public static final double CENTER_DIFFERENCE = 0.05;		
 	private CommandController commandController;
 	private double previousCenter = -1;
 	private boolean strafeRight = true;
