@@ -52,11 +52,11 @@ public class LandSequence implements Runnable {
 
 		sleep(5000);
 		cC.dC.setSpeed(5);
-		cC.addCommand(Command.UP, 3600, 30);
+		cC.addCommand(Command.UP, 3600, 40);
 		sleep(3700);
 		cC.dC.hover();
 
-		while(true){
+		while (true) {
 			circles = OFC.myCircle(camMat);
 			if (circles > 0) {
 				cC.addCommand(Command.DOWN, 2000, 15);
@@ -67,50 +67,62 @@ public class LandSequence implements Runnable {
 				}
 				cC.addCommand(Command.UP, 2500, 20);
 				sleep(2100);
-				if (code.equals(checkCode)){
+				if (code.equals(checkCode)) {
 					System.out.println("Found");
+					// TODO: Save coordinates
 					break;
 				}
-				// TODO: Save coordinates
+				
 			}
 		}
-		
+
 		while (true) {
-			
 
 			boolean check = OFC.checkDecodedQR(camMat);
 
 			if (check) {
-
+				System.out.println("checked");
 				circles = OFC.myCircle(camMat);
-
+				cC.addCommand(Command.DOWN, 1000, 30);
+				sleep(1200);
 				if (circles > 0) {
-					aboveLanding = true;
-					// If false restart landing sequence
-					// Land
-					System.out.println("going down");
-					// Thread.sleep(10);
-					sleep(10);
-					counts++;
-					// System.out.println(counts);
-					circleCounter = 0;
-				} else {
-					circles = 0;
-					circleCounter++;
-					System.out.println(circleCounter);
+					while (true) {
+						System.out.println("found circle");
 
-				}
-				if (circleCounter >= 120) {
-					aboveLanding = false;
-					circleCounter = 0;
-					counts = 0;
-				}
-				if (counts >= 3) {
-					System.out.println("landing");
+						
+						if (circles > 0 || check) {
+							System.out.println("emergency stop");
+							cC.dC.emergencyStop();
+							break;
+						}
 
-					cC.addCommand(Command.LAND, 6000, 2);
-					break;
+					}
 				}
+				// if (circles > 0) {
+				//
+				// aboveLanding = true;
+				// System.out.println("going down");
+				//
+				// sleep(10);
+				// counts++;
+				// circleCounter = 0;
+				// } else {
+				// circles = 0;
+				// circleCounter++;
+				// System.out.println(circleCounter);
+				//
+				// }
+				// if (circleCounter >= 120) {
+				// aboveLanding = false;
+				// circleCounter = 0;
+				// counts = 0;
+				// }
+				// if (counts >= 3) {
+				// System.out.println("landing");
+				//
+				// cC.addCommand(Command.LAND, 6000, 2);
+				// break;
+				// }
 			}
 		}
 	}
