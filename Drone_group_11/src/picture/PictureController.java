@@ -218,6 +218,7 @@ public class PictureController {
 					case T:
 						cC.dC.setBottomCamera();
 					default:
+					
 
 						break;
 					}
@@ -417,7 +418,7 @@ public class PictureController {
 					circleCounter = 0;
 					counts = 0;
 				}
-				if(counts == 3){
+				while(counts == 3){
 					System.out.println("landing");
 					
 					cC.dC.land();

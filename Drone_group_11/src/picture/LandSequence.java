@@ -25,7 +25,9 @@ public class LandSequence implements Runnable {
 	private static int counts = 0;
 	private Mat camMat;
 	int circles = 0;
-
+	String code = null;
+	
+	
 	public LandSequence(CommandController commandController) {
 		moveSet.put(Command.LEFT, 0);
 		moveSet.put(Command.RIGHT, 0);
@@ -39,38 +41,40 @@ public class LandSequence implements Runnable {
 	}
 
 	public void run() {
-
-		sleep(2000);
+		
 		System.out.println("HOVER");
 		cC.dC.hover();
-		sleep(6000);
-		System.out.println("UP");
+		while(true){
+			code = OFC.scanQrCode(camMat);
+			
+			sleep(10);
+			if(code != null){
+				System.out.println(code);
+				break;
+			}
+				
+		}
+		
+		sleep(5000);
 		cC.dC.setSpeed(5);
-		cC.addCommand(Command.UP, 2000, 20);
-		sleep(2200);
+		cC.addCommand(Command.UP, 2600, 20);
+		sleep(2700);
 		
-//		String var = OFC.scanQrCode(camMat); 
-		
-		
-
 		while (true) {
-
+			
 			boolean check = OFC.checkDecodedQR(camMat);
 
 			if (check) {
 
-					System.out.println("Vi fandt noget");
-
 					circles = OFC.myCircle(camMat);
 
-					// for(int i = 0; i < 4; ){
 					if (circles > 0) {
 						aboveLanding = true;
 						// If false restart landing sequence
-						// Drone skal flyve lidt ned
+						// Land
 						System.out.println("going down");
 						// Thread.sleep(10);
-						sleep(800);
+						sleep(500);
 						counts++;
 						System.out.println(counts);
 						circleCounter = 0;
