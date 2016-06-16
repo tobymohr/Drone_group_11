@@ -47,6 +47,7 @@ import app.DroneInterface;
 import app.NavDataTracker;
 import de.yadrone.base.ARDrone;
 import de.yadrone.base.IARDrone;
+import de.yadrone.base.command.H264;
 import de.yadrone.base.command.VideoBitRateMode;
 import de.yadrone.base.command.VideoCodec;
 import de.yadrone.base.configuration.ConfigurationListener;
@@ -303,7 +304,9 @@ public class PictureController {
 			}
 		});
 		drone.getCommandManager().setVideoBitrateControl(VideoBitRateMode.MANUAL);
-		drone.getCommandManager().setVideoBitrate(4000);
+		drone.getCommandManager().setVideoBitrate(H264.MAX_BITRATE);
+		drone.getCommandManager().setVideoCodecFps(H264.MAX_FPS);
+		System.out.println("Videocodec Set.");
 	}
 
 	public void grabFromVideo() throws org.bytedeco.javacv.FrameGrabber.Exception {
