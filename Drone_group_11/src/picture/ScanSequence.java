@@ -16,7 +16,6 @@ import org.bytedeco.javacpp.opencv_imgcodecs;
 import app.CommandController;
 import helper.Command;
 import helper.CustomPoint;
-import helper.Move;
 
 public class ScanSequence implements Runnable {
 	private static final int MIN_HIT_COUNT = 6;
@@ -31,6 +30,9 @@ public class ScanSequence implements Runnable {
 	private static final int FORWARD_SPEED = 9;
 	private static final int ROTATE_TIME = 5000;
 	private static final int ROTATE_SPEED = 17;
+	private static final int FIELD_DURATION = 1000;
+	private static final int FIELD_SPEED = 12;
+	
 	
 	//#TODO Tweak these values based on testing
 	public static final double CENTER_UPPER = 0.15;
@@ -48,8 +50,11 @@ public class ScanSequence implements Runnable {
 	private int foundFrameCount = 0;
 	private CustomPoint placement = null;
 	private boolean moveToStart = false;
+	private int maxX = 847;
+	private int minY = -10;
 	private PictureProcessingHelper OFC = new PictureProcessingHelper();
 	private Map<Integer, Integer> moves = new HashMap<>();
+	private boolean isFirst = false;;
 	
 	public ScanSequence(CommandController commandController) {
 		this.commandController = commandController;
@@ -78,39 +83,68 @@ public class ScanSequence implements Runnable {
 			}
 		}
 		
+		
+		
 		while(moveToStart){
-			moveDroneToStart(placement);
+			moveDroneToStart();
 		}
 	}
 	
-	private void scanSequence() {
-		OFVideo.imageChanged = false;
-		List<Mat> contours = OFC.findQrContours(camMat);
-		if (contours.size() == 0) {
-			if (frameCount < 4) {
-				frameCount++;
-			} else {
-				code = null;
-				if (rotateCount < 15) {
-					//#TODO Rotate 90 degrees
-					addCommand(Command.ROTATERIGHT, ROTATE_TIME, ROTATE_SPEED);
-					rotateCount++;
-				} else {
-					//#TODO Fly forwards (1 meter)
-//					addCommand(Command.FORWARD, FORWARD_TIME, FORWARD_SPEED);
-					rotateCount = 0;
-				}
-				frameCount = 0;
+	private int getCorrectXMove(){
+		if(code.contains("W02")){
+			return Command.LEFT;
+		}
+		if(code.contains("W03")){
+			return Command.BACKWARDS;
+		}
+		if(code.contains("W00")){
+			return Command.RIGHT;
+		}
+		if(code.contains("W01")) {
+			return Command.NONE;
+		}
+		return Command.NONE;
+		
+	}
+	
+	private int getCorrectYMove(double y){
+		if(code.contains("W02")){
+			if(y<minY){
+				return Command.BACKWARDS;
 			}
-			return;
+			return Command.NONE;
 		}
 		
+		if(code.contains("W03")){
+			return Command.LEFT;
+		}
+		if(code.contains("W00")){
+			return Command.BACKWARDS;
+		}
+		if(code.contains("W01")) {
+			return Command.RIGHT;
+		}
 		
+		return Command.NONE;
 		
-		foundFrameCount = 0;
-		frameCount = 0;
-		
-
+	}
+	
+	private void rotateCheck(){
+		if (frameCount < 4) {
+			frameCount++;
+		} else {
+			code = null;
+			if (rotateCount < 15) {
+				addCommand(Command.ROTATERIGHT, ROTATE_TIME, ROTATE_SPEED);
+				rotateCount++;
+			} else {
+				rotateCount = 0;
+			}
+			frameCount = 0;
+		}
+	}
+	
+	private RotatedRect mostCenteredRect(List<Mat> contours){
 		double distanceFomCenter = Double.MAX_VALUE;
 		RotatedRect rect = new RotatedRect();
 		for (int i = 0; i < contours.size(); i++) {
@@ -121,65 +155,74 @@ public class ScanSequence implements Runnable {
 				 rect = rect2;
 			 }
 		}
+		return rect;
+	}
+	
+	private void centerCheck(double center){
+		if (strafeRight) {
+			addCommand(Command.RIGHT, STRAFE_TIME, STRAFE_SPEED);
+		} else {
+			addCommand(Command.LEFT, STRAFE_TIME, STRAFE_SPEED);
+		}
+		if (previousCenter == -1) {
+			previousCenter = center;
+		} else {
+			double difference = center - previousCenter;
+			if (difference > CENTER_DIFFERENCE) {
+				strafeRight = !strafeRight;
+				previousCenter = center;
+				System.out.println("CHANGE STRAFE DIRECTION");
+			}
+		}
+	}
+	
+	private void spinCheck(double positionFromCenter){
+		if (positionFromCenter > 0) {
+			addCommand(Command.SPINRIGHT, SPIN_TIME, SPIN_SPEED);
+		} else {
+			addCommand(Command.SPINLEFT, SPIN_TIME, SPIN_SPEED);
+		}
+	}
+	
+	private void scanSequence() {
+		OFVideo.imageChanged = false;
+		List<Mat> contours = OFC.findQrContours(camMat);
+		if (contours.size() == 0) {
+			rotateCheck();
+			return;
+		}
+		foundFrameCount = 0;
+		frameCount = 0;
+		RotatedRect rect = mostCenteredRect(contours);
 		
 		double positionFromCenter = OFC.isCenterInImage(camMat.clone(), rect);
 		if (positionFromCenter != 0) {
-			if (positionFromCenter > 0) {
-				addCommand(Command.SPINRIGHT, SPIN_TIME, SPIN_SPEED);
-			} else {
-				addCommand(Command.SPINLEFT, SPIN_TIME, SPIN_SPEED);
-			}
+			spinCheck(positionFromCenter);
 			return;
 		}
-		
 		double center = OFC.center(rect);
 		if (center > CENTER_UPPER || center < CENTER_LOWER) {
-			if (strafeRight) {
-				addCommand(Command.RIGHT, STRAFE_TIME, STRAFE_SPEED);
-			} else {
-				addCommand(Command.LEFT, STRAFE_TIME, STRAFE_SPEED);
-			}
-			if (previousCenter == -1) {
-				previousCenter = center;
-			} else {
-				double difference = center - previousCenter;
-				if (difference > CENTER_DIFFERENCE) {
-					strafeRight = !strafeRight;
-					previousCenter = center;
-					System.out.println("CHANGE STRAFE DIRECTION");
-				}
-			}
+			centerCheck(center);
 			return;
 		}
-		
-		
-		// Reset the previous center
 		previousCenter = -1;
 //		double distanceToDrone = OFC.calcDistance(rect);
 //		if (distanceToDrone < 300) {
 //			addCommand(Command.BACKWARDS, BACKWARD_TIME, BACKWARD_SPEED);
 //			return;
 //		}
-		Mat qrImg = OFC.warpImage(camMat.clone(), rect);
 		
+		Mat qrImg = OFC.warpImage(camMat.clone(), rect);
 		String tempCode = OFC.scanQrCode(qrImg);
-
 		if (tempCode != null) {
-//				// Code stored as field, we need to use it even if we're too far away to scan it.
-//				//#TODO Ensure that the field code is set to null every time we need to reset.  
 			code = tempCode;
 			System.out.println(tempCode);
 		}
 		System.out.println("CENTERED");
 		if(code != null) {
-			// Check amount of squares found
-			// #TODO Implement some way to check squares across more than one frame
-			System.out.println(contours.size());
 			if (contours.size() == 3) {
-				//#TODO Calculate distance and placement in coordinate system
 				placement = calculatePlacement(camMat, contours);
 				moveToStart = true;
-				code = null;
 				rotateCount = 0;
 				PictureController.shouldScan = false;
 				return;
@@ -195,14 +238,10 @@ public class ScanSequence implements Runnable {
 			}
 		} else {
 			double distanceToSquare = OFC.calcDistance(rect);
-			// It might still be a QR code, we're too far away to know
 			if (distanceToSquare > 300) {
-				//#TODO Fly closer to the square (0.5 meters)
 				addCommand(Command.FORWARD, FORWARD_TIME_2, FORWARD_SPEED);
 				return;
 			} else {
-				//#TODO Fly backwards (4-5 meters)
-				//#TODO Rotate 90 degrees
 				return;
 			}
 		}
@@ -261,62 +300,42 @@ public class ScanSequence implements Runnable {
 		return placement;
 	}
 	
-	private void moveDroneToStart(CustomPoint placement) {
+	private void moveDroneToStart() {
 		OFVideo.imageChanged = false;
-//		double distanceToSquare = OFC.calcDistance(rect);
+		List<Mat> contours = OFC.findQrContoursNoThresh(camMat);
+		RotatedRect rect = mostCenteredRect(contours);
+		double distanceToSquare = OFC.calcDistance(rect);
+		int moveY = calcMovesYAxis(placement.getY());
+		int moveX = calcMoveXAxis(placement.getX());
+		if(code.equals("W02") || code.equals("W00")){
+			placement.setY(distanceToSquare);
+		}
+		if(code.equals("W03") || code.equals("W01")){
+			placement.setX(distanceToSquare);
+		}
+		
+		addCommand(moveX, FIELD_DURATION, FIELD_SPEED);
+		addCommand(moveY, FIELD_DURATION, FIELD_SPEED);
 	}
 	
-	private List<Move> calcMovesXAxis(double x, double y) {
-		List<Move> moves = new ArrayList<>();
-		int minY = 0;
-		int maxX = 5;
-		int maxY = 5;
-		// Calc moves in x-axis
-		for (int i = 0; i < 5; i++) {
-			if (x < maxX) {
-				x++;
-				moves.add(new Move(Move.MOVE_RIGHT));
-			}
+	private int calcMoveXAxis(double x) {
+		if(x<maxX){
+			return getCorrectXMove();
 		}
-		// Calc moves in y-axis
-		for (int i = 0; i < 5; i++) {
-			if (y <= maxY && y > minY) {
-				y--;
-				moves.add(new Move(Move.MOVE_DOWN));
-			}
-		}
-		return moves;
+	
+		return Command.NONE;
 	}
 	
-	private List<Move> calcMovesYAxis(double x, double y) {
-		List<Move> moves = new ArrayList<>();
-		int minY = 0;
-		int maxX = 5;
-		int maxY = 5;
-		// Calc moves in x-axis
-		for (int i = 0; i < 5; i++) {
-			if (y <= maxY && y > minY) {
-				y--;
-				moves.add(new Move(Move.MOVE_DOWN));
-			}
+	private int calcMovesYAxis(double y) {
+		if(y>minY){
+			return getCorrectYMove(y);
 		}
-		return moves;
+		
+		if(y<minY){
+			return getCorrectYMove(y);
+		}
+		return Command.NONE;
 	}
 
-	private void printMoves(List<Move> moves) {
-		for (Move move : moves) {
-			if (move.getMove() == Move.MOVE_RIGHT) {
-//				System.out.println("MOVE RIGHT");
-			}
-			if (move.getMove() == Move.MOVE_DOWN) {
-//				System.out.println("MOVE DOWN");
-			}
-			if (move.getMove() == Move.MOVE_LEFT) {
-//				System.out.println("MOVE LEFT");
-			}
-			if (move.getMove() == Move.MOVE_FORWARD) {
-//				System.out.println("MOVE FORWARD");
-			}
-		}
-	}
+	
 }

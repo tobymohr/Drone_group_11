@@ -78,7 +78,6 @@ import com.google.zxing.qrcode.QRCodeReader;
 
 import helper.Circle;
 import helper.CustomPoint;
-import helper.Move;
 import helper.Vector;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
@@ -303,6 +302,24 @@ public class PictureProcessingHelper {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
 			RotatedRect rect = minAreaRect(matContour.get(i));
 			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > MIN_AREA
+					&& checkAngles(matContour.get(i), rect)) {
+				result.add(matContour.get(i));
+			}
+		}
+		return result;
+	}
+	
+	public List<Mat> findQrContoursNoThresh(Mat srcImage) {
+		Mat img1 = new Mat(srcImage.arraySize(), CV_8UC1, 1);
+		cvtColor(srcImage, img1, CV_RGB2GRAY);
+		Canny(img1, img1, 75, 200);
+		MatVector matContour = new MatVector();
+		List<Mat> result = new ArrayList<>();
+		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+		for (int i = 0; i < matContour.size(); i++) {
+			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
+			RotatedRect rect = minAreaRect(matContour.get(i));
+			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > 700
 					&& checkAngles(matContour.get(i), rect)) {
 				result.add(matContour.get(i));
 			}
