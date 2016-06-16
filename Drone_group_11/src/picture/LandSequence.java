@@ -113,8 +113,9 @@ public class LandSequence implements Runnable {
 					// If false restart landing sequence
 					// Land
 					System.out.println("going down");
+					cC.addCommand(Command.DOWN, 500, 50);
 					// Thread.sleep(10);
-					sleep(10);
+					sleep(1000);
 					counts++;
 					// System.out.println(counts);
 					circleCounter = 0;
@@ -131,8 +132,8 @@ public class LandSequence implements Runnable {
 				}
 				if (counts >= 3) {
 					System.out.println("landing");
-
-					cC.addCommand(Command.LAND, 6000, 2);
+					cC.dC.emergencyStop();
+//					cC.addCommand(Command.LAND, 6000, 2);
 					break;
 				}
 			}
@@ -140,6 +141,7 @@ public class LandSequence implements Runnable {
 	}
 
 	// }
+	
 
 	private void sleep(int duration) {
 		try {
