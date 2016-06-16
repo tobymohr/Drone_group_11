@@ -518,7 +518,7 @@ public class PictureController {
 //		shouldScan = true;
 //		shouldTestWall = true;
 		shouldLand = true;
-		cC.dC.takeOff();
+//		cC.dC.takeOff();
 		Thread.sleep(5);
 		cC.dC.hover();
 		Thread.sleep(5);

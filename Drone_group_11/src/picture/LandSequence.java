@@ -3,11 +3,9 @@ package picture;
 import static org.bytedeco.javacpp.opencv_imgproc.minAreaRect;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
-import org.bytedeco.javacpp.opencv_core.RotatedRect;
 
 import app.CommandController;
 import helper.Command;
@@ -40,6 +38,16 @@ public class LandSequence implements Runnable {
 		this.camMat = camMat;
 	}
 
+	
+	public enum VideoBitRateMode{
+		DYNAMIC
+	}
+	
+	public enum VideoCodec{
+		H264_720P_SLRS
+	}
+	
+	
 	public void run() {
 		
 		System.out.println("HOVER");
@@ -47,7 +55,9 @@ public class LandSequence implements Runnable {
 		while(true){
 			code = OFC.scanQrCode(camMat);
 			
+	
 			sleep(10);
+//			
 			if(code != null){
 				System.out.println(code);
 				break;
@@ -59,6 +69,17 @@ public class LandSequence implements Runnable {
 		cC.dC.setSpeed(5);
 		cC.addCommand(Command.UP, 2600, 20);
 		sleep(2700);
+		
+		while(true){
+			circles = OFC.myCircle(camMat);
+			if(circles != 0){
+				cC.addCommand(Command.DOWN, 2000, 20);
+				System.out.println(circles);
+				break;
+			}
+		}
+		
+		
 		
 		while (true) {
 			
