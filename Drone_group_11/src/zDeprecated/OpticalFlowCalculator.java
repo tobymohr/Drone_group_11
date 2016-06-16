@@ -21,7 +21,7 @@ import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
 
-import coordinateSystem.DrawCoordinates;
+import coordinateSystem.Map;
 
 import org.bytedeco.javacpp.*;
 import org.bytedeco.javacpp.opencv_core.*;

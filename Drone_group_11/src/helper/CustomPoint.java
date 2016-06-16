@@ -8,7 +8,6 @@ import java.io.IOException;
 public class CustomPoint {
 	public static final int GREEN = 0;
 	public static final int RED = 1;
-	public static CustomPoint placement = new CustomPoint(0, 0);
 	
 	private double x;
 	private double y;
