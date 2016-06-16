@@ -5,42 +5,27 @@ import java.util.ArrayList;
 import helper.CustomPoint;
 
 public class Coordinates {
-	ArrayList<Cord> cordList;
-	double picScale = 0.1; //!!!!! skal scaleres s� picture passer til valgt frame st�rrelse i rummet
-	
-	public ArrayList<Cord> getCords() {
-		return cordList;
+	ArrayList<CustomPoint> pointList;
+
+	public ArrayList<CustomPoint> getPoints() {
+		return pointList;
 	}
 
-	public Coordinates(){
-		cordList = new ArrayList<Cord>();
+	public Coordinates() {
+		pointList = new ArrayList<CustomPoint>();
 	}
-	
-	public void addCord(double x, double y, boolean green){
-		cordList.add(new Cord(x,y,green));
+
+	public void addPoint(double x, double y, int colour) {
+		pointList.add(new CustomPoint(x, y, colour));
 	}
-	
-	public void addCords(ArrayList<Cord> tempList, double altitude, CustomPoint currentPos){
-		// get altitude
-		double altScale = altitude * 0.23; //0.23 skal rettes til whatever
-		
-		
-		for(Cord cord : tempList){
-			addCord(cord.x*altScale+currentPos.getX(),cord.y*altScale+currentPos.getY(),cord.green);
+
+	public void addPoints(ArrayList<CustomPoint> tempList, CustomPoint currentPos) {
+		for (CustomPoint cord : tempList) {
+			addPoint(cord.getX() + currentPos.getX(), cord.getY() + currentPos.getY(), cord.getColour());
 		}
 	}
-	
-	public void drawCoordinates(){
-		DrawCoordinates.init(cordList);
-	}
-	
-	// test kode
-	  public static void main(String[] args) {
-		  Coordinates cor = new Coordinates();
-		  cor.addCord(2.5,3,false);
-		  cor.addCord(5, 7, true);
-			cor.drawCoordinates();
-		  }
-	
-}
 
+	public void drawCoordinates() {
+		DrawCoordinates.init(pointList);
+	}
+}

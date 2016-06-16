@@ -4,14 +4,15 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashMap;
 
 public class CustomPoint {
-	private static final int MAX_Y_COORDINATE = 5;
-	private static final int MAX_X_COORDINATE = 5;
+	public static final int GREEN = 0;
+	public static final int RED = 1;
+	public static CustomPoint placement = new CustomPoint(0, 0);
 	
 	private double x;
 	private double y;
+	private int colour;
 	
 	public CustomPoint() {
 	}
@@ -21,6 +22,11 @@ public class CustomPoint {
 		this.y = y;
 	}
 	
+	public CustomPoint(double x, double y, int colour) {
+		this.x = x;
+		this.y = y;
+		this.colour = colour;
+	}
 	
 	public double getX() {
 		return x;
@@ -36,6 +42,14 @@ public class CustomPoint {
 
 	public void setY(double y) {
 		this.y = y;
+	}
+	
+	public int getColour() {
+		return colour;
+	}
+	
+	public void setColour(int colour) {
+		this.colour = colour;
 	}
 
 	public CustomPoint subtract(CustomPoint p) {
