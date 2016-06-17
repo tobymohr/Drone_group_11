@@ -1,5 +1,6 @@
 package helper;
 
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -7,14 +8,12 @@ import java.io.IOException;
 import java.util.HashMap;
 
 public class CustomPoint {
-	public static final int RED = 0;
-	public static final int GREEN = 1;
 	private static final int MAX_Y_COORDINATE = 5;
 	private static final int MAX_X_COORDINATE = 5;
 	
 	private double x;
 	private double y;
-	private int colour; 
+	private Color colour; 
 	
 	public CustomPoint() {
 	}
@@ -24,7 +23,7 @@ public class CustomPoint {
 		this.y = y;
 	}
 	
-	public CustomPoint(double x, double y, int colour) {
+	public CustomPoint(double x, double y, Color colour) {
 		this.x = x;
 		this.y = y;
 		this.colour = colour;
@@ -46,11 +45,11 @@ public class CustomPoint {
 		this.y = y;
 	}
 	
-	public int getColour() {
+	public Color getColour() {
 		return colour;
 	}
 	
-	public void setColour(int colour) {
+	public void setColour(Color colour) {
 		this.colour = colour;
 	}
 

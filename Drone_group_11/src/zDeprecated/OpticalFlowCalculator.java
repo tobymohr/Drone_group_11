@@ -22,6 +22,7 @@ import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
 
 import coordinateSystem.Map;
+import coordinateSystem.Vector;
 
 import org.bytedeco.javacpp.*;
 import org.bytedeco.javacpp.opencv_core.*;
@@ -35,8 +36,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JFrame;
-
-import helper.Vector;
 
 public class OpticalFlowCalculator {
 

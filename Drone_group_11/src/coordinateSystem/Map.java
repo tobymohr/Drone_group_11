@@ -1,29 +1,26 @@
 package coordinateSystem;
 
-import javax.swing.*;
-
-import helper.CustomPoint;
-
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Stroke;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+import helper.CustomPoint;
+
 public class Map extends JFrame {
 	private static final long serialVersionUID = 1L;
+	private static final int MAX_X = 926;
 	private static final int MAX_Y = 1078;
+	private static final int STEP_X = MAX_X/10;
+	private static final int STEP_Y = MAX_Y/10;
 	
 	private ArrayList<CustomPoint> cords;
-	private static double scale = 0.5;
-	private static int push = 50;
-	private static int x = (int) (963 * scale + push);
-	private static int y = (int) (1078 * scale + push);
 	private static CustomPoint placement = new CustomPoint(0, 0);
 
 	private Map(ArrayList<CustomPoint> cords) {
@@ -35,7 +32,7 @@ public class Map extends JFrame {
 		Map frame = new Map(cords);
 		frame.setTitle("Map");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setSize(x + push * 2, y + push * 2);
+		frame.setSize(700, 800);
 		frame.setLocationRelativeTo(null); // Center the frame
 		frame.setVisible(true);
 		return frame;
@@ -67,9 +64,6 @@ public class Map extends JFrame {
 		repaint();
 	}
 	class DrawPanel extends JPanel {
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = 1L;
 
 		DrawPanel() {
@@ -78,54 +72,47 @@ public class Map extends JFrame {
 
 		protected void paintComponent(Graphics g) {
 			super.paintComponent(g);
-			g.setColor(Color.BLACK);
-			
-			drawGrid(g);
-			
-			drawQR(g);
+			CoordinateSystem coordinateSystem = new CoordinateSystem(0.5, 0.5, 100, 600);
+			drawGrid(g, coordinateSystem);
+			drawQR(g, coordinateSystem);
 
-			// draw points
+			//draw points
 			for (int i = 0; i < cords.size(); i++) {
-				if (cords.get(i).getColour() == CustomPoint.GREEN) {
-					g.setColor(Color.GREEN);
-				} else {
-					g.setColor(Color.RED);
-				}
-				g.fillOval((int)(cords.get(i).getX() * scale + push - 5), (int) (cords.get(i).getY() * scale + push - 5), 10,
-						10);
-
+				int cordX = (int) cords.get(i).getX();
+				int cordY = (int) cords.get(i).getY();
+				coordinateSystem.drawPoint(g, new Vector(cordX, cordY), 10, cords.get(i).getColour());
 			}
+			
+			//draw drone
+			coordinateSystem.drawPoint(g, new Vector(placement.getX(), placement.getY()), 15);
 		}
 		
-		public void drawGrid(Graphics g) {
+		public void drawGrid(Graphics g, CoordinateSystem coordinateSystem) {
 			// draw grid
 			// X
-			int xtemp = push;
-			g.drawLine(xtemp, push, xtemp, y);
-			g.drawString(String.valueOf(xtemp / scale - push * 2), xtemp, push - 35);
-			xtemp += push;
-			while (xtemp < x) {
-				drawDashedLine(g, xtemp, push, xtemp, y);
-				g.drawString(String.valueOf(xtemp / scale - push * 2), xtemp, push - 35);
-				xtemp += push;
+			int xtemp = STEP_X;
+			coordinateSystem.drawLine(g, new Vector(0, 0), new Vector(0, MAX_Y));
+			coordinateSystem.drawString(g, String.valueOf(0), new Vector(0, -50));
+			while (xtemp < MAX_X - STEP_X) {
+				coordinateSystem.drawDashedLine(g, new Vector(xtemp, 0), new Vector(xtemp, MAX_Y));
+				coordinateSystem.drawString(g, String.valueOf(xtemp), new Vector(xtemp, -50));
+				xtemp += STEP_X;
 			}
-			g.drawLine(x, push, x, y);
-			g.drawString(String.valueOf(1078), x, push - 35);
-			// Y
-			int ytemp = push;
-			g.drawLine(push, ytemp, x, ytemp);
-			g.drawString(String.valueOf(ytemp / scale - push * 2), push - 40, ytemp);
-			ytemp += push;
-			while (ytemp < y) {
-				drawDashedLine(g, push, ytemp, x, ytemp);
-				g.drawString(String.valueOf(ytemp / scale - push * 2), push - 40, ytemp);
-				ytemp += push;
+			coordinateSystem.drawLine(g, new Vector(MAX_X, 0), new Vector(MAX_X, MAX_Y));
+			coordinateSystem.drawString(g, String.valueOf(MAX_X), new Vector(MAX_X, -50));
+			
+			int ytemp = STEP_Y;
+			coordinateSystem.drawLine(g, new Vector(0, 0), new Vector(MAX_X, 0));
+			while (ytemp < MAX_Y - STEP_Y) {
+				coordinateSystem.drawDashedLine(g, new Vector(0, ytemp), new Vector(MAX_X, ytemp));
+				coordinateSystem.drawString(g, String.valueOf(ytemp), new Vector(-50, ytemp));
+				ytemp += STEP_Y;
 			}
-			g.drawLine(push, y, x, y);
-			g.drawString(String.valueOf(963), push - 40, y);
+			coordinateSystem.drawLine(g, new Vector(0, MAX_Y), new Vector(MAX_X, MAX_Y));
+			coordinateSystem.drawString(g, String.valueOf(MAX_Y), new Vector(-50, MAX_Y));
 		}
 		
-		public void drawQR(Graphics g) {
+		public void drawQR(Graphics g, CoordinateSystem coordinateSystem) {
 			String csvFile = "WallCoordinates.csv";
 			BufferedReader br = null;
 			String line = "";
@@ -135,10 +122,19 @@ public class Map extends JFrame {
 				br = new BufferedReader(new FileReader(csvFile));
 				while ((line = br.readLine()) != null) {
 					String[] coordinate = line.split(cvsSplitBy);
-					int QRX = (int) (Integer.parseInt(coordinate[1]) * scale) + push;
-					int QRY = (int) (Integer.parseInt(coordinate[2]) * scale) + push;
-					g.drawString(coordinate[0], QRX, QRY);
-					g.fillOval(QRX - 5, QRY - 5, 10, 10);
+					int QRX = Integer.parseInt(coordinate[1]);
+					int QRY = Integer.parseInt(coordinate[2]);
+					if (coordinate[0].startsWith("W00")) {
+						coordinateSystem.drawString(g, coordinate[0], new Vector(QRX, QRY + 50), Color.BLUE);
+					} else if (coordinate[0].startsWith("W01")) {
+						coordinateSystem.drawString(g, coordinate[0], new Vector(QRX + 60, QRY), Color.BLUE);
+					} else if (coordinate[0].startsWith("W02")) {
+						coordinateSystem.drawString(g, coordinate[0], new Vector(QRX, QRY - 100), Color.BLUE);
+					} else if (coordinate[0].startsWith("W03")) {
+						coordinateSystem.drawString(g, coordinate[0], new Vector(QRX - 150, QRY), Color.BLUE);
+					}
+					coordinateSystem.drawPoint(g, new Vector(QRX, QRY), 10, Color.BLUE);
+					g.setColor(Color.BLACK);
 				}
 
 			} catch (FileNotFoundException e) {
@@ -154,18 +150,6 @@ public class Map extends JFrame {
 					}
 				}
 			}
-
 		}
-		
-		public void drawDashedLine(Graphics g, int x1, int y1, int x2, int y2){
-	        Graphics2D graphics = (Graphics2D) g.create();
-
-	        Stroke dashed = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{2}, 0);
-	        graphics.setStroke(dashed);
-	        graphics.drawLine(x1, y1, x2, y2);
-
-	        graphics.dispose();
-		}
-
 	}
 }

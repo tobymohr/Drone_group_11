@@ -76,9 +76,9 @@ import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
 
+import coordinateSystem.Vector;
 import helper.Circle;
 import helper.CustomPoint;
-import helper.Vector;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 
