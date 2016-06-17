@@ -42,6 +42,7 @@ public class LandSequence implements Runnable {
 
 	public void run() {
 
+		//TAKEOFF sequence
 		System.out.println("HOVER");
 		cC.dC.hover();
 		while (code == null) {
@@ -51,20 +52,22 @@ public class LandSequence implements Runnable {
 		System.out.println(code);
 
 		sleep(1900);
-		cC.dC.setSpeed(5);
 		cC.addCommand(Command.UP, 2600, 15);
 		sleep(2600);
 		cC.dC.hover();
-
+		//TAKEOFF sequence END
+		
+		
+		//check during flight sequence
 		while (true) {
 			circles = OFC.myCircle(camMat);
 			if (circles > 0) {
 				cC.addCommand(Command.DOWN, 1000, 20);
 				sleep(2000);
-//				while (checkCode == null) {
-//					checkCode = OFC.scanQrCode(camMat);
-//					sleep(10);
-//				}
+				// while (checkCode == null) {
+				// checkCode = OFC.scanQrCode(camMat);
+				// sleep(10);
+				// }
 				cC.addCommand(Command.UP, 1000, 20);
 				sleep(2100);
 				if (code.equals(checkCode)) {
@@ -72,76 +75,27 @@ public class LandSequence implements Runnable {
 					// TODO: Save coordinates
 					break;
 				}
-				
 			}
 		}
+		//check during flight sequence END
 
+		//LANDING sequence
 		while (true) {
-		
-		circles = OFC.myCircle(camMat);
-		if (circles > 0) {
-			cC.addCommand(Command.DOWN, 1000, 20);
-			sleep(2000);
-		}
-		
-		boolean check = OFC.checkDecodedQR(camMat);
-		
-		if(check || circles > 0){
-			cC.dC.land();
-		}
-		
-		
-		}
-//
-//			boolean check = OFC.checkDecodedQR(camMat);
-//
-//			if (check) {
-//				System.out.println("checked");
-//				circles = OFC.myCircle(camMat);
-//				cC.addCommand(Command.DOWN, 1000, 20);
-//				sleep(1200);
-//				if (circles > 0) {
-//					while (true) {
-//						System.out.println("found circle");
-//
-//						
-//						if (circles > 0 || check) {
-//							cC.dC.land();
-//							break;
-//						}
-//
-//					}
-//				}
-//				// if (circles > 0) {
-//				//
-//				// aboveLanding = true;
-//				// System.out.println("going down");
-//				//
-//				// sleep(10);
-//				// counts++;
-//				// circleCounter = 0;
-//				// } else {
-//				// circles = 0;
-//				// circleCounter++;
-//				// System.out.println(circleCounter);
-//				//
-//				// }
-//				// if (circleCounter >= 120) {
-//				// aboveLanding = false;
-//				// circleCounter = 0;
-//				// counts = 0;
-//				// }
-//				// if (counts >= 3) {
-//				// System.out.println("landing");
-//				//
-//				// cC.addCommand(Command.LAND, 6000, 2);
-//				// break;
-//				// }
-//			}
-//		}
-	}
 
-	// }
+			circles = OFC.myCircle(camMat);
+			if (circles > 0) {
+				cC.addCommand(Command.DOWN, 1000, 20);
+				sleep(2000);
+			}
+
+			boolean check = OFC.checkDecodedQR(camMat);
+
+			if (check || circles > 0) {
+				cC.dC.land();
+			}
+		}
+		//LANDING sequence END
+	}
 
 	private void sleep(int duration) {
 		try {

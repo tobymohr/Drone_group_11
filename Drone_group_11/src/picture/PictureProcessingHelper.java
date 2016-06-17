@@ -612,23 +612,6 @@ public class PictureProcessingHelper {
 		return img;
 	}
 	
-	
-
-//	public Mat circle(Mat img) {
-//
-//		MatVector matCircles = new MatVector();
-//
-//		Mat img1 = new Mat(img.arraySize(), CV_8UC1, 1);
-//
-//		cvtColor(img, img1, CV_RGB2GRAY);
-//
-//		GaussianBlur(img1, img, new Size(9, 9), 2.0);
-//
-//		HoughCircles(img, img, HOUGH_GRADIENT, 1, 100, 100, 100, 15, 500);
-//
-//		return img;
-//	}
-
 	public IplImage convertMatToIplImage(Mat mat) {
 		return converter.convert(converter.convert(mat));
 	}
@@ -840,5 +823,8 @@ public class PictureProcessingHelper {
 //		
 //		
 //	}
+	public boolean isBlueTowerAhead(MatVector contours){
+		return contours.size() > 200 ? true : false;
+	}
 }
 
