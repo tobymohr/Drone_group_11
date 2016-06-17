@@ -535,7 +535,7 @@ public class PictureController {
 
 	public void takeOff() throws InterruptedException {
 		System.out.println("TAKEOFF");
-		shouldScan = true;
+		shouldFlyControl = true;
 	}
 	
 	public void showQr(){

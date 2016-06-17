@@ -362,7 +362,7 @@ public class PictureProcessingHelper {
 			code = detectionResult.getText();
 			return code;
 		} catch (Exception e) {
-			return null;
+			return "";
 		}
 
 	}

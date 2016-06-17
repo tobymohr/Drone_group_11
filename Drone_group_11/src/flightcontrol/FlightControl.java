@@ -13,6 +13,8 @@ import org.bytedeco.javacpp.opencv_core.RotatedRect;
 import com.google.zxing.qrcode.encoder.QRCode;
 
 import app.CommandController;
+import picture.OFVideo;
+import picture.PictureController;
 import picture.PictureProcessingHelper;
 
 public class FlightControl implements Runnable {
@@ -33,13 +35,19 @@ public class FlightControl implements Runnable {
 
 	@Override
 	public void run() {
-		commandController.addCommand(Command.UP, 2750, 20);
-		try {
-			Thread.sleep(3000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		commandController.droneInterface.takeOff();
+
+		sleepThread(2000);
+		System.out.println("HOVER");
+		commandController.droneInterface.hover();
+		sleepThread(2000);
+		System.out.println("UP");
+		commandController.addCommand(Command.UP, 5000, 15);
+		sleepThread(5000);
+		commandController.addCommand(Command.UP, 5000, 15);
+		sleepThread(5000);
+		
+		
 		flyLaneOne();
 		// if (pph.isCenterInImage(camMat, rect) == 0) {
 		// flyLaneOne();
@@ -68,81 +76,83 @@ public class FlightControl implements Runnable {
 	}
 
 	public void flyLaneOne() {
-		String qrCode;
-		
-		commandController.addCommand(Command.ROTATELEFT, 4000, 30); // spin 180
-			do {
-				commandController.addCommand(Command.FORWARD, 1000, 13); // 1 chunk
-				commandController.droneInterface.hover();
-				// downScanSeq.scan()
-				commandController.droneInterface.setFrontCamera();
-
-			} while (!pictureProcessingHelper.scanQrCode(camMat).equals("W00.04"));
-
-			commandController.droneInterface.hover();
-
-			//Now we can see W00.04
-			do{
-				
-				
-				// CenterOnW00.04
-				//When centered
-				commandController.addCommand(Command.FORWARD, 1000, 13);
-				commandController.droneInterface.hover();
-				//downScanSeq.scan();
-				commandController.droneInterface.setFrontCamera();
-				
-			}while(pictureProcessingHelper.getDistance() > 100);
-			
-
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			if (pictureProcessingHelper.scanQrCode(camMat).equals("W00.04")) {
-				while (centerDistance != 0) {
-					List<Mat> contours = pictureProcessingHelper.findQrContours(camMat);
-
-					double distanceFomCenter = 5000;
-					RotatedRect rect = new RotatedRect();
-					for (int i = 0; i < contours.size(); i++) {
-						RotatedRect rect2 = minAreaRect(contours.get(i));
-						double distance = (camMat.arrayWidth() / 2)
-								- rect.center().x();
-						if (distanceFomCenter > distance) {
-							distanceFomCenter = Math.abs(distance);
-							rect = rect2;
-						}
-
-					}
-					double centerDistance = pictureProcessingHelper.isCenterInImage(camMat, rect);
-
-					if (centerDistance > 0) {
-						commandController.addCommand(Command.LEFT, 100, 14);
-					} else if (centerDistance < 0) {
-						commandController.addCommand(Command.RIGHT, 100, 14);
-					}
-				}
-				
-			}
+		commandController.droneInterface.setFrontCamera();
+//		commandController.addCommand(Command.ROTATELEFT, 4000, 30); // spin 180
+//		sleepThread(4500);
+		List<Mat> contours = pictureProcessingHelper.findQrContours(camMat);
+		RotatedRect rect = null;
+		Mat qrImg = null;
+		String tempCode = "";
+		int i = 0;
 		do {
+			commandController.addCommand(Command.FORWARD, 1000, 10); // 1 chunk
+			sleepThread(2500);
+			// downScanSeq.scan()
+			contours = pictureProcessingHelper.findQrContours(camMat);
+			if (contours.size() > 0) {
+				rect = mostCenteredRect(contours);
+				qrImg = pictureProcessingHelper.warpImage(camMat, rect);
+				tempCode = pictureProcessingHelper.scanQrCode(qrImg);
+			}
+			if (i > 3) {
+				commandController.addCommand(Command.LEFT, 1000, 10);
+				sleepThread(2000);
+				i = 0;
+			}
+			i++;
+		} while (!tempCode.startsWith("W00"));
+		System.out.println("FOUND");
+		contours = pictureProcessingHelper.findQrContours(camMat);
+		rect = mostCenteredRect(contours);
+		double distance = pictureProcessingHelper.calcDistance(rect);
+		do {
+			contours = pictureProcessingHelper.findQrContours(camMat);
+			rect = mostCenteredRect(contours);
+			distance = pictureProcessingHelper.calcDistance(rect);
+			commandController.addCommand(Command.FORWARD, 1000, 13);
+			sleepThread(1500);
+			// downScanSeq.scan();
+		} while (distance > 100);
+		System.out.println("CLOSE");
+	}
+	
+	
+	private RotatedRect rightMostRect(List<Mat> contours){
+		double distanceFomCenter = Double.MAX_VALUE;
+		RotatedRect rect = new RotatedRect();
+		for (int i = 0; i < contours.size(); i++) {
+			 RotatedRect rect2 = minAreaRect(contours.get(i));
+			 double distance = (camMat.arrayWidth() / 2) - rect.center().x();
+			 if (distanceFomCenter > distance) {
+				 distanceFomCenter = distance;
+				 rect = rect2;
+			 }
+		}
+		return rect;
+	}
+	
+	private RotatedRect mostCenteredRect(List<Mat> contours){
+		double distanceFomCenter = Double.MAX_VALUE;
+		RotatedRect rect = new RotatedRect();
+		for (int i = 0; i < contours.size(); i++) {
+			 RotatedRect rect2 = minAreaRect(contours.get(i));
+			 double distance = (camMat.arrayWidth() / 2) - rect.center().x();
+			 if (distanceFomCenter > distance) {
+				 distanceFomCenter = Math.abs(distance);
+				 rect = rect2;
+			 }
+		}
+		return rect;
+	}
 
-		} while (timeOut < 5);
-
-		//
+	
+	private void sleepThread(int duration)
+	{
+		try {
+			Thread.sleep(duration);
+		} catch (InterruptedException e) {
+			System.out.println("InterruptedEX");
+		}
 	}
 
 }
