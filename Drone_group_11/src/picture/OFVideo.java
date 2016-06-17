@@ -18,6 +18,7 @@ import org.bytedeco.javacv.OpenCVFrameGrabber;
 import app.CommandController;
 import app.DroneCommunicator;
 import de.yadrone.base.IARDrone;
+import flightcontrol.FlightControl;
 import helper.Command;
 import helper.CustomPoint;
 import helper.Move;
@@ -52,6 +53,7 @@ public class OFVideo implements Runnable {
 	public boolean wallClose = false;
 	private AvoidWallDemo CK;
 	private LandSequence landSeq;
+	private FlightControl fc;
 	
 	public OFVideo(ImageView mainFrame, Label qrCode,
 			Label qrDist, BufferedImage arg0, CommandController cC, ImageView bufferedframe) {
@@ -66,6 +68,8 @@ public class OFVideo implements Runnable {
 		scanSequence = new ScanSequence(cC);
 		CK = new AvoidWallDemo(cC);
 		landSeq = new LandSequence(cC);
+		fc = new FlightControl(cC);
+		
 	}
 
 	public void setArg0(BufferedImage arg0) {
@@ -147,6 +151,14 @@ public class OFVideo implements Runnable {
 						isFirst = false;
 					}
 				}
+				if (PictureController.shouldFlyControl) {
+					fc.setImage(newImg.clone());
+//					System.out.println("setting img");
+					if (isFirst) {
+						new Thread(fc).start();
+						isFirst = false;
+					}
+				}
 			}
 		} catch (Exception e) {
 		
@@ -217,7 +229,9 @@ public class OFVideo implements Runnable {
 		
 	}
 
-	public void showFilter(Mat filteredMat) {
+	public void showFilter(Mat filteredMat)
+	
+	{
 		BufferedImage bufferedMatImage = MatToBufferedImage(filteredMat);
 		Image imageFilter = SwingFXUtils.toFXImage(bufferedMatImage, null);
 		mainFrame.setImage(imageFilter);

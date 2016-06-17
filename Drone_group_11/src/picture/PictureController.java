@@ -90,6 +90,7 @@ public class PictureController {
 	public static boolean shouldTestWall = false;
 	public static boolean shouldLand = false;
 	private static boolean aboveLanding = false;
+	public static boolean shouldFlyControl = false;
 	
 	private static int circleCounter = 0;
 	public BufferedImage billede;
@@ -520,7 +521,8 @@ public class PictureController {
 		System.out.println("TAKEOFF");
 //		shouldScan = true;
 //		shouldTestWall = true;
-		shouldLand = true;
+		cC.dC.setFrontCamera();
+		shouldFlyControl = true;
 		cC.dC.takeOff();
 		Thread.sleep(5);
 		cC.dC.hover();
