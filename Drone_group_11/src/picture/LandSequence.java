@@ -50,22 +50,22 @@ public class LandSequence implements Runnable {
 		}
 		System.out.println(code);
 
-		sleep(5000);
+		sleep(1900);
 		cC.dC.setSpeed(5);
-		cC.addCommand(Command.UP, 3600, 40);
-		sleep(3700);
+		cC.addCommand(Command.UP, 2600, 15);
+		sleep(2600);
 		cC.dC.hover();
 
 		while (true) {
 			circles = OFC.myCircle(camMat);
 			if (circles > 0) {
-				cC.addCommand(Command.DOWN, 2000, 15);
+				cC.addCommand(Command.DOWN, 1000, 20);
 				sleep(2000);
-				while (checkCode == null) {
-					checkCode = OFC.scanQrCode(camMat);
-					sleep(10);
-				}
-				cC.addCommand(Command.UP, 2500, 20);
+//				while (checkCode == null) {
+//					checkCode = OFC.scanQrCode(camMat);
+//					sleep(10);
+//				}
+				cC.addCommand(Command.UP, 1000, 20);
 				sleep(2100);
 				if (code.equals(checkCode)) {
 					System.out.println("Found");
@@ -77,54 +77,68 @@ public class LandSequence implements Runnable {
 		}
 
 		while (true) {
-
-			boolean check = OFC.checkDecodedQR(camMat);
-
-			if (check) {
-				System.out.println("checked");
-				circles = OFC.myCircle(camMat);
-				cC.addCommand(Command.DOWN, 1000, 30);
-				sleep(1200);
-				if (circles > 0) {
-					while (true) {
-						System.out.println("found circle");
-
-						
-						if (circles > 0 || check) {
-							System.out.println("emergency stop");
-							cC.dC.emergencyStop();
-							break;
-						}
-
-					}
-				}
-				// if (circles > 0) {
-				//
-				// aboveLanding = true;
-				// System.out.println("going down");
-				//
-				// sleep(10);
-				// counts++;
-				// circleCounter = 0;
-				// } else {
-				// circles = 0;
-				// circleCounter++;
-				// System.out.println(circleCounter);
-				//
-				// }
-				// if (circleCounter >= 120) {
-				// aboveLanding = false;
-				// circleCounter = 0;
-				// counts = 0;
-				// }
-				// if (counts >= 3) {
-				// System.out.println("landing");
-				//
-				// cC.addCommand(Command.LAND, 6000, 2);
-				// break;
-				// }
-			}
+		
+		circles = OFC.myCircle(camMat);
+		if (circles > 0) {
+			cC.addCommand(Command.DOWN, 1000, 20);
+			sleep(2000);
 		}
+		
+		boolean check = OFC.checkDecodedQR(camMat);
+		
+		if(check || circles > 0){
+			cC.dC.land();
+		}
+		
+		
+		}
+//
+//			boolean check = OFC.checkDecodedQR(camMat);
+//
+//			if (check) {
+//				System.out.println("checked");
+//				circles = OFC.myCircle(camMat);
+//				cC.addCommand(Command.DOWN, 1000, 20);
+//				sleep(1200);
+//				if (circles > 0) {
+//					while (true) {
+//						System.out.println("found circle");
+//
+//						
+//						if (circles > 0 || check) {
+//							cC.dC.land();
+//							break;
+//						}
+//
+//					}
+//				}
+//				// if (circles > 0) {
+//				//
+//				// aboveLanding = true;
+//				// System.out.println("going down");
+//				//
+//				// sleep(10);
+//				// counts++;
+//				// circleCounter = 0;
+//				// } else {
+//				// circles = 0;
+//				// circleCounter++;
+//				// System.out.println(circleCounter);
+//				//
+//				// }
+//				// if (circleCounter >= 120) {
+//				// aboveLanding = false;
+//				// circleCounter = 0;
+//				// counts = 0;
+//				// }
+//				// if (counts >= 3) {
+//				// System.out.println("landing");
+//				//
+//				// cC.addCommand(Command.LAND, 6000, 2);
+//				// break;
+//				// }
+//			}
+//		}
 	}
 
 	// }
