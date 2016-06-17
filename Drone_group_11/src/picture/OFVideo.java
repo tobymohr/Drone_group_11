@@ -1,27 +1,19 @@
 package picture;
 
-import static org.bytedeco.javacpp.opencv_imgproc.minAreaRect;
-
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.bytedeco.javacpp.opencv_core.IplImage;
 import org.bytedeco.javacpp.opencv_core.Mat;
-import org.bytedeco.javacpp.opencv_core.RotatedRect;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
-import org.bytedeco.javacv.OpenCVFrameGrabber;
 
 import app.CommandController;
-import app.DroneCommunicator;
 import de.yadrone.base.IARDrone;
 import flightcontrol.FlightControl;
 import helper.Command;
 import helper.CustomPoint;
-import helper.Move;
 import javacvdemo.AvoidWallDemo;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
@@ -34,16 +26,12 @@ public class OFVideo implements Runnable {
 	private OpenCVFrameConverter.ToIplImage converter;
 	private OpenCVFrameConverter.ToMat converterMat;
 	private ImageView mainFrame;
-	private ImageView polyFrame;
-	private ImageView qrFrame;
-	private ImageView landingFrame;
 	private ImageView bufferedframe;
 	private Label qrCode;
 	private Label qrDist;
 	private BufferedImage arg0;
 	private PictureProcessingHelper OFC = new PictureProcessingHelper();
 	private CommandController cC;
-	private IARDrone drone;
 	private static boolean aboveLanding = false;
 	private static int circleCounter = 0;
 	private static int counts = 0;
@@ -51,6 +39,8 @@ public class OFVideo implements Runnable {
 	private ScanSequence scanSequence;
 	private boolean isFirst = true;
 	public boolean wallClose = false;
+	public static volatile boolean imageChanged;
+	
 	private AvoidWallDemo CK;
 	private LandSequence landSeq;
 	private FlightControl fc;
@@ -81,59 +71,47 @@ public class OFVideo implements Runnable {
 		try {
 			Mat newImg = null;
 			while (true) {
-				newImg = converterMat.convert(converter1.convert(arg0));
-				Mat filteredImage = null;
+				if (PictureController.imageChanged) {
+					PictureController.imageChanged = false;
+					newImg = converterMat.convert(converter1.convert(arg0));
+					Mat filteredImage = null;
 
-				switch (PictureController.colorInt) {
-				case 1:
-					filteredImage = OFC.findContoursBlackMat(newImg);
-					break;
-				case 2:
-					filteredImage = OFC.findContoursRedMat(newImg);
-					break;
-				case 3:
-					filteredImage = OFC.findContoursGreenMat(newImg);
-					BufferedImage bufferedImageCont = MatToBufferedImage(filteredImage);
-					Image imageCont = SwingFXUtils.toFXImage(bufferedImageCont, null);
-					bufferedframe.setImage(imageCont);
-					break;
-				default:
-					filteredImage = OFC.findContoursBlueMat(newImg);
-					break;
-				}
-				
-				switch (PictureController.imageInt) {
-				case PictureController.SHOW_QR:
-					showQr(newImg.clone());
-					break;
-				case PictureController.SHOW_FILTER:
-					showFilter(filteredImage.clone());
-					break;
-				case PictureController.SHOW_POLYGON:
-					showPolygons(newImg.clone(), filteredImage.clone());
-					break;
-				case PictureController.SHOW_LANDING:
-					showLanding(newImg.clone(), filteredImage.clone());
-					break;
-				default:
-					showPolygons(newImg.clone(), filteredImage.clone());
-					break;
-				}
-
-				Platform.runLater(new Runnable() {
-					@Override
-					public void run() {
-						qrCode.setText("QR Code: " + OFC.getQrCode());
-						qrDist.setText("Dist: " + OFC.getDistance());
-
+					switch (PictureController.colorInt) {
+					case 1:
+						filteredImage = OFC.findContoursBlackMat(newImg);
+						break;
+					case 2:
+						filteredImage = OFC.findContoursRedMat(newImg);
+						break;
+					case 3:
+						filteredImage = OFC.findContoursGreenMat(newImg);
+						BufferedImage bufferedImageCont = MatToBufferedImage(filteredImage);
+						Image imageCont = SwingFXUtils.toFXImage(bufferedImageCont, null);
+						bufferedframe.setImage(imageCont);
+						break;
+					default:
+						filteredImage = OFC.findContoursBlueMat(newImg);
+						break;
 					}
-				});
-				if (PictureController.shouldScan) {
-					scanSequence.setImage(newImg.clone());
-					if (isFirst) {
-						new Thread(scanSequence).start();
-						isFirst = false;
+					
+					switch (PictureController.imageInt) {
+					case PictureController.SHOW_QR:
+						showQr(newImg.clone());
+						break;
+					case PictureController.SHOW_FILTER:
+						showFilter(filteredImage.clone());
+						break;
+					case PictureController.SHOW_POLYGON:
+						showPolygons(newImg.clone(), filteredImage.clone());
+						break;
+					case PictureController.SHOW_LANDING:
+						showLanding(newImg.clone(), filteredImage.clone());
+						break;
+					default:
+						showPolygons(newImg.clone(), filteredImage.clone());
+						break;
 					}
+					
 				}
 				if (PictureController.shouldTestWall){
 					CK.setImage(newImg.clone());
@@ -158,6 +136,9 @@ public class OFVideo implements Runnable {
 						new Thread(fc).start();
 						isFirst = false;
 					}
+
+				} else {
+					Thread.sleep(50);
 				}
 			}
 		} catch (Exception e) {
@@ -218,7 +199,7 @@ public class OFVideo implements Runnable {
 				if(counts == 3){
 					System.out.println("landing");
 					
-					cC.dC.land();
+					cC.droneInterface.land();
 				}
 //			}
 		}

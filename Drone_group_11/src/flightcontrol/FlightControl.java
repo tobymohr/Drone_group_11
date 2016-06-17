@@ -73,13 +73,13 @@ public class FlightControl implements Runnable {
 		commandController.addCommand(Command.ROTATELEFT, 4000, 30); // spin 180
 			do {
 				commandController.addCommand(Command.FORWARD, 1000, 13); // 1 chunk
-				commandController.dC.hover();
+				commandController.droneInterface.hover();
 				// downScanSeq.scan()
-				commandController.dC.setFrontCamera();
+				commandController.droneInterface.setFrontCamera();
 
 			} while (!pictureProcessingHelper.scanQrCode(camMat).equals("W00.04"));
 
-			commandController.dC.hover();
+			commandController.droneInterface.hover();
 
 			//Now we can see W00.04
 			do{
@@ -88,9 +88,9 @@ public class FlightControl implements Runnable {
 				// CenterOnW00.04
 				//When centered
 				commandController.addCommand(Command.FORWARD, 1000, 13);
-				commandController.dC.hover();
+				commandController.droneInterface.hover();
 				//downScanSeq.scan();
-				commandController.dC.setFrontCamera();
+				commandController.droneInterface.setFrontCamera();
 				
 			}while(pictureProcessingHelper.getDistance() > 100);
 			

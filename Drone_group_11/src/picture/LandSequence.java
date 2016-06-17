@@ -44,7 +44,7 @@ public class LandSequence implements Runnable {
 
 		//TAKEOFF sequence
 		System.out.println("HOVER");
-		cC.dC.hover();
+		cC.droneInterface.hover();
 		while (code == null) {
 			code = OFC.scanQrCode(camMat);
 			sleep(10);
@@ -54,7 +54,7 @@ public class LandSequence implements Runnable {
 		sleep(1900);
 		cC.addCommand(Command.UP, 2600, 15);
 		sleep(2600);
-		cC.dC.hover();
+		cC.droneInterface.hover();
 		//TAKEOFF sequence END
 		
 		
@@ -91,7 +91,7 @@ public class LandSequence implements Runnable {
 			boolean check = OFC.checkDecodedQR(camMat);
 
 			if (check || circles > 0) {
-				cC.dC.land();
+				cC.droneInterface.land();
 			}
 		}
 		//LANDING sequence END

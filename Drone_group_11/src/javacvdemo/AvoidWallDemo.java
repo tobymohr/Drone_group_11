@@ -56,30 +56,30 @@ public class AvoidWallDemo implements Runnable {
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
-		commandController.dC.takeOff();
+		commandController.droneInterface.takeOff();
 		
 		sleep(2000);
 		System.out.println("HOVER");
-		commandController.dC.hover();
+		commandController.droneInterface.hover();
 		sleep(6000);
 		System.out.println("UP");
-		commandController.dC.setSpeed(5);
+		commandController.droneInterface.setSpeed(5);
 		commandController.addCommand(Command.UP, 2000, 10);
 		sleep(2000);
 		
 		System.out.println("HOVER");
-		commandController.dC.hover();
+		commandController.droneInterface.hover();
 		sleep(6000);
 		while(true){
 			commandController.addCommand(Command.FORWARD, 250, 5);
 			sleep(2000);
 			if(OFC.getDistance() <= 200)
 				break;
-			commandController.dC.hover();
-			sleep(1000);
+			commandController.droneInterface.hover();
+			sleep(500);
 		}
 		System.out.println("OUT");
-		commandController.dC.land();
+		commandController.droneInterface.land();
 		
 	}
 }

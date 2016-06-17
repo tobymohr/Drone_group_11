@@ -4,15 +4,15 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.*?>
-<?import javafx.scene.control.TextField?>
 
-<BorderPane fx:id="borderpane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="927.9998779296875" prefWidth="1406.0000999999975" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="picture.PictureController">
+<BorderPane fx:id="borderpane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="900.9998779296875" prefWidth="900.0000999999975" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="picture.PictureController">
   <bottom>
     <VBox alignment="CENTER" prefHeight="119.0" prefWidth="1050.0" spacing="15.0">
       <children>
@@ -43,8 +43,7 @@
       <children>
         <HBox prefHeight="100.0" prefWidth="200.0">
           <children>
-          	<ImageView fx:id="bufferedframe" fitHeight="607.0" fitWidth="607.0" pickOnBounds="true" preserveRatio="true" />
-            <ImageView fx:id="mainFrame" fitHeight="607.0" fitWidth="607.0" pickOnBounds="true" preserveRatio="true" />
+            <ImageView fx:id="mainFrame" fitHeight="607.0" fitWidth="877.0" pickOnBounds="true" preserveRatio="true" />
           </children>
         </HBox>
       </children>
@@ -77,6 +76,11 @@
             <Label fx:id="headingLbl" mnemonicParsing="false" text="heading" />
           </children>
         </HBox>
+        <Label fx:id="lowBatteryLbl" text="LOW BATTERY" textFill="#ff3333" visible="false">
+          <font>
+            <Font size="30.0" />
+          </font>
+        </Label>
       </children>
     </VBox>
   </top>

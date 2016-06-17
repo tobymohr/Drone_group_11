@@ -101,13 +101,25 @@ public class CustomPoint {
 	
 	public static CustomPoint parseQRTextLeft(String text) {
 		int coordinate = Integer.parseInt(text.substring(4));
-		coordinate--;
-		return parseQRText(text.substring(0, 5) + coordinate);
+		int wall = Integer.parseInt(text.substring(1, 3));
+		if (coordinate == 0) {
+			coordinate = 4;
+			wall--;
+		} else {
+			coordinate--;			
+		}
+		return parseQRText("W0" + wall + ".0" + coordinate);
 	}
 	
 	public static CustomPoint parseQRTextRight(String text) {
 		int coordinate = Integer.parseInt(text.substring(4));
-		coordinate++;
-		return parseQRText(text.substring(0, 5) + coordinate);
+		int wall = Integer.parseInt(text.substring(1, 3));
+		if (coordinate == 4) {
+			coordinate = 0;
+			wall++;
+		} else {
+			coordinate++;			
+		}
+		return parseQRText("W0" + wall + ".0" + coordinate);
 	}
 }
