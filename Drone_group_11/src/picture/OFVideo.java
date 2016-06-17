@@ -110,8 +110,9 @@ public class OFVideo implements Runnable {
 						@Override
 						public void run() {
 							qrCode.setText("QR Code: " + OFC.getQrCode());
-							qrDist.setText("Dist: " + OFC.getDistance());
-
+							if(scanSequence.placement != null){
+								qrDist.setText("Position : " + scanSequence.placement.getX() + " , " + scanSequence.placement.getY());
+							}
 						}
 					});
 					if (PictureController.shouldScan) {

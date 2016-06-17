@@ -319,7 +319,7 @@ public class PictureProcessingHelper {
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
 			RotatedRect rect = minAreaRect(matContour.get(i));
-			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > 700
+			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > MIN_AREA
 					&& checkAngles(matContour.get(i), rect)) {
 				result.add(matContour.get(i));
 			}

@@ -38,13 +38,13 @@ public class CommandController implements Runnable {
 			try {
 				synchronized(this){
 					while(wait || q.peek()==null){
-						try {
-							droneInterface.hover();
-							System.out.println("HOVER");
-							wait(5000);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
+//						try {
+////							droneInterface.hover();
+////							System.out.println("HOVER");
+////							wait(5000);
+//						} catch (InterruptedException e) {
+//							e.printStackTrace();
+//						}
 					}
 
 					task = q.take();
@@ -110,30 +110,15 @@ public class CommandController implements Runnable {
 						break;
 					case Command.LAND:
 						droneInterface.land();
+						break;
+					case Command.NONE: 
+						droneInterface.hover();
+						break;
 					}
-					
 					Thread.sleep(task.time);
-					
-					System.out.println("TIME " + (int) (task.time) + " SPEED " + (task.speed));
-//					
-//					if(task.task == Command.ROTATELEFT){
-//						System.out.println("COUNTER SPIN RIGHT");
-//						dC.setSpeed((int)(task.speed/COUNTERSPEED_FACTOR));
-//						dC.spinRight((int)(task.time/COUNTER_FACTOR));
-//						Thread.sleep((int)(task.time/COUNTER_FACTOR));
-//					}
-//					
-					
-					
-//					
-//					dC.hover();
-//					wait(1500);
-					
-//					System.out.println("TIME " + (int) (task.time/COUNTER_FACTOR) + " SPEED " + (task.speed/COUNTER_FACTOR));
-					
+					droneInterface.hover();
+					Thread.sleep(1500);
 					droneIsReady = true;
-					
-				
 				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();
