@@ -371,14 +371,12 @@ public class ScanSequence implements Runnable {
 
 		if (frameCount >= MAX_FRAME_COUNT) {
 			frameCount = 0;
-			if (canGetDist) {
 				distanceFromQr = OFC.calcDistance(rect);
 				if (chunkSize == 0) {
 					chunkSize = distanceFromQr;
 				} else {
 					chunkSize = distanceFromQr - chunkSize;
 				}
-			}
 			
 			
 			// if no distances has been measured for a long time
@@ -392,14 +390,12 @@ public class ScanSequence implements Runnable {
 //			}
 
 			// Start moving
-			if (moveX && !noMove) {
+			if (moveX) {
 				int move = calcMoveXAxis(myPlacement.getX(), placement);
 				decideMove(move);
-			} else if (!noMove) {
+			} else {
 				int move = calcMovesYAxis(myPlacement.getY(), placement);
 				decideMove(move);
-			} else {
-				decideMove(Command.NONE);
 			}
 		} else {
 			frameCount++;
