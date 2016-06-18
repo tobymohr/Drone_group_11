@@ -82,6 +82,7 @@
           </font>
         </Label>
         <Label fx:id="movelbl" alignment="CENTER" font="$x1" text="MOVE:" />
+        <Label id="coordinatFoundlbl" alignment="CENTER" font="$x1" text="COORDINAT FOUND" textFill="#14ff00" visible="false"/>
       </children>
     </VBox>
   </top>

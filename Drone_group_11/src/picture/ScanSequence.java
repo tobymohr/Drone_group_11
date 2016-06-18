@@ -26,7 +26,7 @@ public class ScanSequence implements Runnable {
 	private static final int STRAFE_TIME = 1000;
 	private static final int STRAFE_SPEED = 7;
 	private static final int SPIN_TIME = 1000;
-	private static final int SPIN_SPEED = 10;
+	private static final int SPIN_SPEED = 15;
 	private static final int FORWARD_TIME = 800;
 	private static final int FORWARD_SPEED = 7;
 	private static final int ROTATE_TIME = 1500;
@@ -51,6 +51,7 @@ public class ScanSequence implements Runnable {
 	public static final double SMALL_MOVE_LIMIT = 100;
 
 	private CommandController commandController;
+	private double chunkSize = 0;
 	private double previousCenter = -1;
 	private boolean strafeRight = true;
 	private String code = null;
@@ -59,10 +60,11 @@ public class ScanSequence implements Runnable {
 	private int scannedCount = 0;
 	private Mat camMat;
 	private int foundFrameCount = 0;
-	public static CustomPoint placement = null;
+	public static CustomPoint myPlacement = null;
 	private boolean moveToStart = false;
 	private int endX = 847;
 	private int endY = -10;
+	private CustomPoint startPlacement = new CustomPoint(847, -10);
 	private PictureProcessingHelper OFC = new PictureProcessingHelper();
 	private Map<Integer, Integer> moves = new HashMap<>();
 	private boolean isFirst = false;
@@ -75,7 +77,6 @@ public class ScanSequence implements Runnable {
 	private boolean canGetDist = true;
 	private boolean noMove = false;
 
-
 	public ScanSequence(CommandController commandController) {
 		this.commandController = commandController;
 	}
@@ -87,13 +88,6 @@ public class ScanSequence implements Runnable {
 	@Override
 	public void run() {
 		commandController.droneInterface.takeOff();
-
-		// code = "W01.02";
-		// placement = new CustomPoint();
-		// placement.setX(514);
-		// placement.setY(721);
-		// moveToStart = true;
-
 		sleep(2000);
 		System.out.println("HOVER");
 		commandController.droneInterface.hover();
@@ -160,7 +154,7 @@ public class ScanSequence implements Runnable {
 			frameCount++;
 		} else {
 			code = null;
-			if (rotateCount < MAX_ROTATE_COUNT ) {
+			if (rotateCount < MAX_ROTATE_COUNT) {
 				addCommand(Command.ROTATERIGHT, ROTATE_TIME, ROTATE_SPEED);
 				rotateCount++;
 			} else {
@@ -209,18 +203,17 @@ public class ScanSequence implements Runnable {
 			addCommand(Command.SPINLEFT, SPIN_TIME, SPIN_SPEED);
 		}
 	}
-	
 
-	public int getSpinSpeed(List<Mat> matContours){
+	public int getSpinSpeed(List<Mat> matContours) {
 		double allSpeeds = 0;
 		double constant = 9;
-		for(int i = 0; i<matContours.size(); i++){
+		for (int i = 0; i < matContours.size(); i++) {
 			double area = contourArea(matContours.get(i)) / 1000;
-			double result = constant/area;
-			allSpeeds +=result*10;
+			double result = constant / area;
+			allSpeeds += result * 10;
 		}
-		if(!Double.isNaN(allSpeeds/matContours.size())){
-			return (int) (allSpeeds/matContours.size());
+		if (!Double.isNaN(allSpeeds / matContours.size())) {
+			return (int) (allSpeeds / matContours.size());
 		}
 		return 0;
 	}
@@ -247,11 +240,6 @@ public class ScanSequence implements Runnable {
 			return;
 		}
 		previousCenter = -1;
-		// double distanceToDrone = OFC.calcDistance(rect);
-		// if (distanceToDrone < 300) {
-		// addCommand(Command.BACKWARDS, BACKWARD_TIME, BACKWARD_SPEED);
-		// return;
-		// }
 
 		Mat qrImg = OFC.warpImage(camMat.clone(), rect);
 		String tempCode = OFC.scanQrCode(qrImg);
@@ -261,18 +249,22 @@ public class ScanSequence implements Runnable {
 		}
 		System.out.println("CENTERED");
 		if (code != null) {
-			if (contours.size() == 3) {
-				placement = calculatePlacement(camMat, contours);
+			if (code.contains("W01") || code.contains("W03")) {
+				rotateCheck();
+				return;
+			} else if (contours.size() == 3) {
+				myPlacement = calculatePlacement(camMat, contours);
 				moveToStart = true;
 				rotateCount = 0;
 				PictureController.shouldScan = false;
 
 				firstAxisToMove();
 				System.out.println("LETS GOOOOOOO MOTHERFUCKER");
-				placement.setColour(Color.BLACK);
-				PictureController.addCord(placement);
+				myPlacement.setColour(Color.BLACK);
+				PictureController.addCord(myPlacement);
+				frameCount = 0;
 				while (moveToStart) {
-					moveDroneToStart();
+					moveDroneToPlacement(startPlacement);
 				}
 				return;
 			} else if (scannedCount < 3) {
@@ -318,10 +310,28 @@ public class ScanSequence implements Runnable {
 			} else {
 				moves.put(task, 1);
 			}
-			// System.out.println("Distance to QR" + distanceFromQr + "
-			// placementX " + placement.getX());
 		}
 	}
+	
+	private void addCommandForPlacement(int task, int duration, int speed) {
+		if (commandController.isDroneReady()) {
+			if (moves.containsKey(task)) {
+				if ((task == Command.SPINLEFT || task == Command.SPINRIGHT) && moves.get(task) > MIN_HIT_COUNT / 2) {
+					commandController.addCommand(task, duration, speed);
+					moves.clear();
+				} else if (moves.get(task) > MIN_HIT_COUNT) {
+					updateRelativeCord();
+					commandController.addCommand(task, duration, speed);
+					moves.clear();
+				} else {
+					moves.put(task, moves.get(task) + 1);
+				}
+			} else {
+				moves.put(task, 1);
+			}
+		}
+	}
+
 
 	private CustomPoint calculatePlacement(Mat srcImage, List<Mat> contours) {
 		CustomPoint placement = new CustomPoint();
@@ -350,85 +360,87 @@ public class ScanSequence implements Runnable {
 		return placement;
 	}
 
-	private void moveDroneToStart() {
+	private void moveDroneToPlacement(CustomPoint placement) {
+
 		OFVideo.imageChanged = false;
 		doCommand = false;
 		List<Mat> contours = OFC.findQrContoursNoThresh(camMat);
 		// find mostcenteredrect
 		RotatedRect rect = mostCenteredRect(contours);
 		// Get distance
-		if (canGetDist) {
-			distanceFromQr = OFC.calcDistance(rect);
-		}
-		// use distance for new X  coordinat
-		if (!moveX) {
-			if (!Double.isInfinite(distanceFromQr)) {
-				//Either the new coordinat should be MAX - distance or MIN - distance
-				if (code.contains("W00")) {
-					placement.setY(MAX_Y_CORD - distanceFromQr);
+
+		if (frameCount >= MAX_FRAME_COUNT) {
+			frameCount = 0;
+			if (canGetDist) {
+				distanceFromQr = OFC.calcDistance(rect);
+				if (chunkSize == 0) {
+					chunkSize = distanceFromQr;
 				} else {
-					placement.setY(MIN_Y_CORD + distanceFromQr);
+					chunkSize = distanceFromQr - chunkSize;
 				}
-				noMove = false;
-				//if no distances has been measured for a long time
-			} else if (noDistFound > noDistFoundLimit) {
-				noDistFound = 0;
-				noMove = false;
-				moveX = true;
+			}
+			
+			// if no distances has been measured for a long time
+//			if (noDistFound > noDistFoundLimit) {
+//				noDistFound = 0;
+//				noMove = false;
+//				moveX = false;
+//			} else {
+//				noDistFound++;
+//				noMove = true;
+//			}
+
+			// Start moving
+			if (moveX && !noMove) {
+				int move = calcMoveXAxis(myPlacement.getX(), placement);
+				decideMove(move);
+			} else if (!noMove) {
+				int move = calcMovesYAxis(myPlacement.getY(), placement);
+				decideMove(move);
+			} else {
+				decideMove(Command.NONE);
+			}
+		} else {
+			frameCount++;
+		}
+	}
+
+	private void updateRelativeCord() {
+		if (!Double.isInfinite(distanceFromQr)) {
+			if (!moveX) {
+				if (code.contains("W00")) {
+					myPlacement.setY(MAX_Y_CORD - distanceFromQr);
+				} else {
+					myPlacement.setY(MIN_Y_CORD + distanceFromQr);
+				}
 
 			} else {
-				noDistFound++;
-				noMove = true;
-			}
-		}
-		// use distance for Y coordinat
-		if (moveX) {
-			//Either the new coordinat should be MAX - distance or MIN - distance
-			if (!Double.isInfinite(distanceFromQr)) {
 				if (code.contains("W01")) {
-					placement.setX(MAX_X_CORD - distanceFromQr);
+					myPlacement.setX(MAX_X_CORD - distanceFromQr);
 				} else {
-					placement.setX(MIN_X_CORD + distanceFromQr);
+					myPlacement.setX(MIN_X_CORD + distanceFromQr);
 				}
-				noMove = false;
-				//if no distances has been measured for a long time
-			} else if (noDistFound > noDistFoundLimit) {
-				noDistFound = 0;
-				noMove = false;
-				moveX = false;
-			} else {
-				noDistFound++;
-				noMove = true;
 			}
-		}
-		// Start moving
-		if (moveX && !noMove) {
-			int move = calcMoveXAxis(placement.getX());
-			decideMove(move);
-		} else if (!noMove) {
-			int move = calcMovesYAxis(placement.getY());
-			decideMove(move);
-		} else {
-			decideMove(Command.NONE);
+			noMove = false;
 		}
 	}
 
 	private void decideMove(int move) {
 		if (startSmallMove) {
-			addCommand(move, FIELD_SMALL_DURATION, FIELD_SMALL_SPEED);
+			addCommandForPlacement(move, FIELD_SMALL_DURATION, FIELD_SMALL_SPEED);
 			moveX = !moveX;
 		} else {
 			if (move == Command.LEFT || move == Command.RIGHT) {
-				addCommand(move, STRAFE_TIME, SPIN_SPEED);
+				addCommandForPlacement(move, STRAFE_TIME, SPIN_SPEED);
 			} else {
-				addCommand(move, FIELD_DURATION, FIELD_SPEED);
+				addCommandForPlacement(move, FIELD_DURATION, FIELD_SPEED);
 			}
 		}
 	}
 
-	private int calcMoveXAxis(double x) {
-		if (x < endX) {
-			if (endX - x < SMALL_MOVE_LIMIT) {
+	private int calcMoveXAxis(double x, CustomPoint placement) {
+		if (x < placement.getX()) {
+			if (placement.getX() - x < SMALL_MOVE_LIMIT) {
 				startSmallMove = true;
 				canGetDist = false;
 			}
@@ -440,13 +452,13 @@ public class ScanSequence implements Runnable {
 		return Command.NONE;
 	}
 
-	private int calcMovesYAxis(double y) {
-		if (y < endY) {
+	private int calcMovesYAxis(double y, CustomPoint placement) {
+		if (y < placement.getY()) {
 			moveX = true;
 			return Command.BACKWARDS;
 		}
-		if (y > endY) {
-			if (endY - y > SMALL_MOVE_LIMIT) {
+		if (y > placement.getY()) {
+			if (placement.getY() - y > SMALL_MOVE_LIMIT) {
 				canGetDist = false;
 				startSmallMove = true;
 			}
