@@ -19,7 +19,6 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import picture.DownScanSeq.scanGreen;
 
 public class OFVideo implements Runnable {
 	private Java2DFrameConverter converter1;
@@ -143,8 +142,7 @@ public class OFVideo implements Runnable {
 						// System.out.println("setting img");
 						if (isFirst) {
 							new Thread(fc).start();
-							downScanSeq = new DownScanSeq(newImg.clone(), commandController);
-							downScanSeq.startThreads();
+							downScanSeq = new DownScanSeq(commandController);
 							isFirst = false;
 						}
 						downScanSeq.setImage(newImg.clone());

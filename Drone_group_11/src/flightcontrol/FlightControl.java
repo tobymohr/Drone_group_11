@@ -13,6 +13,7 @@ import org.bytedeco.javacpp.opencv_core.RotatedRect;
 import com.google.zxing.qrcode.encoder.QRCode;
 
 import app.CommandController;
+import picture.DownScanSeq;
 import picture.OFVideo;
 import picture.PictureController;
 import picture.PictureProcessingHelper;
@@ -24,6 +25,11 @@ public class FlightControl implements Runnable {
 	private Mat camMat;
 	private int timeOut;
 	private double centerDistance;
+	private DownScanSeq downScan = new DownScanSeq(commandController);
+	double distance;
+	double currentDistance;
+	private boolean tooFar = true;
+	private boolean tooClose = true;
 
 	public FlightControl(CommandController cc) {
 		this.commandController = cc;
@@ -46,106 +52,136 @@ public class FlightControl implements Runnable {
 		sleepThread(5000);
 		commandController.addCommand(Command.UP, 5000, 15);
 		sleepThread(5000);
-		
-		
+
 		flyLaneOne();
-		// if (pph.isCenterInImage(camMat, rect) == 0) {
-		// flyLaneOne();
-		// }
-
-		// TODO: Center for qr-code
-
-		// TODO: Spin 180
-		// findContourBlack
-		// center on white mass
-		// check for blue box tower
-		// fly chunksize
-		// recent on white mass
-		// call downScanSeq
-		// frontcam, center on mass
-		// check for distance
-		// fly chunk
-
-		// strafe left or right
-		// center on mass (QR or Triangle)
-		// spin 180
-		// rinse and repeat
-
-		// TODO:
-
+		flyLaneTwo();
+		flyLaneThree();
+		flyLaneFour();
+		flyLaneFive();
+		flyLaneSix();
 	}
 
 	public void flyLaneOne() {
 		commandController.droneInterface.setFrontCamera();
-//		commandController.addCommand(Command.ROTATELEFT, 4000, 30); // spin 180
-//		sleepThread(4500);
+		//		commandController.addCommand(Command.ROTATELEFT, 4000, 30); // spin 180
+		//		sleepThread(4500);
+
 		List<Mat> contours = pictureProcessingHelper.findQrContours(camMat);
 		RotatedRect rect = null;
 		Mat qrImg = null;
 		String tempCode = "";
 		int i = 0;
+		// TODO: noget aspect ratio, så vi ved vi kigger på en af de rect på væg over for dronen
+		double distance = pictureProcessingHelper.calcDistance(rect);
+		double currentDistance = pictureProcessingHelper.calcDistance(rect);
+		adjustToRectDistance(rect);
 		do {
-			commandController.addCommand(Command.FORWARD, 1000, 10); // 1 chunk
+			
 			sleepThread(2500);
-			// downScanSeq.scan()
+			//hover
+			commandController.droneInterface.setBottomCamera();
+			do{
+				downScan.scanGreen();
+				downScan.scanRed();
+			}while(!downScan.greenDone && !downScan.redDone);
+			downScan.greenDone = false;
+			downScan.redDone = false;
+
+			
+			// TODO: Scan for immediate threats
+			// boxes
+			
+			// adjust position relative to mostRightRect with correct aspect ratio
 			contours = pictureProcessingHelper.findQrContours(camMat);
 			if (contours.size() > 0) {
 				rect = mostCenteredRect(contours);
 				qrImg = pictureProcessingHelper.warpImage(camMat, rect);
 				tempCode = pictureProcessingHelper.scanQrCode(qrImg);
 			}
-			if (i > 3) {
-				commandController.addCommand(Command.LEFT, 1000, 10);
-				sleepThread(2000);
-				i = 0;
-			}
-			i++;
-		} while (!tempCode.startsWith("W00"));
-		System.out.println("FOUND");
-		contours = pictureProcessingHelper.findQrContours(camMat);
-		rect = mostCenteredRect(contours);
-		double distance = pictureProcessingHelper.calcDistance(rect);
+		} while (!tempCode.startsWith("W00.04"));
+
+		
+//		
+//		System.out.println("FOUND");
+//		contours = pictureProcessingHelper.findQrContours(camMat);
+//		rect = rightMostRect(contours);
+//		
+		
+		// Vi kan nu se QR kode og centrerer på den
 		do {
-			contours = pictureProcessingHelper.findQrContours(camMat);
-			rect = mostCenteredRect(contours);
-			distance = pictureProcessingHelper.calcDistance(rect);
-			commandController.addCommand(Command.FORWARD, 1000, 13);
+			// kåre centrere QR kode 
+			// check distance to QR kode
+//			contours = pictureProcessingHelper.findQrContours(camMat);
+//			rect = mostCenteredRect(contours);
+//			distance = pictureProcessingHelper.calcDistance(rect);
+			
+			
+			commandController.addCommand(Command.FORWARD, 1000, 10);
 			sleepThread(1500);
-			// downScanSeq.scan();
+			
+			commandController.droneInterface.setBottomCamera();
+		do{
+			downScan.scanGreen();
+			downScan.scanRed();
+		}while(!downScan.greenDone && !downScan.redDone);
+		downScan.greenDone = false;
+		downScan.redDone = false;
+
+			
 		} while (distance > 100);
 		System.out.println("CLOSE");
 	}
-	
-	
+
+
+
+
+
 	private RotatedRect rightMostRect(List<Mat> contours){
 		double distanceFomCenter = Double.MAX_VALUE;
 		RotatedRect rect = new RotatedRect();
 		for (int i = 0; i < contours.size(); i++) {
-			 RotatedRect rect2 = minAreaRect(contours.get(i));
-			 double distance = (camMat.arrayWidth() / 2) - rect.center().x();
-			 if (distanceFomCenter > distance) {
-				 distanceFomCenter = distance;
-				 rect = rect2;
-			 }
-		}
-		return rect;
-	}
-	
-	private RotatedRect mostCenteredRect(List<Mat> contours){
-		double distanceFomCenter = Double.MAX_VALUE;
-		RotatedRect rect = new RotatedRect();
-		for (int i = 0; i < contours.size(); i++) {
-			 RotatedRect rect2 = minAreaRect(contours.get(i));
-			 double distance = (camMat.arrayWidth() / 2) - rect.center().x();
-			 if (distanceFomCenter > distance) {
-				 distanceFomCenter = Math.abs(distance);
-				 rect = rect2;
-			 }
+			RotatedRect rect2 = minAreaRect(contours.get(i));
+			double distance = (camMat.arrayWidth() / 2) - rect.center().x();
+			if (distanceFomCenter > distance) {
+				distanceFomCenter = distance;
+				rect = rect2;
+			}
 		}
 		return rect;
 	}
 
+	private RotatedRect mostCenteredRect(List<Mat> contours){
+		double distanceFomCenter = Double.MAX_VALUE;
+		RotatedRect rect = new RotatedRect();
+		for (int i = 0; i < contours.size(); i++) {
+			RotatedRect rect2 = minAreaRect(contours.get(i));
+			double distance = (camMat.arrayWidth() / 2) - rect.center().x();
+			if (distanceFomCenter > distance) {
+				distanceFomCenter = Math.abs(distance);
+				rect = rect2;
+			}
+		}
+		return rect;
+	}
 	
+	private void adjustToRectDistance(RotatedRect rect){
+		distance = pictureProcessingHelper.calcDistance(rect);
+		commandController.addCommand(Command.FORWARD, 1000, 10); // 1 chunk
+		while(!tooClose && !tooFar){
+			currentDistance = pictureProcessingHelper.calcDistance(rect);
+			if((distance - currentDistance) > 95){
+				commandController.addCommand(Command.BACKWARDS, 500, 10);
+			}
+			if((distance - currentDistance) < 75){
+				commandController.addCommand(Command.FORWARD, 500, 10);
+			}
+		}
+	}
+
+
+
+
+
 	private void sleepThread(int duration)
 	{
 		try {
@@ -153,6 +189,29 @@ public class FlightControl implements Runnable {
 		} catch (InterruptedException e) {
 			System.out.println("InterruptedEX");
 		}
+	}
+
+
+	private void flyLaneTwo() {
+		// TODO Auto-generated method stub
+
+	}
+	private void flyLaneThree() {
+		// TODO Auto-generated method stub
+
+	}
+	private void flyLaneFour() {
+		// TODO Auto-generated method stub
+
+	}	
+	private void flyLaneFive() {
+		// TODO Auto-generated method stub
+
+	}
+
+	private void flyLaneSix() {
+		// TODO Auto-generated method stub
+
 	}
 
 }

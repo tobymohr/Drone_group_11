@@ -17,27 +17,13 @@ public class DownScanSeq {
 	private Mat camMat2;
 	private ArrayList<ArrayList<CustomPoint>> greenResults;
 	private ArrayList<ArrayList<CustomPoint>> redResults;
-	private scanGreen green;
-	private scanRed red;
 	private CommandController commandController;
 
-	public DownScanSeq(Mat camMat, CommandController commandController) {
-		greenResults.clear();
-		redResults.clear();
-		this.camMat = camMat;
-		camMat2 = camMat.clone();
+	public DownScanSeq(CommandController commandController) {
 		greenDone = false;
 		redDone = false;
 		PPH = new PictureProcessingHelper();
 		this.commandController = commandController;
-		commandController.droneInterface.setBottomCamera();
-	}
-
-	public void startThreads() {
-		green = new scanGreen();
-		red = new scanRed();
-		green.start();
-		red.start();
 	}
 
 	public void setImage(Mat camMat) {
@@ -45,71 +31,67 @@ public class DownScanSeq {
 		this.camMat2 = camMat.clone();
 	}
 
-	class scanGreen extends Thread {
-		Mat greenMat;
 
-		@Override
-		public void run() {
-			while (!greenDone) {
-				if (OFVideo.imageChangedGreen) {
-					scanGreenSeq();					
-				} else {
-					try {
-						Thread.sleep(50);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
+	public void scanGreen()
+	{
+		while (!greenDone) {
+			if (OFVideo.imageChangedGreen) {
+				scanGreenSeq();					
+			} else {
+				try {
+					Thread.sleep(50);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
 			}
 		}
 
-		private boolean scanGreenSeq() {
-			OFVideo.imageChangedGreen = false;
-			greenMat = PPH.findContoursGreenMat(camMat);
-			greenResults.add(PPH.findObjectsMat(greenMat));
-			
+	}
+	private boolean scanGreenSeq() {
+		Mat greenMat = camMat;
+		OFVideo.imageChangedGreen = false;
+		greenMat = PPH.findContoursGreenMat(camMat);
+		greenResults.add(PPH.findObjectsMat(greenMat));
 
-			// todo make done constraints
-			if (greenResults.size() == 100) {
-				greenDone = true;
-			}
-			return greenDone;
+		// todo make done constraints
+		if (greenResults.size() == 100) {
+			greenDone = true;
 		}
+		return greenDone;
 	}
 
-	class scanRed extends Thread {
-		Mat redMat;
 
-		@Override
-		public void run() {
-			while (!redDone) {
-				if (OFVideo.imageChangedRed) {
-					scanRedSeq();					
-				} else {
-					try {
-						Thread.sleep(50);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
+	public void scanRed() {
+		while (!redDone) {
+			if (OFVideo.imageChangedRed) {
+				scanRedSeq();					
+			} else {
+				try {
+					Thread.sleep(50);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
 			}
-			if (redDone) {
-				calculateScanResults();
-			}
 		}
-
-		private boolean scanRedSeq() {
-			OFVideo.imageChangedRed = false;
-			redMat = PPH.findContoursGreenMat(camMat2);
-			redResults.add(PPH.findObjectsMat(redMat));
-
-			// todo make done constraints
-			if (redResults.size() == 100) {
-				redDone = true;
-			}
-			return redDone;
+		if (redDone) {
+			calculateScanResults();
 		}
 	}
+
+	private boolean scanRedSeq() {
+		Mat redMat = camMat2;
+		OFVideo.imageChangedRed = false;
+		redMat = PPH.findContoursGreenMat(camMat2);
+		redResults.add(PPH.findObjectsMat(redMat));
+
+		// todo make done constraints
+		if (redResults.size() == 100) {
+			redDone = true;
+		}
+		return redDone;
+	}
+
+
 
 	public void calculateScanResults() {
 		HashMap<Integer, Integer> map = new HashMap<Integer, Integer>();
@@ -125,6 +107,10 @@ public class DownScanSeq {
 		for (Integer key : map.keySet()) {
 			System.out.println(key + ": penis" + map.get(key).toString());
 		}
+		// TODO: Calc estimate coords and add to coordinate GUI
+		greenResults.clear();
+		redResults.clear();
+		commandController.droneInterface.setFrontCamera();
 	}
 
 }
