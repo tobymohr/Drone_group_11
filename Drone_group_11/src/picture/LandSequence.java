@@ -11,14 +11,12 @@ import org.bytedeco.javacpp.opencv_core.RotatedRect;
 
 import app.CommandController;
 import helper.Command;
-import javacvdemo.AvoidWallDemo;
 
 public class LandSequence implements Runnable {
 
 	private PictureProcessingHelper OFC = new PictureProcessingHelper();
 	private CommandController cC;
 	public boolean wallClose = false;
-	private AvoidWallDemo CK;
 	private Map<Integer, Integer> moveSet = new HashMap<>();
 	private static boolean aboveLanding = false;
 	private static int circleCounter = 0;
@@ -44,7 +42,7 @@ public class LandSequence implements Runnable {
 
 		//TAKEOFF sequence
 		System.out.println("HOVER");
-		cC.dC.hover();
+		cC.droneInterface.hover();
 		while (code == null) {
 			code = OFC.scanQrCode(camMat);
 			sleep(10);
@@ -54,7 +52,7 @@ public class LandSequence implements Runnable {
 		sleep(1900);
 		cC.addCommand(Command.UP, 2600, 15);
 		sleep(2600);
-		cC.dC.hover();
+		cC.droneInterface.hover();
 		//TAKEOFF sequence END
 		
 		
@@ -91,7 +89,7 @@ public class LandSequence implements Runnable {
 			boolean check = OFC.checkDecodedQR(camMat);
 
 			if (check || circles > 0) {
-				cC.dC.land();
+				cC.droneInterface.land();
 			}
 		}
 		//LANDING sequence END

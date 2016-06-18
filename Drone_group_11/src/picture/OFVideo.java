@@ -1,27 +1,17 @@
 package picture;
 
-import static org.bytedeco.javacpp.opencv_imgproc.minAreaRect;
-
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.bytedeco.javacpp.opencv_core.IplImage;
 import org.bytedeco.javacpp.opencv_core.Mat;
-import org.bytedeco.javacpp.opencv_core.RotatedRect;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
-import org.bytedeco.javacv.OpenCVFrameGrabber;
 
 import app.CommandController;
-import app.DroneCommunicator;
 import de.yadrone.base.IARDrone;
 import helper.Command;
-import helper.CustomPoint;
-import helper.Move;
-import javacvdemo.AvoidWallDemo;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.control.Label;
@@ -33,16 +23,12 @@ public class OFVideo implements Runnable {
 	private OpenCVFrameConverter.ToIplImage converter;
 	private OpenCVFrameConverter.ToMat converterMat;
 	private ImageView mainFrame;
-	private ImageView polyFrame;
-	private ImageView qrFrame;
-	private ImageView landingFrame;
 	private ImageView bufferedframe;
 	private Label qrCode;
 	private Label qrDist;
 	private BufferedImage arg0;
 	private PictureProcessingHelper OFC = new PictureProcessingHelper();
 	private CommandController cC;
-	private IARDrone drone;
 	private static boolean aboveLanding = false;
 	private static int circleCounter = 0;
 	private static int counts = 0;
@@ -50,21 +36,23 @@ public class OFVideo implements Runnable {
 	private ScanSequence scanSequence;
 	private boolean isFirst = true;
 	public boolean wallClose = false;
-	private AvoidWallDemo CK;
+	public static volatile boolean imageChanged;
+	private Label movelbl;
+	
 	private LandSequence landSeq;
 	
-	public OFVideo(ImageView mainFrame, Label qrCode,
+	public OFVideo(ImageView mainFrame, Label movelbl, Label qrCode,
 			Label qrDist, BufferedImage arg0, CommandController cC, ImageView bufferedframe) {
 		this.arg0 = arg0;
 		this.mainFrame = mainFrame;
 		this.bufferedframe = bufferedframe;
 		this.qrDist = qrDist;
 		this.qrCode = qrCode;
+		this.movelbl = movelbl;
 		converter = new OpenCVFrameConverter.ToIplImage();
 		converterMat = new ToMat();
 		converter1 = new Java2DFrameConverter();
 		scanSequence = new ScanSequence(cC);
-		CK = new AvoidWallDemo(cC);
 		landSeq = new LandSequence(cC);
 	}
 
@@ -77,8 +65,10 @@ public class OFVideo implements Runnable {
 		try {
 			Mat newImg = null;
 			while (true) {
-				newImg = converterMat.convert(converter1.convert(arg0));
-				Mat filteredImage = null;
+				if (PictureController.imageChanged) {
+					PictureController.imageChanged = false;
+					newImg = converterMat.convert(converter1.convert(arg0));
+					Mat filteredImage = null;
 
 				switch (PictureController.colorInt) {
 				case 1:
@@ -97,7 +87,7 @@ public class OFVideo implements Runnable {
 					filteredImage = OFC.findContoursBlueMat(newImg);
 					break;
 				}
-				
+
 				switch (PictureController.imageInt) {
 				case PictureController.SHOW_QR:
 					showQr(newImg.clone());
@@ -116,47 +106,41 @@ public class OFVideo implements Runnable {
 					break;
 				}
 
-				Platform.runLater(new Runnable() {
-					@Override
-					public void run() {
-						qrCode.setText("QR Code: " + OFC.getQrCode());
-						qrDist.setText("Dist: " + OFC.getDistance());
-
+					
+					Platform.runLater(new Runnable() {
+						@Override
+						public void run() {
+							qrCode.setText("QR Code: " + OFC.getQrCode());
+							if(scanSequence.placement != null){
+								qrDist.setText("Position : " + scanSequence.placement.getX() + " , " + scanSequence.placement.getY());
+							}
+							if(CommandController.moveString != null){
+								movelbl.setText("Move : " + CommandController.moveString);
+							}
+							
+						}
+					});
+					if (PictureController.shouldScan) {
+						scanSequence.setImage(newImg.clone());
+						imageChanged = true;
+						if (isFirst) {
+							new Thread(scanSequence).start();
+							isFirst = false;
+						}
 					}
-				});
-				if (PictureController.shouldScan) {
-					scanSequence.setImage(newImg.clone());
-					if (isFirst) {
-						new Thread(scanSequence).start();
-						isFirst = false;
-					}
-				}
-				if (PictureController.shouldTestWall){
-					CK.setImage(newImg.clone());
-					if(isFirst){
-						new Thread(CK).start();
-						isFirst = false;
-					}
-//					scanSequence.imageChanged = true;
-				}
-				if (PictureController.shouldLand) {
-					landSeq.setImage(newImg.clone());
-//					System.out.println("setting img");
-					if (isFirst) {
-						new Thread(landSeq).start();
-						isFirst = false;
-					}
+				} else {
+					Thread.sleep(50);
 				}
 			}
 		} catch (Exception e) {
 		
 			e.printStackTrace();
 		}
-		
+
 	}
 
 	public void showQr(Mat camMat) {
-		
+
 		Mat qrMat = OFC.extractQRImage(camMat);
 		BufferedImage bufferedImageQr = MatToBufferedImage(qrMat);
 		Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
@@ -166,20 +150,19 @@ public class OFVideo implements Runnable {
 	public void showLanding(Mat mat, Mat filteredMat) throws InterruptedException {
 		Mat landing = mat;
 		int circles = 0;
-		
-//		if (PictureController.shouldScan) {
-//			scanSequence.setImage(mat.clone());
-//			if (isFirst) {
-//				new Thread(scanSequence).start();
-//				isFirst = false;
-//			}
-//		}
-		
+
+		// if (PictureController.shouldScan) {
+		// scanSequence.setImage(mat.clone());
+		// if (isFirst) {
+		// new Thread(scanSequence).start();
+		// isFirst = false;
+		// }
+		// }
+
 		boolean check = OFC.checkDecodedQR(mat);
-		if(check){
-			
+		if (check) {
+
 			circles = OFC.myCircle(mat);
-			
 //			for(int i = 0; i < 4; ){
 				if (circles > 0) {
 					aboveLanding = true;
@@ -206,7 +189,7 @@ public class OFVideo implements Runnable {
 				if(counts == 3){
 					System.out.println("landing");
 					
-					cC.dC.land();
+					cC.droneInterface.land();
 				}
 //			}
 		}
@@ -214,7 +197,7 @@ public class OFVideo implements Runnable {
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
 		mainFrame.setImage(imageLanding);
 		// System.out.println(aboveLanding);
-		
+
 	}
 
 	public void showFilter(Mat filteredMat) {
