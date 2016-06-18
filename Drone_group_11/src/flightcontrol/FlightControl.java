@@ -108,13 +108,14 @@ public class FlightControl implements Runnable {
 //		
 		
 		// Vi kan nu se QR kode og centrerer på den
+		// Sekvens flyver nu ud fra QR og ikke mostRightRect
 		do {
 			// kåre centrere QR kode 
 			// check distance to QR kode
 //			contours = pictureProcessingHelper.findQrContours(camMat);
 //			rect = mostCenteredRect(contours);
 //			distance = pictureProcessingHelper.calcDistance(rect);
-			
+			adjustToQRDistance();
 			
 			commandController.addCommand(Command.FORWARD, 1000, 10);
 			sleepThread(1500);
@@ -135,6 +136,8 @@ public class FlightControl implements Runnable {
 
 
 
+
+	
 
 	private RotatedRect rightMostRect(List<Mat> contours){
 		double distanceFomCenter = Double.MAX_VALUE;
@@ -167,13 +170,35 @@ public class FlightControl implements Runnable {
 	private void adjustToRectDistance(RotatedRect rect){
 		distance = pictureProcessingHelper.calcDistance(rect);
 		commandController.addCommand(Command.FORWARD, 1000, 10); // 1 chunk
-		while(!tooClose && !tooFar){
+		while(!tooClose || !tooFar){
+			tooFar = true;
+			tooClose = true;
 			currentDistance = pictureProcessingHelper.calcDistance(rect);
 			if((distance - currentDistance) > 95){
 				commandController.addCommand(Command.BACKWARDS, 500, 10);
+				tooFar = false;
 			}
 			if((distance - currentDistance) < 75){
 				commandController.addCommand(Command.FORWARD, 500, 10);
+				tooClose = false;
+			}
+		}
+	}
+	
+	private void adjustToQRDistance() {
+		//TODO: sæt distance til QR
+		commandController.addCommand(Command.FORWARD, 1000, 10); // 1 chunk
+		while(!tooClose || !tooFar){
+			tooFar = true;
+			tooClose = true;
+			//TODO:Sæt current distance to QR
+			if((distance - currentDistance) > 95){
+				commandController.addCommand(Command.BACKWARDS, 500, 10);
+				tooFar = false;
+			}
+			if((distance - currentDistance) < 75){
+				commandController.addCommand(Command.FORWARD, 500, 10);
+				tooClose = false;
 			}
 		}
 	}

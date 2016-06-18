@@ -118,9 +118,9 @@ public class OFVideo implements Runnable {
 					Platform.runLater(new Runnable() {
 						@Override
 						public void run() {
-							qrCode.setText("QR Code: " + OFC.getQrCode());
+//							qrCode.setText("QR Code: " + OFC.getQrCode());
 							if(scanSequence.placement != null){
-								qrDist.setText("Position : " + scanSequence.placement.getX() + " , " + scanSequence.placement.getY());
+//								qrDist.setText("Position : " + scanSequence.placement.getX() + " , " + scanSequence.placement.getY());
 							}
 							if(CommandController.moveString != null){
 								movelbl.setText("Move : " + CommandController.moveString);
