@@ -17,11 +17,11 @@ public class Map extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private static final int MAX_X = 926;
 	private static final int MAX_Y = 1078;
-	private static final int STEP_X = MAX_X/10;
-	private static final int STEP_Y = MAX_Y/10;
-	
+	private static final int STEP_X = MAX_X / 10;
+	private static final int STEP_Y = MAX_Y / 10;
+
 	private ArrayList<CustomPoint> cords;
-	private static CustomPoint placement = new CustomPoint(0, 0);
+	private CustomPoint placement = new CustomPoint(0, 0);
 
 	private Map(ArrayList<CustomPoint> cords) {
 		this.cords = cords;
@@ -37,32 +37,44 @@ public class Map extends JFrame {
 		frame.setVisible(true);
 		return frame;
 	}
-	
+
 	public void addCord(CustomPoint point) {
 		cords.add(new CustomPoint(point.getX() + placement.getX(), point.getY() + placement.getY(), point.getColour()));
 		repaint();
 	}
-	
+
 	public void addCord(CustomPoint point, CustomPoint placement) {
-		Map.placement = placement;
+		this.placement = placement;
 		cords.add(new CustomPoint(point.getX() + placement.getX(), point.getY() + placement.getY(), point.getColour()));
 		repaint();
 	}
-	
+
 	public void addCords(ArrayList<CustomPoint> tempList) {
 		for (CustomPoint cord : tempList) {
-			cords.add(new CustomPoint(cord.getX() + placement.getX(), cord.getY() + placement.getY(), cord.getColour()));
-		}
-		repaint();		
-	}
-
-	public void addCords(ArrayList<CustomPoint> tempList, CustomPoint placement) {
-		Map.placement = placement;
-		for (CustomPoint cord : tempList) {
-			cords.add(new CustomPoint(cord.getX() + placement.getX(), cord.getY() + placement.getY(), cord.getColour()));
+			cords.add(
+					new CustomPoint(cord.getX() + placement.getX(), cord.getY() + placement.getY(), cord.getColour()));
 		}
 		repaint();
 	}
+
+	public void addCords(ArrayList<CustomPoint> tempList, CustomPoint placement) {
+		this.placement = placement;
+		for (CustomPoint cord : tempList) {
+			cords.add(
+					new CustomPoint(cord.getX() + placement.getX(), cord.getY() + placement.getY(), cord.getColour()));
+		}
+		repaint();
+	}
+	
+	public CustomPoint getPlacement() {
+		return placement;
+	}
+	
+	public void setPlacement(CustomPoint placement) {
+		this.placement = placement;
+		repaint();
+	}
+
 	class DrawPanel extends JPanel {
 		private static final long serialVersionUID = 1L;
 
@@ -76,17 +88,17 @@ public class Map extends JFrame {
 			drawGrid(g, coordinateSystem);
 			drawQR(g, coordinateSystem);
 
-			//draw points
+			// draw points
 			for (int i = 0; i < cords.size(); i++) {
 				int cordX = (int) cords.get(i).getX();
 				int cordY = (int) cords.get(i).getY();
 				coordinateSystem.drawPoint(g, new Vector(cordX, cordY), 10, cords.get(i).getColour());
 			}
-			
-			//draw drone
+
+			// draw drone
 			coordinateSystem.drawPoint(g, new Vector(placement.getX(), placement.getY()), 15);
 		}
-		
+
 		public void drawGrid(Graphics g, CoordinateSystem coordinateSystem) {
 			// draw grid
 			// X
@@ -100,7 +112,7 @@ public class Map extends JFrame {
 			}
 			coordinateSystem.drawLine(g, new Vector(MAX_X, 0), new Vector(MAX_X, MAX_Y));
 			coordinateSystem.drawString(g, String.valueOf(MAX_X), new Vector(MAX_X, -50));
-			
+
 			int ytemp = STEP_Y;
 			coordinateSystem.drawLine(g, new Vector(0, 0), new Vector(MAX_X, 0));
 			while (ytemp < MAX_Y - STEP_Y) {
@@ -111,13 +123,13 @@ public class Map extends JFrame {
 			coordinateSystem.drawLine(g, new Vector(0, MAX_Y), new Vector(MAX_X, MAX_Y));
 			coordinateSystem.drawString(g, String.valueOf(MAX_Y), new Vector(-50, MAX_Y));
 		}
-		
+
 		public void drawQR(Graphics g, CoordinateSystem coordinateSystem) {
 			String csvFile = "WallCoordinates.csv";
 			BufferedReader br = null;
 			String line = "";
 			String cvsSplitBy = ";";
-			
+
 			try {
 				br = new BufferedReader(new FileReader(csvFile));
 				while ((line = br.readLine()) != null) {
