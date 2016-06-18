@@ -14,7 +14,6 @@ import de.yadrone.base.IARDrone;
 import flightcontrol.FlightControl;
 import helper.Command;
 import helper.CustomPoint;
-import javacvdemo.AvoidWallDemo;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.control.Label;
@@ -40,23 +39,23 @@ public class OFVideo implements Runnable {
 	private boolean isFirst = true;
 	public boolean wallClose = false;
 	public static volatile boolean imageChanged;
-
-	private AvoidWallDemo CK;
+	private Label movelbl;
 	private LandSequence landSeq;
 	private FlightControl fc;
-
-	public OFVideo(ImageView mainFrame, Label qrCode, Label qrDist,
-			BufferedImage arg0, CommandController cC, ImageView bufferedframe) {
+	
+	
+	public OFVideo(ImageView mainFrame, Label movelbl, Label qrCode,
+			Label qrDist, BufferedImage arg0, CommandController cC, ImageView bufferedframe) {
 		this.arg0 = arg0;
 		this.mainFrame = mainFrame;
 		this.bufferedframe = bufferedframe;
 		this.qrDist = qrDist;
 		this.qrCode = qrCode;
+		this.movelbl = movelbl;
 		converter = new OpenCVFrameConverter.ToIplImage();
 		converterMat = new ToMat();
 		converter1 = new Java2DFrameConverter();
 		scanSequence = new ScanSequence(cC);
-		CK = new AvoidWallDemo(cC);
 		landSeq = new LandSequence(cC);
 		fc = new FlightControl(cC);
 
@@ -76,50 +75,57 @@ public class OFVideo implements Runnable {
 					newImg = converterMat.convert(converter1.convert(arg0));
 					Mat filteredImage = null;
 
-					switch (PictureController.colorInt) {
-					case 1:
-						filteredImage = OFC.findContoursBlackMat(newImg);
-						break;
-					case 2:
-						filteredImage = OFC.findContoursRedMat(newImg);
-						break;
-					case 3:
-						filteredImage = OFC.findContoursGreenMat(newImg);
-						BufferedImage bufferedImageCont = MatToBufferedImage(filteredImage);
-						Image imageCont = SwingFXUtils.toFXImage(
-								bufferedImageCont, null);
-						bufferedframe.setImage(imageCont);
-						break;
-					default:
-						filteredImage = OFC.findContoursBlueMat(newImg);
-						break;
-					}
+				switch (PictureController.colorInt) {
+				case 1:
+					filteredImage = OFC.findContoursBlackMat(newImg);
+					break;
+				case 2:
+					filteredImage = OFC.findContoursRedMat(newImg);
+					break;
+				case 3:
+					filteredImage = OFC.findContoursGreenMat(newImg);
+					BufferedImage bufferedImageCont = MatToBufferedImage(filteredImage);
+					Image imageCont = SwingFXUtils.toFXImage(bufferedImageCont, null);
+					bufferedframe.setImage(imageCont);
+					break;
+				default:
+					filteredImage = OFC.findContoursBlueMat(newImg);
+					break;
+				}
 
-					switch (PictureController.imageInt) {
-					case PictureController.SHOW_QR:
-						showQr(newImg.clone());
-						break;
-					case PictureController.SHOW_FILTER:
-						showFilter(filteredImage.clone());
-						break;
-					case PictureController.SHOW_POLYGON:
-						showPolygons(newImg.clone(), filteredImage.clone());
-						break;
-					case PictureController.SHOW_LANDING:
-						showLanding(newImg.clone(), filteredImage.clone());
-						break;
-					default:
-						showPolygons(newImg.clone(), filteredImage.clone());
-						break;
-					}
-					if (PictureController.shouldTestWall) {
-						CK.setImage(newImg.clone());
-						if (isFirst) {
-							new Thread(CK).start();
-							isFirst = false;
+				switch (PictureController.imageInt) {
+				case PictureController.SHOW_QR:
+					showQr(newImg.clone());
+					break;
+				case PictureController.SHOW_FILTER:
+					showFilter(filteredImage.clone());
+					break;
+				case PictureController.SHOW_POLYGON:
+					showPolygons(newImg.clone(), filteredImage.clone());
+					break;
+				case PictureController.SHOW_LANDING:
+					showLanding(newImg.clone(), filteredImage.clone());
+					break;
+				default:
+					showPolygons(newImg.clone(), filteredImage.clone());
+					break;
+				}
+
+					
+					Platform.runLater(new Runnable() {
+						@Override
+						public void run() {
+							qrCode.setText("QR Code: " + OFC.getQrCode());
+							if(scanSequence.placement != null){
+								qrDist.setText("Position : " + scanSequence.placement.getX() + " , " + scanSequence.placement.getY());
+							}
+							if(CommandController.moveString != null){
+								movelbl.setText("Move : " + CommandController.moveString);
+							}
+							
 						}
-						// scanSequence.imageChanged = true;
-					}
+					});
+					
 					if (PictureController.shouldLand) {
 						landSeq.setImage(newImg.clone());
 						// System.out.println("setting img");
@@ -172,35 +178,35 @@ public class OFVideo implements Runnable {
 		if (check) {
 
 			circles = OFC.myCircle(mat);
-
-			// for(int i = 0; i < 4; ){
-			if (circles > 0) {
-				aboveLanding = true;
-				// If false restart landing sequence
-				// Drone skal flyve lidt ned
-				System.out.println("going down");
-				// Thread.sleep(10);
-				cC.addCommand(Command.DOWN, 100, 20);
-				Thread.sleep(200);
-				counts++;
-				System.out.println(counts);
-			} else {
-				circles = 0;
-				circleCounter++;
-				System.out.println(circleCounter);
-
-			}
-			if (circleCounter >= 120) {
-				aboveLanding = false;
-				circleCounter = 0;
-				counts = 0;
-			}
-			if (counts == 3) {
-				System.out.println("landing");
-
-				cC.droneInterface.land();
-			}
-			// }
+//			for(int i = 0; i < 4; ){
+				if (circles > 0) {
+					aboveLanding = true;
+					// If false restart landing sequence
+					//Drone skal flyve lidt ned
+					System.out.println("going down");
+//					Thread.sleep(10);
+					cC.addCommand(Command.DOWN, 100, 20);
+					Thread.sleep(200);
+					counts++;
+					System.out.println(counts);
+					}
+				else {
+						circles = 0;
+						circleCounter++;
+						System.out.println(circleCounter);
+						
+					}
+				if(circleCounter>=120){
+					aboveLanding = false;
+					circleCounter = 0;
+					counts = 0;
+				}
+				if(counts == 3){
+					System.out.println("landing");
+					
+					cC.droneInterface.land();
+				}
+//			}
 		}
 		BufferedImage bufferedImageLanding = MatToBufferedImage(landing);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);

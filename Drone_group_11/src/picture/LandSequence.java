@@ -11,14 +11,12 @@ import org.bytedeco.javacpp.opencv_core.RotatedRect;
 
 import app.CommandController;
 import helper.Command;
-import javacvdemo.AvoidWallDemo;
 
 public class LandSequence implements Runnable {
 
 	private PictureProcessingHelper OFC = new PictureProcessingHelper();
 	private CommandController cC;
 	public boolean wallClose = false;
-	private AvoidWallDemo CK;
 	private Map<Integer, Integer> moveSet = new HashMap<>();
 	private static boolean aboveLanding = false;
 	private static int circleCounter = 0;

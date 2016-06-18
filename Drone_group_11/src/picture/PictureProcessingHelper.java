@@ -76,9 +76,9 @@ import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
 
+import coordinateSystem.Vector;
 import helper.Circle;
 import helper.CustomPoint;
-import helper.Vector;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 
@@ -95,7 +95,7 @@ public class PictureProcessingHelper {
 	private LuminanceSource source;
 	private BinaryBitmap bitmap;
 	private Point2f vertices;
-	private static final int MIN_AREA = 4000;
+	private static final int MIN_AREA = 2000;
 	private static final int ANGLE_UPPER_BOUND = 105;
 	private static final int ANGLE_LOWER_BOUND = 75;
 
@@ -319,7 +319,7 @@ public class PictureProcessingHelper {
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
 			RotatedRect rect = minAreaRect(matContour.get(i));
-			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > 700
+			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > MIN_AREA
 					&& checkAngles(matContour.get(i), rect)) {
 				result.add(matContour.get(i));
 			}
