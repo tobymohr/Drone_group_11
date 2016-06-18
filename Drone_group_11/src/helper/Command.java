@@ -13,4 +13,5 @@ public class Command {
 	public static final int LAND = 10;
 	public static final int ROTATELEFT = 11;
 	public static final int ROTATERIGHT = 12;
+	public static final int NONE = 13;
 }

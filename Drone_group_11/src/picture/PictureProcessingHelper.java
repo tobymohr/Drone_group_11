@@ -76,10 +76,9 @@ import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
 
+import coordinateSystem.Vector;
 import helper.Circle;
 import helper.CustomPoint;
-import helper.Move;
-import helper.Vector;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 
@@ -96,7 +95,7 @@ public class PictureProcessingHelper {
 	private LuminanceSource source;
 	private BinaryBitmap bitmap;
 	private Point2f vertices;
-	private static final int MIN_AREA = 5000;
+	private static final int MIN_AREA = 4000;
 	private static final int ANGLE_UPPER_BOUND = 105;
 	private static final int ANGLE_LOWER_BOUND = 75;
 
@@ -217,7 +216,7 @@ public class PictureProcessingHelper {
 
 
 	public double isCenterInImage(Mat img, RotatedRect rect) {
-		double factor = 4;
+		double factor = 2.7;
 		double xleft = img.arrayWidth() / factor;
 		double xright = (img.arrayWidth() / factor) * (factor - 1);
 		double middleX = img.arrayWidth() / 2;
@@ -309,46 +308,27 @@ public class PictureProcessingHelper {
 		}
 		return result;
 	}
-
-
-	public List<Move> calcMoves(double x, double y) {
-		List<Move> moves = new ArrayList<>();
-		int minY = 0;
-		int maxX = 5;
-		int maxY = 5;
-		// Calc moves in x-axis
-		for (int i = 0; i < 5; i++) {
-			if (x < maxX) {
-				x++;
-				moves.add(new Move(Move.MOVE_RIGHT));
+	
+	public List<Mat> findQrContoursNoThresh(Mat srcImage) {
+		Mat img1 = new Mat(srcImage.arraySize(), CV_8UC1, 1);
+		cvtColor(srcImage, img1, CV_RGB2GRAY);
+		Canny(img1, img1, 75, 200);
+		MatVector matContour = new MatVector();
+		List<Mat> result = new ArrayList<>();
+		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+		for (int i = 0; i < matContour.size(); i++) {
+			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
+			RotatedRect rect = minAreaRect(matContour.get(i));
+			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > 700
+					&& checkAngles(matContour.get(i), rect)) {
+				result.add(matContour.get(i));
 			}
 		}
-		// Calc moves in y-axis
-		for (int i = 0; i < 5; i++) {
-			if (y <= maxY && y > minY) {
-				y--;
-				moves.add(new Move(Move.MOVE_DOWN));
-			}
-		}
-		return moves;
+		return result;
 	}
 
-	public void printMoves(List<Move> moves) {
-		for (Move move : moves) {
-			if (move.getMove() == Move.MOVE_RIGHT) {
-//				System.out.println("MOVE RIGHT");
-			}
-			if (move.getMove() == Move.MOVE_DOWN) {
-//				System.out.println("MOVE DOWN");
-			}
-			if (move.getMove() == Move.MOVE_LEFT) {
-//				System.out.println("MOVE LEFT");
-			}
-			if (move.getMove() == Move.MOVE_FORWARD) {
-//				System.out.println("MOVE FORWARD");
-			}
-		}
-	}
+
+	
 
 	public CustomPoint[] calcPosition(double distanceOne, double distanceTwo, double distanceThree, String code) {
 		CustomPoint P1 = CustomPoint.parseQRTextLeft(code);

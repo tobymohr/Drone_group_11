@@ -26,6 +26,7 @@ import de.yadrone.base.IARDrone;
 import de.yadrone.base.command.VideoCodec;
 import de.yadrone.base.exception.ARDroneException;
 import de.yadrone.base.exception.IExceptionListener;
+import de.yadrone.base.navdata.BatteryListener;
 import de.yadrone.base.video.ImageListener;
 import helper.Command;
 import javafx.application.Platform;
@@ -69,7 +70,7 @@ public class PictureController {
 	public static final int SHOW_LANDING= 3;
 	public static int imageInt = SHOW_POLYGON;
 	private static int counts = 0;
-	
+	private int prevBattery = 0;
 	public static volatile boolean imageChanged;
 
 
@@ -92,13 +93,15 @@ public class PictureController {
 	private Label headingLbl;
 	@FXML
 	private ImageView bufferedframe;
+	@FXML
+	private Label lowBatteryLbl;
 
 	public void setUpKeys() {
 		borderpane.getScene().getWindow().setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent t) {
             	System.out.println("EXIT");
-            	if(cC.dC.getDroneFlying()){
+            	if(cC.droneInterface.getDroneFlying()){
             		land();
             	}
                 Platform.exit();
@@ -128,7 +131,7 @@ public class PictureController {
 						cC.addCommand(Command.RIGHT, duration, speed);
 						break;
 					case M:
-						cC.dC.land();
+						cC.droneInterface.land();
 						break;
 					case F:
 						navn++;
@@ -159,16 +162,16 @@ public class PictureController {
 						cC.addCommand(Command.SPINRIGHT, duration, speed);
 						break;
 					case ENTER:
-						cC.dC.hover();
+						cC.droneInterface.hover();
 						break;
 					case O:
 						speed += 5;
-						cC.dC.setSpeed(speed);
+						cC.droneInterface.setSpeed(speed);
 						qrCode.setText("speed: " + speed);
 						break;
 					case I:
 						speed -= 5;
-						cC.dC.setSpeed(speed);
+						cC.droneInterface.setSpeed(speed);
 						qrCode.setText("speed: " + speed);
 						break;
 					case L:
@@ -196,7 +199,7 @@ public class PictureController {
 						System.out.println("Max: " + OFC.blueMax);
 						break;
 					case T:
-						cC.dC.setBottomCamera();
+						cC.droneInterface.setBottomCamera();
 					default:
 
 						break;
@@ -260,15 +263,40 @@ public class PictureController {
 		drone.start();
 		cC = new CommandController(drone);
 		drone.getCommandManager().setVideoCodec(VideoCodec.H264_720P);
-		cC.dC.setFrontCamera();
+		cC.droneInterface.setFrontCamera();
 //		cC.dC.setBottomCamera();
 		new Thread(cC).start();
 		
 	}
 
 	public void grabFromDrone() {
-
+		
 		drone.getVideoManager().start();
+		drone.getNavDataManager().addBatteryListener(new BatteryListener() {
+			
+			@Override
+			public void voltageChanged(int arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void batteryLevelChanged(int arg0) {
+				if(arg0 != prevBattery){
+					prevBattery = arg0;
+					Platform.runLater(new Runnable() {
+						@Override
+						public void run() {
+							lowBatteryLbl.setText("Battery: " + arg0 + "%");
+						}
+					});
+					
+					lowBatteryLbl.setVisible(true);
+				}
+				
+				
+			}
+		});
 		drone.getVideoManager().addImageListener(new ImageListener() {
 			boolean isFirst = true;
 
@@ -409,7 +437,7 @@ public class PictureController {
 				if(counts == 3){
 					System.out.println("landing");
 					
-					cC.dC.land();
+					cC.droneInterface.land();
 				}
 //			}
 		}
@@ -498,7 +526,8 @@ public class PictureController {
 	}
 
 	public void land() {
-		cC.dC.land();
+		cC.droneInterface.land();
+		shouldScan = false;
 	}
 
 	public void takeOff() throws InterruptedException {
@@ -508,7 +537,7 @@ public class PictureController {
 	
 	public void showQr(){
 		imageInt = SHOW_QR;
-	}
+	} 
 	
 	public void showPolygon(){
 		imageInt = SHOW_POLYGON;

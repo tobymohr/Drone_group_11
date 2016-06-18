@@ -164,35 +164,35 @@ public class OFVideo implements Runnable {
 		if (check) {
 
 			circles = OFC.myCircle(mat);
-
-			// for(int i = 0; i < 4; ){
-			if (circles > 0) {
-				aboveLanding = true;
-				// If false restart landing sequence
-				// Drone skal flye lidt ned
-				System.out.println("going down");
-				// Thread.sleep(10);
-				cC.dC.goDown(6);
-				Thread.sleep(10);
-				counts++;
-				System.out.println(counts);
-			} else {
-				circles = 0;
-				circleCounter++;
-				System.out.println(circleCounter);
-
-			}
-			if (circleCounter >= 120) {
-				aboveLanding = false;
-				circleCounter = 0;
-				counts = 0;
-			}
-			if (counts == 3) {
-				System.out.println("landing");
-
-				cC.dC.land();
-			}
-			// }
+//			for(int i = 0; i < 4; ){
+				if (circles > 0) {
+					aboveLanding = true;
+					// If false restart landing sequence
+					//Drone skal flye lidt ned
+					System.out.println("going down");
+//					Thread.sleep(10);
+					cC.droneInterface.goDown(6);
+					Thread.sleep(10);
+					counts++;
+					System.out.println(counts);
+					}
+				else {
+						circles = 0;
+						circleCounter++;
+						System.out.println(circleCounter);
+						
+					}
+				if(circleCounter>=120){
+					aboveLanding = false;
+					circleCounter = 0;
+					counts = 0;
+				}
+				if(counts == 3){
+					System.out.println("landing");
+					
+					cC.droneInterface.land();
+				}
+//			}
 		}
 		BufferedImage bufferedImageLanding = MatToBufferedImage(landing);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
