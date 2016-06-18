@@ -13,6 +13,7 @@ public class CommandController implements Runnable {
 	public static final int COUNTER_FACTOR = 6;
 	public static final int COUNTERSPEED_FACTOR = 7;
 	public static boolean droneIsReady = false;
+	public static String moveString = "";
 
 	class Task{
 		public int time;
@@ -38,13 +39,13 @@ public class CommandController implements Runnable {
 			try {
 				synchronized(this){
 					while(wait || q.peek()==null){
-						try {
-							droneInterface.hover();
-							System.out.println("HOVER");
-							wait(5000);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
+//						try {
+////							droneInterface.hover();
+////							System.out.println("HOVER");
+////							wait(5000);
+//						} catch (InterruptedException e) {
+//							e.printStackTrace();
+//						}
 					}
 
 					task = q.take();
@@ -57,9 +58,11 @@ public class CommandController implements Runnable {
 						startTime = System.currentTimeMillis();
 						droneInterface.goForward(task.time);
 						System.out.println("FORWARD");
+						moveString = "FORWARD";
 						break;
 					case Command.BACKWARDS:
 						System.out.println("BACKWARDS");
+						moveString = "BACKWARDS";
 						startTime = System.currentTimeMillis();
 						droneInterface.goBackwards(task.time);
 						break;
@@ -67,42 +70,50 @@ public class CommandController implements Runnable {
 						startTime = System.currentTimeMillis();
 						droneInterface.goLeft(task.time);
 						System.out.println("LEFT");
+						moveString = "LEFT";
 						break;
 					case Command.RIGHT:
 						startTime = System.currentTimeMillis();
 						droneInterface.goRight(task.time);
 						System.out.println("RIGHT");
+						moveString = "RIGHT";
 						break;
 					case Command.UP:
 						startTime = System.currentTimeMillis();
 						droneInterface.goUp(task.time);
 						System.out.println("UP");
+						moveString = "UP";
 						break;
 					case Command.DOWN:
 						startTime = System.currentTimeMillis();
 						droneInterface.goDown(task.time);
 						System.out.println("DOWN");
+						moveString = "DOWN";
 						break;
 						//Rotate commands
 					case Command.SPINLEFT:
 						startTime = System.currentTimeMillis();
 						droneInterface.spinLeft(task.time);
 						System.out.println("SPIN LEFT");
+						moveString = "DOWN";
 						break;
 					case Command.SPINRIGHT:
 						startTime = System.currentTimeMillis();
 						droneInterface.spinRight(task.time);
 						System.out.println("SPIN RIGHT");
+						moveString = "SPIN RIGHT";
 						break;
 					case Command.ROTATERIGHT:
 						startTime = System.currentTimeMillis();
 						droneInterface.spinRight(task.time);
 						System.out.println("ROTATE RIGHT");
+						moveString = "ROTATE RIGHT";
 						break;
 					case Command.ROTATELEFT:
 						startTime = System.currentTimeMillis();
 						droneInterface.spinLeft(task.time);
 						System.out.println("ROTATE LEFT");
+						moveString = "ROTATE LEFT";
 						break;
 						//Take off and land
 					case Command.TAKEOFF:
@@ -110,30 +121,17 @@ public class CommandController implements Runnable {
 						break;
 					case Command.LAND:
 						droneInterface.land();
+						break;
+					case Command.NONE: 
+						droneInterface.hover();
+						break;
 					}
-					
 					Thread.sleep(task.time);
-					
-					System.out.println("TIME " + (int) (task.time) + " SPEED " + (task.speed));
-//					
-//					if(task.task == Command.ROTATELEFT){
-//						System.out.println("COUNTER SPIN RIGHT");
-//						dC.setSpeed((int)(task.speed/COUNTERSPEED_FACTOR));
-//						dC.spinRight((int)(task.time/COUNTER_FACTOR));
-//						Thread.sleep((int)(task.time/COUNTER_FACTOR));
+//					if(task.task != Command.LEFT || task.task != Command.RIGHT){
+//						droneInterface.hover();
+//						Thread.sleep(2500);
 //					}
-//					
-					
-					
-//					
-//					dC.hover();
-//					wait(1500);
-					
-//					System.out.println("TIME " + (int) (task.time/COUNTER_FACTOR) + " SPEED " + (task.speed/COUNTER_FACTOR));
-					
 					droneIsReady = true;
-					
-				
 				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();

@@ -11,6 +11,7 @@ import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
 
 import app.CommandController;
 import de.yadrone.base.IARDrone;
+import helper.Command;
 import javacvdemo.AvoidWallDemo;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
@@ -37,16 +38,18 @@ public class OFVideo implements Runnable {
 	private boolean isFirst = true;
 	public boolean wallClose = false;
 	public static volatile boolean imageChanged;
+	private Label movelbl;
 	
 	private AvoidWallDemo CK;
 	
-	public OFVideo(ImageView mainFrame, Label qrCode,
+	public OFVideo(ImageView mainFrame, Label movelbl, Label qrCode,
 			Label qrDist, BufferedImage arg0, CommandController cC, ImageView bufferedframe) {
 		this.arg0 = arg0;
 		this.mainFrame = mainFrame;
 		this.bufferedframe = bufferedframe;
 		this.qrDist = qrDist;
 		this.qrCode = qrCode;
+		this.movelbl = movelbl;
 		converter = new OpenCVFrameConverter.ToIplImage();
 		converterMat = new ToMat();
 		converter1 = new Java2DFrameConverter();
@@ -109,8 +112,13 @@ public class OFVideo implements Runnable {
 						@Override
 						public void run() {
 							qrCode.setText("QR Code: " + OFC.getQrCode());
-							qrDist.setText("Dist: " + OFC.getDistance());
-
+							if(scanSequence.placement != null){
+								qrDist.setText("Position : " + scanSequence.placement.getX() + " , " + scanSequence.placement.getY());
+							}
+							if(CommandController.moveString != null){
+								movelbl.setText("Move : " + CommandController.moveString);
+							}
+							
 						}
 					});
 					if (PictureController.shouldScan) {

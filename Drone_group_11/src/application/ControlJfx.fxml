@@ -78,9 +78,10 @@
         </HBox>
         <Label fx:id="lowBatteryLbl" text="LOW BATTERY" textFill="#ff3333" visible="false">
           <font>
-            <Font size="30.0" />
+            <Font size="30.0" fx:id="x1" />
           </font>
         </Label>
+        <Label fx:id="movelbl" alignment="CENTER" font="$x1" text="MOVE:" />
       </children>
     </VBox>
   </top>
