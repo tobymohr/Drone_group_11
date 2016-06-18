@@ -60,7 +60,6 @@ public class ScanSequence implements Runnable {
 	private int scannedCount = 0;
 	private Mat camMat;
 	private int foundFrameCount = 0;
-	public static CustomPoint myPlacement = null;
 	private boolean moveToStart = false;
 	private int endX = 847;
 	private int endY = -10;
@@ -253,15 +252,13 @@ public class ScanSequence implements Runnable {
 				rotateCheck();
 				return;
 			} else if (contours.size() == 3) {
-				myPlacement = calculatePlacement(camMat, contours);
+				PictureController.setPlacement(calculatePlacement(camMat, contours));
 				moveToStart = true;
 				rotateCount = 0;
 				PictureController.shouldScan = false;
 
 				firstAxisToMove();
 				System.out.println("LETS GOOOOOOO MOTHERFUCKER");
-				myPlacement.setColour(Color.BLACK);
-				PictureController.addCord(myPlacement);
 				frameCount = 0;
 				while (moveToStart) {
 					moveDroneToPlacement(startPlacement);
@@ -320,7 +317,7 @@ public class ScanSequence implements Runnable {
 					commandController.addCommand(task, duration, speed);
 					moves.clear();
 				} else if (moves.get(task) > MIN_HIT_COUNT) {
-					updateRelativeCord();
+					updateRelativeCord(task);
 					commandController.addCommand(task, duration, speed);
 					moves.clear();
 				} else {
@@ -393,10 +390,10 @@ public class ScanSequence implements Runnable {
 
 			// Start moving
 			if (moveX && !noMove) {
-				int move = calcMoveXAxis(myPlacement.getX(), placement);
+				int move = calcMoveXAxis(PictureController.getPlacement().getX(), placement);
 				decideMove(move);
 			} else if (!noMove) {
-				int move = calcMovesYAxis(myPlacement.getY(), placement);
+				int move = calcMovesYAxis(PictureController.getPlacement().getY(), placement);
 				decideMove(move);
 			} else {
 				decideMove(Command.NONE);
@@ -406,24 +403,67 @@ public class ScanSequence implements Runnable {
 		}
 	}
 
-	private void updateRelativeCord() {
+	private void updateRelativeCord(int move) {
+		CustomPoint placement = PictureController.getPlacement();
+		if (move == Command.BACKWARDS) {
+			if (code.contains("W00")) {
+				placement.setY(placement.getY() - chunkSize);
+			} else if (code.contains("W01")) {
+				placement.setX(placement.getX() - chunkSize);
+			} else if (code.contains("W02")) {
+				placement.setY(placement.getY() + chunkSize);
+			} else {
+				placement.setY(placement.getX() + chunkSize);
+			}
+		} else if (move == Command.FORWARD) {
+			if (code.contains("W00")) {
+				placement.setY(placement.getY() + chunkSize);
+			} else if (code.contains("W01")) {
+				placement.setX(placement.getX() + chunkSize);
+			} else if (code.contains("W02")) {
+				placement.setY(placement.getY() - chunkSize);
+			} else {
+				placement.setY(placement.getX() - chunkSize);
+			}
+		} else if (move == Command.RIGHT) {
+			if (code.contains("W00")) {
+				placement.setY(placement.getX() + chunkSize);
+			} else if (code.contains("W01")) {
+				placement.setX(placement.getY() - chunkSize);
+			} else if (code.contains("W02")) {
+				placement.setY(placement.getX() - chunkSize);
+			} else {
+				placement.setY(placement.getY() + chunkSize);
+			}
+		} else if (move == Command.LEFT) {
+			if (code.contains("W00")) {
+				placement.setY(placement.getX() - chunkSize);
+			} else if (code.contains("W01")) {
+				placement.setX(placement.getY() + chunkSize);
+			} else if (code.contains("W02")) {
+				placement.setY(placement.getX() + chunkSize);
+			} else {
+				placement.setY(placement.getY() - chunkSize);
+			}
+		}
 		if (!Double.isInfinite(distanceFromQr)) {
 			if (!moveX) {
 				if (code.contains("W00")) {
-					myPlacement.setY(MAX_Y_CORD - distanceFromQr);
+					placement.setY(MAX_Y_CORD - distanceFromQr);
 				} else {
-					myPlacement.setY(MIN_Y_CORD + distanceFromQr);
+					placement.setY(MIN_Y_CORD + distanceFromQr);
 				}
 
 			} else {
 				if (code.contains("W01")) {
-					myPlacement.setX(MAX_X_CORD - distanceFromQr);
+					placement.setX(MAX_X_CORD - distanceFromQr);
 				} else {
-					myPlacement.setX(MIN_X_CORD + distanceFromQr);
+					placement.setX(MIN_X_CORD + distanceFromQr);
 				}
 			}
 			noMove = false;
 		}
+		PictureController.setPlacement(placement);
 	}
 
 	private void decideMove(int move) {
