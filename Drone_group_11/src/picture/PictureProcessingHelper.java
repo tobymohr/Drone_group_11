@@ -164,6 +164,24 @@ public class PictureProcessingHelper {
 		return imgbin;
 	}
 
+	public ArrayList<CustomPoint> findObjectsMat(Mat filteredImage) {
+		ArrayList<CustomPoint> results = null;
+		results = new ArrayList<>();
+
+		MatVector contour = new MatVector();
+		findContours(filteredImage, contour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
+		for (int i = 0; i < contour.size(); i++) {
+			if (contourArea(contour.get(i)) > 1000) {
+				Point2f centerPoint = minAreaRect(contour.get(i)).center();
+				opencv_core.Point p = new opencv_core.Point((int) centerPoint.x(), (int) centerPoint.y());
+
+				results.add(new CustomPoint(p.x(), p.y()));
+				line(filteredImage, p, p, new Scalar(255, 0, 0, 0), 16, CV_AA, 0);
+			}
+		}
+		return results;
+	}
+
 	public Mat warpImage(Mat crop, RotatedRect rect) {
 		vertices = new Point2f(4);
 		rect.points(vertices);
@@ -190,30 +208,29 @@ public class PictureProcessingHelper {
 			height = rect.size().width();
 			width = rect.size().height();
 		}
-		
+
 		Point2f source = new Point2f(4);
 		Point2f destination = new Point2f(4);
-		
+
 		source.position(0).x(tl.x()).y(tl.y());
 		source.position(1).x(tr.x()).y(tr.y());
 		source.position(2).x(bl.x()).y(bl.y());
 		source.position(3).x(br.x()).y(br.y());
-		
+
 		destination.position(0).x(0.0f).y(0.0f);
 		destination.position(1).x(width).y(0.0f);
 		destination.position(2).x(0.0f).y(height);
 		destination.position(3).x(width).y(height);
-		
+
 		Mat homograpyMat = new Mat(3, 3, CV_32FC1);
 		Mat copyMat = crop.clone();
-		
+
 		homograpyMat = getPerspectiveTransform(source.position(0), destination.position(0));
 		warpPerspective(copyMat, copyMat, homograpyMat, copyMat.size());
-		copyMat.adjustROI(0, 0, (int) width, (int)height);
+		copyMat.adjustROI(0, 0, (int) width, (int) height);
 		Mat result = new Mat(copyMat, new Rect(0, 0, (int) width, (int) height));
 		return result;
 	}
-
 
 	public double isCenterInImage(Mat img, RotatedRect rect) {
 		double factor = 2.7;
@@ -238,17 +255,17 @@ public class PictureProcessingHelper {
 		return 0;
 
 	}
-	
-	public int getSpinSpeed(List<Mat> matContours){
+
+	public int getSpinSpeed(List<Mat> matContours) {
 		double allSpeeds = 0;
-		for(int i = 0; i<matContours.size(); i++){
+		for (int i = 0; i < matContours.size(); i++) {
 			double area = contourArea(matContours.get(i)) / 1000;
 			double constant = 9;
-			double result = constant/area;
-			allSpeeds +=result*10;
+			double result = constant / area;
+			allSpeeds += result * 10;
 		}
-		if(!Double.isNaN(allSpeeds/matContours.size())){
-			return (int) (allSpeeds/matContours.size());
+		if (!Double.isNaN(allSpeeds / matContours.size())) {
+			return (int) (allSpeeds / matContours.size());
 		}
 		return 0;
 	}
@@ -263,28 +280,27 @@ public class PictureProcessingHelper {
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
 			RotatedRect rect = minAreaRect(matContour.get(i));
-			if (matContour.get(i).total() > 2 && matContour.get(i).total() < 6  && contourArea(matContour.get(i)) > MIN_AREA 
-					&& checkAngles(matContour.get(i), rect)) {
+			if (matContour.get(i).total() > 2 && matContour.get(i).total() < 6
+					&& contourArea(matContour.get(i)) > MIN_AREA && checkAngles(matContour.get(i), rect)) {
 				drawContours(srcImage, matContour, i, Scalar.WHITE, 3, 8, null, 1, null);
-				
-				
+
 				img1 = warpImage(srcImage, rect);
 				if (scanQrCode(img1) != null) {
 					putText(srcImage, code, new Point((int) rect.center().x() - 25, (int) rect.center().y() + 80), 1, 2,
 							Scalar.GREEN, 2, 8, false);
 				}
 				distance = calcDistance(rect);
-				putText(srcImage, "" + distance,
-						new Point((int) rect.center().x() - 25, (int) rect.center().y() + 60), 1, 2, Scalar.BLUE, 2, 8,
-						false);
-				
+				putText(srcImage, "" + distance, new Point((int) rect.center().x() - 25, (int) rect.center().y() + 60),
+						1, 2, Scalar.BLUE, 2, 8, false);
+
 				putText(srcImage, "" + contourArea(matContour.get(i)),
-						new Point((int) rect.center().x() - 25, (int) rect.center().y() + 150), 1, 2, Scalar.BLACK, 2, 8,
-						false);
+						new Point((int) rect.center().x() - 25, (int) rect.center().y() + 150), 1, 2, Scalar.BLACK, 2,
+						8, false);
 				double center = center(rect);
-				if (center < ScanSequence.CENTER_UPPER && center > ScanSequence.CENTER_LOWER && isCenterInImage(srcImage, rect) == 0) {
-					putText(srcImage, "CENTER", new Point((int) rect.center().x() - 25, (int) rect.center().y() + 20), 1, 2,
-							Scalar.RED, 2, 8, false);
+				if (center < ScanSequence.CENTER_UPPER && center > ScanSequence.CENTER_LOWER
+						&& isCenterInImage(srcImage, rect) == 0) {
+					putText(srcImage, "CENTER", new Point((int) rect.center().x() - 25, (int) rect.center().y() + 20),
+							1, 2, Scalar.RED, 2, 8, false);
 				}
 			}
 		}
@@ -308,7 +324,7 @@ public class PictureProcessingHelper {
 		}
 		return result;
 	}
-	
+
 	public List<Mat> findQrContoursNoThresh(Mat srcImage) {
 		Mat img1 = new Mat(srcImage.arraySize(), CV_8UC1, 1);
 		cvtColor(srcImage, img1, CV_RGB2GRAY);
@@ -327,28 +343,25 @@ public class PictureProcessingHelper {
 		return result;
 	}
 
-
-	
-
 	public CustomPoint[] calcPosition(double distanceOne, double distanceTwo, double distanceThree, String code) {
 		CustomPoint P1 = CustomPoint.parseQRTextLeft(code);
 		CustomPoint P2 = CustomPoint.parseQRText(code);
 		CustomPoint P3 = CustomPoint.parseQRTextRight(code);
-		
+
 		double distanceBetweenPointsOne = CustomPoint.calculateDistance(P1, P2);
 		double distanceBetweenPointsTwo = CustomPoint.calculateDistance(P2, P3);
-		
+
 		double angleA = CustomPoint.calculateAngle(distanceOne, distanceBetweenPointsOne);
 		double angleB = CustomPoint.calculateAngle(distanceThree, distanceBetweenPointsTwo);
 
 		Circle C1 = new Circle();
 		C1.setCenter(Circle.calculateCenter(P1, P2, distanceBetweenPointsOne, angleA));
 		C1.setRadius(Circle.calculateRadius(distanceBetweenPointsOne, angleA));
-		
+
 		Circle C2 = new Circle();
 		C2.setCenter(Circle.calculateCenter(P2, P3, distanceBetweenPointsTwo, angleB));
 		C2.setRadius(Circle.calculateRadius(distanceBetweenPointsTwo, angleB));
-		
+
 		CustomPoint[] points = Circle.intersection(C1, C2);
 		return points;
 	}
@@ -366,7 +379,7 @@ public class PictureProcessingHelper {
 		}
 
 	}
-	
+
 	public boolean checkAngles(Mat contour, RotatedRect rect) {
 		List<Point> points = new ArrayList<>();
 		IntBufferIndexer idx = contour.createIndexer();
@@ -377,7 +390,7 @@ public class PictureProcessingHelper {
 				points.add(new Point(x, y));
 			}
 		}
-		
+
 		vertices = new Point2f(4);
 		rect.points(vertices);
 		int angle = Math.abs((int) rect.angle());
@@ -397,13 +410,12 @@ public class PictureProcessingHelper {
 			brRect = new Point((int) vertices.position(0).x(), (int) vertices.position(0).y());
 			blRect = new Point((int) vertices.position(1).x(), (int) vertices.position(1).y());
 		}
-		
+
 		Point tl = nearestPoint(points, tlRect);
 		Point tr = nearestPoint(points, trRect);
 		Point br = nearestPoint(points, brRect);
 		Point bl = nearestPoint(points, blRect);
-		
-		
+
 		double tlAngle = calculateAngle(tl, tr, bl);
 		double trAngle = calculateAngle(tr, tl, br);
 		double blAngle = calculateAngle(bl, tl, br);
@@ -411,17 +423,20 @@ public class PictureProcessingHelper {
 
 		if (tlAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND || Double.isNaN(tlAngle)) {
 			return false;
-		} if (trAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND || Double.isNaN(trAngle)) {
+		}
+		if (trAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND || Double.isNaN(trAngle)) {
 			return false;
-		} if (blAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND || Double.isNaN(blAngle)) {
+		}
+		if (blAngle > ANGLE_UPPER_BOUND || tlAngle < ANGLE_LOWER_BOUND || Double.isNaN(blAngle)) {
 			return false;
-		} if (brAngle > ANGLE_UPPER_BOUND || brAngle < ANGLE_LOWER_BOUND || Double.isNaN(brAngle)) {
+		}
+		if (brAngle > ANGLE_UPPER_BOUND || brAngle < ANGLE_LOWER_BOUND || Double.isNaN(brAngle)) {
 			return false;
 		} else {
 			return true;
 		}
 	}
-	
+
 	private Point nearestPoint(List<Point> points, Point point) {
 		double minDist = Double.MAX_VALUE;
 		Point result = new Point();
@@ -434,36 +449,35 @@ public class PictureProcessingHelper {
 		}
 		return result;
 	}
-	
+
 	private double calculateAngle(Point A, Point B, Point C) {
-		double a = Math.sqrt(Math.pow(C.x()-B.x(), 2) + Math.pow(C.y()-B.y(), 2));
-		double b = Math.sqrt(Math.pow(A.x()-C.x(), 2) + Math.pow(A.y()-C.y(), 2));
-		double c = Math.sqrt(Math.pow(B.x()-A.x(), 2) + Math.pow(B.y()-A.y(), 2));
+		double a = Math.sqrt(Math.pow(C.x() - B.x(), 2) + Math.pow(C.y() - B.y(), 2));
+		double b = Math.sqrt(Math.pow(A.x() - C.x(), 2) + Math.pow(A.y() - C.y(), 2));
+		double c = Math.sqrt(Math.pow(B.x() - A.x(), 2) + Math.pow(B.y() - A.y(), 2));
 		double cosA = (Math.pow(b, 2) + Math.pow(c, 2) - Math.pow(a, 2)) / (2 * b * c);
 		return Math.toDegrees(Math.acos(cosA));
 	}
-	
-	public boolean checkDecodedQR(Mat img){
+
+	public boolean checkDecodedQR(Mat img) {
 		String OURQR = "AF.04";
-		
+
 		BufferedImage qrCode = converter1.convert(converter.convert(img));
 		source = new BufferedImageLuminanceSource(qrCode);
 		bitmap = new BinaryBitmap(new HybridBinarizer(source));
 		try {
 			Result detectionResult = reader.decode(bitmap);
 			code = detectionResult.getText();
-			if(code.equals(OURQR)){
+			if (code.equals(OURQR)) {
 				System.out.println(code);
-				return true;	
+				return true;
 			}
-			
+
 		} catch (Exception e) {
 			return false;
 		}
-		
+
 		return false;
 	}
-	
 
 	public double calcDistance(RotatedRect rect) {
 		double knownDistance = 247.5;
@@ -591,7 +605,7 @@ public class PictureProcessingHelper {
 
 		return img;
 	}
-	
+
 	public IplImage convertMatToIplImage(Mat mat) {
 		return converter.convert(converter.convert(mat));
 	}
@@ -738,73 +752,76 @@ public class PictureProcessingHelper {
 		float ratio = height / width;
 		return ratio - 1.43;
 	}
-	public int myCircle(Mat img){
-		
+
+	public int myCircle(Mat img) {
+
 		IplImage src = new IplImage(img);
-		 IplImage gray = cvCreateImage(cvGetSize(src), 8, 1);
-		   
-		  cvCvtColor(src, gray, CV_BGR2GRAY);  
-		  cvSmooth(gray, gray);
-		  CvMemStorage mem = CvMemStorage.create();
-		   
-		  CvSeq circles = cvHoughCircles( 
-		    gray, //Input image
-		    mem, //Memory Storage
-		    CV_HOUGH_GRADIENT, //Detection method
-		    1, //Inverse ratio
-		    100, //Minimum distance between the centers of the detected circles
-		    60, //Higher threshold for canny edge detector
-		    100, //Threshold at the center detection stage
-		    15, //min radius
-		    700 //max radius
-		    );
-		   
-		  for(int i = 0; i < circles.total(); i++){
-		      CvPoint3D32f circle = new CvPoint3D32f(cvGetSeqElem(circles, i));
-		      CvPoint center = cvPointFrom32f(new CvPoint2D32f(circle.x(), circle.y()));
-		      int radius = Math.round(circle.z());      
-//		      circle(img, new Point(center.x(), center.y()), radius, new Scalar(20,255,20,0), 5, CV_AA, 0);
-		  }
-		   
+		IplImage gray = cvCreateImage(cvGetSize(src), 8, 1);
+
+		cvCvtColor(src, gray, CV_BGR2GRAY);
+		cvSmooth(gray, gray);
+		CvMemStorage mem = CvMemStorage.create();
+
+		CvSeq circles = cvHoughCircles(gray, // Input image
+				mem, // Memory Storage
+				CV_HOUGH_GRADIENT, // Detection method
+				1, // Inverse ratio
+				100, // Minimum distance between the centers of the detected
+						// circles
+				60, // Higher threshold for canny edge detector
+				100, // Threshold at the center detection stage
+				15, // min radius
+				700 // max radius
+		);
+
+		for (int i = 0; i < circles.total(); i++) {
+			CvPoint3D32f circle = new CvPoint3D32f(cvGetSeqElem(circles, i));
+			CvPoint center = cvPointFrom32f(new CvPoint2D32f(circle.x(), circle.y()));
+			int radius = Math.round(circle.z());
+			// circle(img, new Point(center.x(), center.y()), radius, new
+			// Scalar(20,255,20,0), 5, CV_AA, 0);
+		}
+
 		return circles.total();
 	}
-	
-//	public Mat calcOptFlow(Mat prevImg, Mat img, Mat prevPts){
-//		Mat status = new Mat(), error = new Mat(), nextPts = new Mat(), goodPoints = new Mat();
-//		  	Mat pFrame = imread("image0.png");
-//	        Mat cFrame = imread("image1.png");
-//	        Mat pGray = new Mat();
-//	        Mat cGray = new Mat();
-//
-//	        pFrame.convertTo(pGray, CV_32FC1);
-//	        cFrame.convertTo(cGray, CV_32FC1);
-//	        Mat Optical_Flow = new Mat();
-//
-//	        DenseOpticalFlow tvl1 = createOptFlow_DualTVL1();
-//	        tvl1.calc(pGray, cGray, Optical_Flow);
-//
-//	        Mat OF = new Mat(pGray.rows(), pGray.cols(), CV_32FC1);
-//	        FloatBuffer in = Optical_Flow.getFloatBuffer();
-//	        FloatBuffer out = OF.getFloatBuffer();
-//
-//	        int height = pGray.rows();
-//	        int width = pGray.cols();
-//
-//	        for(int y = 0; y < height; y++) {
-//	            for(int x = 0; x < width; x++) {
-//	                float xVelocity = in.get();
-//	                float yVelocity = in.get();
-//	                float pixelVelocity = (float)Math.sqrt(xVelocity*xVelocity + yVelocity*yVelocity);
-//	                out.put(pixelVelocity);
-//	            }
-//	        }
-//	        imwrite("OF.png", OF);
-//		return img;
-//		
-//		
-//	}
-	public boolean isBlueTowerAhead(MatVector contours){
+
+	// public Mat calcOptFlow(Mat prevImg, Mat img, Mat prevPts){
+	// Mat status = new Mat(), error = new Mat(), nextPts = new Mat(),
+	// goodPoints = new Mat();
+	// Mat pFrame = imread("image0.png");
+	// Mat cFrame = imread("image1.png");
+	// Mat pGray = new Mat();
+	// Mat cGray = new Mat();
+	//
+	// pFrame.convertTo(pGray, CV_32FC1);
+	// cFrame.convertTo(cGray, CV_32FC1);
+	// Mat Optical_Flow = new Mat();
+	//
+	// DenseOpticalFlow tvl1 = createOptFlow_DualTVL1();
+	// tvl1.calc(pGray, cGray, Optical_Flow);
+	//
+	// Mat OF = new Mat(pGray.rows(), pGray.cols(), CV_32FC1);
+	// FloatBuffer in = Optical_Flow.getFloatBuffer();
+	// FloatBuffer out = OF.getFloatBuffer();
+	//
+	// int height = pGray.rows();
+	// int width = pGray.cols();
+	//
+	// for(int y = 0; y < height; y++) {
+	// for(int x = 0; x < width; x++) {
+	// float xVelocity = in.get();
+	// float yVelocity = in.get();
+	// float pixelVelocity = (float)Math.sqrt(xVelocity*xVelocity +
+	// yVelocity*yVelocity);
+	// out.put(pixelVelocity);
+	// }
+	// }
+	// imwrite("OF.png", OF);
+	// return img;
+	//
+	//
+	// }
+	public boolean isBlueTowerAhead(MatVector contours) {
 		return contours.size() > 200 ? true : false;
 	}
 }
-
