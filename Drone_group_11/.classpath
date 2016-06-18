@@ -6,14 +6,15 @@
 			<accessrule kind="accessible" pattern="javafx/**"/>
 		</accessrules>
 	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/JavaCV"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/javaCV"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/javaCVyeah"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/OpenCVyeah"/>
 	<classpathentry kind="con" path="org.eclipse.fx.ide.jdt.core.JAVAFX_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/JavaCVDrone"/>
-	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.USER_LIBRARY/YaDrones"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/yadrone libs"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/YaDroneCommand"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/YaDroneZxing"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/dronez"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Yadrone"/>
+	<classpathentry kind="lib" path="C:/Users/Felza/Dropbox/BestDropBoxEU/CDIO-Projekt/yadrone_032.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
