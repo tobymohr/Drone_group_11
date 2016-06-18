@@ -3,6 +3,7 @@ package picture;
 import static org.bytedeco.javacpp.opencv_imgproc.contourArea;
 import static org.bytedeco.javacpp.opencv_imgproc.minAreaRect;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -138,7 +139,7 @@ public class ScanSequence implements Runnable {
 
 	private int getCorrectYMove(double y) {
 		if (code.contains("W02")) {
-			return Command.NONE;
+			return Command.FORWARD;
 		}
 		if (code.contains("W03")) {
 			return Command.LEFT;
@@ -268,7 +269,8 @@ public class ScanSequence implements Runnable {
 
 				firstAxisToMove();
 				System.out.println("LETS GOOOOOOO MOTHERFUCKER");
-				
+				placement.setColour(Color.BLACK);
+				PictureController.addCord(placement);
 				while (moveToStart) {
 					moveDroneToStart();
 				}
@@ -358,15 +360,17 @@ public class ScanSequence implements Runnable {
 		if (canGetDist) {
 			distanceFromQr = OFC.calcDistance(rect);
 		}
-		// use distance for new X or Y coordinat
+		// use distance for new X  coordinat
 		if (!moveX) {
 			if (!Double.isInfinite(distanceFromQr)) {
+				//Either the new coordinat should be MAX - distance or MIN - distance
 				if (code.contains("W00")) {
 					placement.setY(MAX_Y_CORD - distanceFromQr);
 				} else {
 					placement.setY(MIN_Y_CORD + distanceFromQr);
 				}
 				noMove = false;
+				//if no distances has been measured for a long time
 			} else if (noDistFound > noDistFoundLimit) {
 				noDistFound = 0;
 				noMove = false;
@@ -377,7 +381,9 @@ public class ScanSequence implements Runnable {
 				noMove = true;
 			}
 		}
+		// use distance for Y coordinat
 		if (moveX) {
+			//Either the new coordinat should be MAX - distance or MIN - distance
 			if (!Double.isInfinite(distanceFromQr)) {
 				if (code.contains("W01")) {
 					placement.setX(MAX_X_CORD - distanceFromQr);
@@ -385,6 +391,7 @@ public class ScanSequence implements Runnable {
 					placement.setX(MIN_X_CORD + distanceFromQr);
 				}
 				noMove = false;
+				//if no distances has been measured for a long time
 			} else if (noDistFound > noDistFoundLimit) {
 				noDistFound = 0;
 				noMove = false;
@@ -409,7 +416,7 @@ public class ScanSequence implements Runnable {
 	private void decideMove(int move) {
 		if (startSmallMove) {
 			addCommand(move, FIELD_SMALL_DURATION, FIELD_SMALL_SPEED);
-			moveX = false;
+			moveX = !moveX;
 		} else {
 			if (move == Command.LEFT || move == Command.RIGHT) {
 				addCommand(move, STRAFE_TIME, SPIN_SPEED);

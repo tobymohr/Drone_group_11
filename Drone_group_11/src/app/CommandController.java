@@ -39,13 +39,6 @@ public class CommandController implements Runnable {
 			try {
 				synchronized(this){
 					while(wait || q.peek()==null){
-//						try {
-////							droneInterface.hover();
-////							System.out.println("HOVER");
-////							wait(5000);
-//						} catch (InterruptedException e) {
-//							e.printStackTrace();
-//						}
 					}
 
 					task = q.take();
@@ -127,10 +120,7 @@ public class CommandController implements Runnable {
 						break;
 					}
 					Thread.sleep(task.time);
-//					if(task.task != Command.LEFT || task.task != Command.RIGHT){
-//						droneInterface.hover();
-//						Thread.sleep(2500);
-//					}
+					droneInterface.hover();
 					droneIsReady = true;
 				}
 			} catch (InterruptedException e) {
