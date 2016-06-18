@@ -88,7 +88,7 @@ public class CommandController implements Runnable {
 						startTime = System.currentTimeMillis();
 						droneInterface.spinLeft(task.time);
 						System.out.println("SPIN LEFT");
-						moveString = "DOWN";
+						moveString = "SPIN LEFT";
 						break;
 					case Command.SPINRIGHT:
 						startTime = System.currentTimeMillis();
