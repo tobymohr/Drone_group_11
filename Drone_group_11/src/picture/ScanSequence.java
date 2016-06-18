@@ -98,7 +98,7 @@ public class ScanSequence implements Runnable {
 		commandController.droneInterface.hover();
 		sleep(2000);
 		System.out.println("UP");
-		commandController.addCommand(Command.UP, 3000, 12);
+		commandController.addCommand(Command.UP, 2500, 12);
 
 		while (PictureController.shouldScan) {
 			if (OFVideo.imageChanged) {
@@ -268,6 +268,7 @@ public class ScanSequence implements Runnable {
 
 				firstAxisToMove();
 				System.out.println("LETS GOOOOOOO MOTHERFUCKER");
+				
 				while (moveToStart) {
 					moveDroneToStart();
 				}
@@ -284,7 +285,7 @@ public class ScanSequence implements Runnable {
 		} else {
 			double distanceToSquare = OFC.calcDistance(rect);
 			if (distanceToSquare > 300) {
-				addCommand(Command.FORWARD, FORWARD_TIME_2, FORWARD_SPEED);
+				addCommand(Command.FORWARD, FIELD_SMALL_DURATION, FIELD_SMALL_SPEED);
 				return;
 			} else {
 				return;
