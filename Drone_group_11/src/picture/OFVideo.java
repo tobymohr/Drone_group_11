@@ -19,6 +19,7 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import picture.DownScanSeq.scanGreen;
 
 public class OFVideo implements Runnable {
 	private Java2DFrameConverter converter1;
@@ -30,15 +31,18 @@ public class OFVideo implements Runnable {
 	private Label qrDist;
 	private BufferedImage arg0;
 	private PictureProcessingHelper OFC = new PictureProcessingHelper();
-	private CommandController cC;
+	private CommandController commandController;
 	private static boolean aboveLanding = false;
 	private static int circleCounter = 0;
 	private static int counts = 0;
 	// Scansequence fields
 	private ScanSequence scanSequence;
+	private DownScanSeq downScanSeq;
 	private boolean isFirst = true;
 	public boolean wallClose = false;
 	public static volatile boolean imageChanged;
+	public static volatile boolean imageChangedRed;
+	public static volatile boolean imageChangedGreen;
 	private Label movelbl;
 	private LandSequence landSeq;
 	private FlightControl fc;
@@ -139,9 +143,15 @@ public class OFVideo implements Runnable {
 						// System.out.println("setting img");
 						if (isFirst) {
 							new Thread(fc).start();
+							downScanSeq = new DownScanSeq(newImg.clone(), commandController);
+							downScanSeq.startThreads();
 							isFirst = false;
 						}
+						downScanSeq.setImage(newImg.clone());
+						imageChangedRed = true;
+						imageChangedGreen = true;
 					}
+
 				} else {
 					Thread.sleep(50);
 				}
@@ -185,7 +195,7 @@ public class OFVideo implements Runnable {
 					//Drone skal flyve lidt ned
 					System.out.println("going down");
 //					Thread.sleep(10);
-					cC.addCommand(Command.DOWN, 100, 20);
+					commandController.addCommand(Command.DOWN, 100, 20);
 					Thread.sleep(200);
 					counts++;
 					System.out.println(counts);
@@ -204,7 +214,7 @@ public class OFVideo implements Runnable {
 				if(counts == 3){
 					System.out.println("landing");
 					
-					cC.droneInterface.land();
+					commandController.droneInterface.land();
 				}
 //			}
 		}
