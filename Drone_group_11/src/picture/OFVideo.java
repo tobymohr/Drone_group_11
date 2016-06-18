@@ -42,7 +42,6 @@ public class OFVideo implements Runnable {
 	
 	private AvoidWallDemo CK;
 	
-	
 	public OFVideo(ImageView mainFrame, Label movelbl, Label qrCode,
 			Label qrDist, BufferedImage arg0, CommandController cC, ImageView bufferedframe) {
 		this.arg0 = arg0;
@@ -72,41 +71,41 @@ public class OFVideo implements Runnable {
 					newImg = converterMat.convert(converter1.convert(arg0));
 					Mat filteredImage = null;
 
-					switch (PictureController.colorInt) {
-					case 1:
-						filteredImage = OFC.findContoursBlackMat(newImg);
-						break;
-					case 2:
-						filteredImage = OFC.findContoursRedMat(newImg);
-						break;
-					case 3:
-						filteredImage = OFC.findContoursGreenMat(newImg);
-						BufferedImage bufferedImageCont = MatToBufferedImage(filteredImage);
-						Image imageCont = SwingFXUtils.toFXImage(bufferedImageCont, null);
-						bufferedframe.setImage(imageCont);
-						break;
-					default:
-						filteredImage = OFC.findContoursBlueMat(newImg);
-						break;
-					}
-					
-					switch (PictureController.imageInt) {
-					case PictureController.SHOW_QR:
-						showQr(newImg.clone());
-						break;
-					case PictureController.SHOW_FILTER:
-						showFilter(filteredImage.clone());
-						break;
-					case PictureController.SHOW_POLYGON:
-						showPolygons(newImg.clone(), filteredImage.clone());
-						break;
-					case PictureController.SHOW_LANDING:
-						showLanding(newImg.clone(), filteredImage.clone());
-						break;
-					default:
-						showPolygons(newImg.clone(), filteredImage.clone());
-						break;
-					}
+				switch (PictureController.colorInt) {
+				case 1:
+					filteredImage = OFC.findContoursBlackMat(newImg);
+					break;
+				case 2:
+					filteredImage = OFC.findContoursRedMat(newImg);
+					break;
+				case 3:
+					filteredImage = OFC.findContoursGreenMat(newImg);
+					BufferedImage bufferedImageCont = MatToBufferedImage(filteredImage);
+					Image imageCont = SwingFXUtils.toFXImage(bufferedImageCont, null);
+					bufferedframe.setImage(imageCont);
+					break;
+				default:
+					filteredImage = OFC.findContoursBlueMat(newImg);
+					break;
+				}
+
+				switch (PictureController.imageInt) {
+				case PictureController.SHOW_QR:
+					showQr(newImg.clone());
+					break;
+				case PictureController.SHOW_FILTER:
+					showFilter(filteredImage.clone());
+					break;
+				case PictureController.SHOW_POLYGON:
+					showPolygons(newImg.clone(), filteredImage.clone());
+					break;
+				case PictureController.SHOW_LANDING:
+					showLanding(newImg.clone(), filteredImage.clone());
+					break;
+				default:
+					showPolygons(newImg.clone(), filteredImage.clone());
+					break;
+				}
 
 					
 					Platform.runLater(new Runnable() {
@@ -146,11 +145,11 @@ public class OFVideo implements Runnable {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 	}
 
 	public void showQr(Mat camMat) {
-		
+
 		Mat qrMat = OFC.extractQRImage(camMat);
 		BufferedImage bufferedImageQr = MatToBufferedImage(qrMat);
 		Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
@@ -160,20 +159,19 @@ public class OFVideo implements Runnable {
 	public void showLanding(Mat mat, Mat filteredMat) throws InterruptedException {
 		Mat landing = mat;
 		int circles = 0;
-		
-//		if (PictureController.shouldScan) {
-//			scanSequence.setImage(mat.clone());
-//			if (isFirst) {
-//				new Thread(scanSequence).start();
-//				isFirst = false;
-//			}
-//		}
-		
+
+		// if (PictureController.shouldScan) {
+		// scanSequence.setImage(mat.clone());
+		// if (isFirst) {
+		// new Thread(scanSequence).start();
+		// isFirst = false;
+		// }
+		// }
+
 		boolean check = OFC.checkDecodedQR(mat);
-		if(check){
-			
+		if (check) {
+
 			circles = OFC.myCircle(mat);
-			
 //			for(int i = 0; i < 4; ){
 				if (circles > 0) {
 					aboveLanding = true;
@@ -208,7 +206,7 @@ public class OFVideo implements Runnable {
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
 		mainFrame.setImage(imageLanding);
 		// System.out.println(aboveLanding);
-		
+
 	}
 
 	public void showFilter(Mat filteredMat) {

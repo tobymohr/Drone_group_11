@@ -1,5 +1,6 @@
 package helper;
 
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -12,6 +13,7 @@ public class CustomPoint {
 	
 	private double x;
 	private double y;
+	private Color colour; 
 	
 	public CustomPoint() {
 	}
@@ -21,6 +23,11 @@ public class CustomPoint {
 		this.y = y;
 	}
 	
+	public CustomPoint(double x, double y, Color colour) {
+		this.x = x;
+		this.y = y;
+		this.colour = colour;
+	}
 	
 	public double getX() {
 		return x;
@@ -36,6 +43,14 @@ public class CustomPoint {
 
 	public void setY(double y) {
 		this.y = y;
+	}
+	
+	public Color getColour() {
+		return colour;
+	}
+	
+	public void setColour(Color colour) {
+		this.colour = colour;
 	}
 
 	public CustomPoint subtract(CustomPoint p) {
