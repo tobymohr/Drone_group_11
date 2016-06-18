@@ -95,6 +95,8 @@ public class PictureController {
 	private ImageView bufferedframe;
 	@FXML
 	private Label lowBatteryLbl;
+	@FXML 
+	private Label movelbl;
 
 	public void setUpKeys() {
 		borderpane.getScene().getWindow().setOnCloseRequest(new EventHandler<WindowEvent>() {
@@ -288,6 +290,9 @@ public class PictureController {
 						@Override
 						public void run() {
 							lowBatteryLbl.setText("Battery: " + arg0 + "%");
+							if(arg0 < 24){
+								lowBatteryLbl.setText("Battery level is low: " + arg0 + "%");
+							}
 						}
 					});
 					
@@ -303,7 +308,7 @@ public class PictureController {
 			@Override
 			public void imageUpdated(BufferedImage arg0) {
 				if (isFirst) {
-					new Thread(ofvideo = new OFVideo(mainFrame, qrCode, qrDist,
+					new Thread(ofvideo = new OFVideo(mainFrame, movelbl, qrCode, qrDist,
 							arg0, cC, bufferedframe)).start();
 					isFirst = false;
 					//nav.initCompass(drone, headingLbl);

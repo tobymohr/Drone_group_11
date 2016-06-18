@@ -19,17 +19,17 @@ import helper.CustomPoint;
 
 public class ScanSequence implements Runnable {
 	private static final int MIN_HIT_COUNT = 6;
-	private static final int FORWARD_TIME_2 = 2000;
+	private static final int FORWARD_TIME_2 = 800;
 	private static final int BACKWARD_TIME = 1500;
 	private static final int BACKWARD_SPEED = 9;
-	private static final int STRAFE_TIME = 1200;
-	private static final int STRAFE_SPEED = 10;
-	private static final int SPIN_TIME = 1500;
-	private static final int SPIN_SPEED = 6;
-	private static final int FORWARD_TIME = 1200;
-	private static final int FORWARD_SPEED = 9;
-	private static final int ROTATE_TIME = 5000;
-	private static final int ROTATE_SPEED = 17;
+	private static final int STRAFE_TIME = 1000;
+	private static final int STRAFE_SPEED = 7;
+	private static final int SPIN_TIME = 1000;
+	private static final int SPIN_SPEED = 10;
+	private static final int FORWARD_TIME = 800;
+	private static final int FORWARD_SPEED = 7;
+	private static final int ROTATE_TIME = 1500;
+	private static final int ROTATE_SPEED = 25;
 	private static final int FIELD_DURATION = 1500;
 	private static final int FIELD_SPEED = 7;
 	private static final int FIELD_SMALL_DURATION = 800;
@@ -38,6 +38,10 @@ public class ScanSequence implements Runnable {
 	private static final int MIN_Y_CORD = -10;
 	private static final int MAX_X_CORD = 926;
 	private static final int MIN_X_CORD = 80;
+	private static int noDistFound = 0;
+	private static final int noDistFoundLimit = 200;
+	private static final int MAX_FRAME_COUNT = 8;
+	private static final int MAX_ROTATE_COUNT = 15;
 
 	// #TODO Tweak these values based on testing
 	public static final double CENTER_UPPER = 0.15;
@@ -68,6 +72,8 @@ public class ScanSequence implements Runnable {
 	private boolean doCommand = false;
 	private boolean startSmallMove = false;
 	private boolean canGetDist = true;
+	private boolean noMove = false;
+
 
 	public ScanSequence(CommandController commandController) {
 		this.commandController = commandController;
@@ -81,32 +87,27 @@ public class ScanSequence implements Runnable {
 	public void run() {
 		commandController.droneInterface.takeOff();
 
-		code = "W01.02";
-		placement = new CustomPoint();
-		placement.setX(514);
-		placement.setY(721);
-		moveToStart = true;
+		// code = "W01.02";
+		// placement = new CustomPoint();
+		// placement.setX(514);
+		// placement.setY(721);
+		// moveToStart = true;
 
 		sleep(2000);
 		System.out.println("HOVER");
 		commandController.droneInterface.hover();
 		sleep(2000);
 		System.out.println("UP");
-		commandController.addCommand(Command.UP, 5000, 15);
+		commandController.addCommand(Command.UP, 3000, 12);
 
-		// while(PictureController.shouldScan) {
-		// if (OFVideo.imageChanged) {
-		// scanSequence();
-		// } else {
-		// sleep(50);
-		// }
-		// }
-		//
-		firstAxisToMove();
-
-		while (moveToStart) {
-			moveDroneToStart();
+		while (PictureController.shouldScan) {
+			if (OFVideo.imageChanged) {
+				scanSequence();
+			} else {
+				sleep(50);
+			}
 		}
+
 	}
 
 	private void firstAxisToMove() {
@@ -154,11 +155,11 @@ public class ScanSequence implements Runnable {
 	}
 
 	private void rotateCheck() {
-		if (frameCount < 4) {
+		if (frameCount < MAX_FRAME_COUNT) {
 			frameCount++;
 		} else {
 			code = null;
-			if (rotateCount < 15) {
+			if (rotateCount < MAX_ROTATE_COUNT ) {
 				addCommand(Command.ROTATERIGHT, ROTATE_TIME, ROTATE_SPEED);
 				rotateCount++;
 			} else {
@@ -207,6 +208,21 @@ public class ScanSequence implements Runnable {
 			addCommand(Command.SPINLEFT, SPIN_TIME, SPIN_SPEED);
 		}
 	}
+	
+
+	public int getSpinSpeed(List<Mat> matContours){
+		double allSpeeds = 0;
+		double constant = 9;
+		for(int i = 0; i<matContours.size(); i++){
+			double area = contourArea(matContours.get(i)) / 1000;
+			double result = constant/area;
+			allSpeeds +=result*10;
+		}
+		if(!Double.isNaN(allSpeeds/matContours.size())){
+			return (int) (allSpeeds/matContours.size());
+		}
+		return 0;
+	}
 
 	private void scanSequence() {
 		OFVideo.imageChanged = false;
@@ -249,8 +265,14 @@ public class ScanSequence implements Runnable {
 				moveToStart = true;
 				rotateCount = 0;
 				PictureController.shouldScan = false;
+
+				firstAxisToMove();
+				System.out.println("LETS GOOOOOOO MOTHERFUCKER");
+				while (moveToStart) {
+					moveDroneToStart();
+				}
 				return;
-			} else if (scannedCount < 50) {
+			} else if (scannedCount < 3) {
 				scannedCount++;
 				return;
 			} else {
@@ -293,21 +315,8 @@ public class ScanSequence implements Runnable {
 			} else {
 				moves.put(task, 1);
 			}
-
-			System.out.println("Distance to QR" + distanceFromQr + " placementX " + placement.getX());
-
-			// if(moveToStart){
-			//
-			// commandController.addCommand(task, duration, speed);
-			//
-			// if(manualUpdateX){
-			// placement.setX(placement.getX() + CHUNK_SIZE);
-			// placement.setY(distanceFromQr);
-			// }else {
-			// placement.setY(placement.getY() + CHUNK_SIZE);
-			// placement.setX(distanceFromQr);
-			// }
-			// }
+			// System.out.println("Distance to QR" + distanceFromQr + "
+			// placementX " + placement.getX());
 		}
 	}
 
@@ -345,7 +354,7 @@ public class ScanSequence implements Runnable {
 		// find mostcenteredrect
 		RotatedRect rect = mostCenteredRect(contours);
 		// Get distance
-		if(canGetDist ){
+		if (canGetDist) {
 			distanceFromQr = OFC.calcDistance(rect);
 		}
 		// use distance for new X or Y coordinat
@@ -356,8 +365,16 @@ public class ScanSequence implements Runnable {
 				} else {
 					placement.setY(MIN_Y_CORD + distanceFromQr);
 				}
+				noMove = false;
+			} else if (noDistFound > noDistFoundLimit) {
+				noDistFound = 0;
+				noMove = false;
+				moveX = true;
+
+			} else {
+				noDistFound++;
+				noMove = true;
 			}
-			manualUpdateX = true;
 		}
 		if (moveX) {
 			if (!Double.isInfinite(distanceFromQr)) {
@@ -366,28 +383,36 @@ public class ScanSequence implements Runnable {
 				} else {
 					placement.setX(MIN_X_CORD + distanceFromQr);
 				}
+				noMove = false;
+			} else if (noDistFound > noDistFoundLimit) {
+				noDistFound = 0;
+				noMove = false;
+				moveX = false;
+			} else {
+				noDistFound++;
+				noMove = true;
 			}
-			manualUpdateX = false;
 		}
-
 		// Start moving
-		if (moveX) {
-			int moveX = calcMoveXAxis(placement.getX());
-			decideMove(moveX);
+		if (moveX && !noMove) {
+			int move = calcMoveXAxis(placement.getX());
+			decideMove(move);
+		} else if (!noMove) {
+			int move = calcMovesYAxis(placement.getY());
+			decideMove(move);
 		} else {
-			int moveY = calcMovesYAxis(placement.getY());
-			decideMove(moveY);
+			decideMove(Command.NONE);
 		}
 	}
-	
-	private void decideMove(int move){
+
+	private void decideMove(int move) {
 		if (startSmallMove) {
 			addCommand(move, FIELD_SMALL_DURATION, FIELD_SMALL_SPEED);
 			moveX = false;
 		} else {
 			if (move == Command.LEFT || move == Command.RIGHT) {
 				addCommand(move, STRAFE_TIME, SPIN_SPEED);
-			}else {
+			} else {
 				addCommand(move, FIELD_DURATION, FIELD_SPEED);
 			}
 		}
