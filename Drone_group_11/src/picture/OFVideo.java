@@ -12,7 +12,6 @@ import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
 import app.CommandController;
 import de.yadrone.base.IARDrone;
 import helper.Command;
-import javacvdemo.AvoidWallDemo;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.control.Label;
@@ -40,7 +39,7 @@ public class OFVideo implements Runnable {
 	public static volatile boolean imageChanged;
 	private Label movelbl;
 	
-	private AvoidWallDemo CK;
+	private LandSequence landSeq;
 	
 	public OFVideo(ImageView mainFrame, Label movelbl, Label qrCode,
 			Label qrDist, BufferedImage arg0, CommandController cC, ImageView bufferedframe) {
@@ -54,7 +53,7 @@ public class OFVideo implements Runnable {
 		converterMat = new ToMat();
 		converter1 = new Java2DFrameConverter();
 		scanSequence = new ScanSequence(cC);
-		CK = new AvoidWallDemo(cC);
+		landSeq = new LandSequence(cC);
 	}
 
 	public void setArg0(BufferedImage arg0) {
@@ -129,20 +128,12 @@ public class OFVideo implements Runnable {
 							isFirst = false;
 						}
 					}
-//					if (PictureController.shouldScan){
-//						CK.setImage(newImg.clone());
-//						if(isFirst){
-//							new Thread(CK).start();
-//							isFirst = false;
-//						}
-//						scanSequence.imageChanged = true;
-//					}
-
 				} else {
 					Thread.sleep(50);
 				}
 			}
 		} catch (Exception e) {
+		
 			e.printStackTrace();
 		}
 
@@ -176,11 +167,11 @@ public class OFVideo implements Runnable {
 				if (circles > 0) {
 					aboveLanding = true;
 					// If false restart landing sequence
-					//Drone skal flye lidt ned
+					//Drone skal flyve lidt ned
 					System.out.println("going down");
 //					Thread.sleep(10);
-					cC.droneInterface.goDown(6);
-					Thread.sleep(10);
+					cC.addCommand(Command.DOWN, 100, 20);
+					Thread.sleep(200);
 					counts++;
 					System.out.println(counts);
 					}

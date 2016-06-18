@@ -263,7 +263,7 @@ public class PictureProcessingHelper {
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
 			RotatedRect rect = minAreaRect(matContour.get(i));
-			if (matContour.get(i).total() == 4  && contourArea(matContour.get(i)) > MIN_AREA 
+			if (matContour.get(i).total() > 2 && matContour.get(i).total() < 6  && contourArea(matContour.get(i)) > MIN_AREA 
 					&& checkAngles(matContour.get(i), rect)) {
 				drawContours(srcImage, matContour, i, Scalar.WHITE, 3, 8, null, 1, null);
 				
@@ -444,7 +444,7 @@ public class PictureProcessingHelper {
 	}
 	
 	public boolean checkDecodedQR(Mat img){
-		String OURQR = "AF.01";
+		String OURQR = "AF.04";
 		
 		BufferedImage qrCode = converter1.convert(converter.convert(img));
 		source = new BufferedImageLuminanceSource(qrCode);
@@ -592,23 +592,6 @@ public class PictureProcessingHelper {
 		return img;
 	}
 	
-	
-
-//	public Mat circle(Mat img) {
-//
-//		MatVector matCircles = new MatVector();
-//
-//		Mat img1 = new Mat(img.arraySize(), CV_8UC1, 1);
-//
-//		cvtColor(img, img1, CV_RGB2GRAY);
-//
-//		GaussianBlur(img1, img, new Size(9, 9), 2.0);
-//
-//		HoughCircles(img, img, HOUGH_GRADIENT, 1, 100, 100, 100, 15, 500);
-//
-//		return img;
-//	}
-
 	public IplImage convertMatToIplImage(Mat mat) {
 		return converter.convert(converter.convert(mat));
 	}
@@ -820,5 +803,8 @@ public class PictureProcessingHelper {
 //		
 //		
 //	}
+	public boolean isBlueTowerAhead(MatVector contours){
+		return contours.size() > 200 ? true : false;
+	}
 }
 

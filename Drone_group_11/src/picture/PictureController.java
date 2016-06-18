@@ -25,6 +25,8 @@ import app.CommandController;
 import coordinateSystem.Map;
 import de.yadrone.base.ARDrone;
 import de.yadrone.base.IARDrone;
+import de.yadrone.base.command.H264;
+import de.yadrone.base.command.VideoBitRateMode;
 import de.yadrone.base.command.VideoCodec;
 import de.yadrone.base.exception.ARDroneException;
 import de.yadrone.base.exception.IExceptionListener;
@@ -57,7 +59,10 @@ public class PictureController {
 	private Set<KeyCode> pressedKeys = new HashSet<KeyCode>();
 	private Mat camMat = null;
 	public static boolean shouldScan = false;
+	public static boolean shouldTestWall = false;
+	public static boolean shouldLand = false;
 	private static boolean aboveLanding = false;
+	
 	private static int circleCounter = 0;
 	public BufferedImage billede;
 	public int navn = 0;
@@ -204,6 +209,7 @@ public class PictureController {
 					case T:
 						cC.droneInterface.setBottomCamera();
 					default:
+					
 
 						break;
 					}
@@ -316,8 +322,10 @@ public class PictureController {
 				imageChanged = true;
 			}
 		});
-		drone.getCommandManager().setVideoBitrate(100000);
-
+		drone.getCommandManager().setVideoBitrateControl(VideoBitRateMode.MANUAL);
+		drone.getCommandManager().setVideoBitrate(H264.MAX_BITRATE);
+		drone.getCommandManager().setVideoCodecFps(H264.MAX_FPS);
+		System.out.println("Videocodec Set.");
 	}
 
 	public void grabFromVideo() throws org.bytedeco.javacv.FrameGrabber.Exception {
@@ -407,35 +415,35 @@ public class PictureController {
 		if (check) {
 
 			circles = OFC.myCircle(mat);
-
-			// for(int i = 0; i < 4; ){
-			if (circles > 0) {
-				aboveLanding = true;
-				// If false restart landing sequence
-				// Drone skal flye lidt ned
-				System.out.println("going down");
-				// Thread.sleep(10);
-				// cC.dC.goDown(6);
-				// Thread.sleep(10);
-				counts++;
-				System.out.println(counts);
-			} else {
-				circles = 0;
-				circleCounter++;
-				System.out.println(circleCounter);
-
-			}
-			if (circleCounter >= 120) {
-				aboveLanding = false;
-				circleCounter = 0;
-				counts = 0;
-			}
-			if (counts == 3) {
-				System.out.println("landing");
-
-				cC.droneInterface.land();
-			}
-			// }
+//			for(int i = 0; i < 4; ){
+				if (circles > 0) {
+					aboveLanding = true;
+					// If false restart landing sequence
+					//Drone skal flye lidt ned
+					System.out.println("going down");
+//					Thread.sleep(10);
+//					cC.dC.goDown(6);
+//					Thread.sleep(10);
+					counts++;
+					System.out.println(counts);
+					}
+				else {
+						circles = 0;
+						circleCounter++;
+						System.out.println(circleCounter);
+						
+					}
+				if(circleCounter>=120){
+					aboveLanding = false;
+					circleCounter = 0;
+					counts = 0;
+				}
+				while(counts == 3){
+					System.out.println("landing");
+					
+					cC.droneInterface.land();
+				}
+//			}
 		}
 		BufferedImage bufferedImageLanding = MatToBufferedImage(landing);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
