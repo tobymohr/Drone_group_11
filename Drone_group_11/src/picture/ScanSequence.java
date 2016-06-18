@@ -380,6 +380,7 @@ public class ScanSequence implements Runnable {
 				}
 			}
 			
+			
 			// if no distances has been measured for a long time
 //			if (noDistFound > noDistFoundLimit) {
 //				noDistFound = 0;
