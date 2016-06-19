@@ -13,6 +13,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Yadrone"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/YaDroneCommand"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/YaDroneZxing"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/YaDroneCommand"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/dronez"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

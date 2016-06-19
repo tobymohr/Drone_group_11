@@ -95,7 +95,7 @@ public class PictureProcessingHelper {
 	private LuminanceSource source;
 	private BinaryBitmap bitmap;
 	private Point2f vertices;
-	private static final int MIN_AREA = 2000;
+	private static final int MIN_AREA = 4000;
 	private static final int ANGLE_UPPER_BOUND = 105;
 	private static final int ANGLE_LOWER_BOUND = 75;
 
@@ -327,6 +327,7 @@ public class PictureProcessingHelper {
 
 	public List<Mat> findQrContoursNoThresh(Mat srcImage) {
 		Mat img1 = new Mat(srcImage.arraySize(), CV_8UC1, 1);
+//		Mat img1 = findContoursBlackMat(srcImage);
 		cvtColor(srcImage, img1, CV_RGB2GRAY);
 		Canny(img1, img1, 75, 200);
 		MatVector matContour = new MatVector();

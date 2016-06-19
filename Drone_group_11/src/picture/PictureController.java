@@ -103,14 +103,18 @@ public class PictureController {
 	private Label lowBatteryLbl;
 	@FXML 
 	private Label movelbl;
+	@FXML 
+	private Label coordinatFoundlbl;
 
 	public void setUpKeys() {
 		borderpane.getScene().getWindow().setOnCloseRequest(new EventHandler<WindowEvent>() {
 			@Override
 			public void handle(WindowEvent t) {
 				System.out.println("EXIT");
-				if (cC.droneInterface.getDroneFlying()) {
+				if (cC != null) {
+					if (cC.droneInterface.getDroneFlying()) {
 					land();
+					}
 				}
 				Platform.exit();
 				System.exit(0);
@@ -313,7 +317,7 @@ public class PictureController {
 			@Override
 			public void imageUpdated(BufferedImage arg0) {
 				if (isFirst) {
-					new Thread(ofvideo = new OFVideo(mainFrame, movelbl, qrCode, qrDist,
+					new Thread(ofvideo = new OFVideo(mainFrame,coordinatFoundlbl, movelbl, qrCode, qrDist,
 							arg0, cC, bufferedframe)).start();
 					isFirst = false;
 				}

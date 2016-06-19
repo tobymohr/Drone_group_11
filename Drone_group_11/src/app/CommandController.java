@@ -39,6 +39,7 @@ public class CommandController implements Runnable {
 			try {
 				synchronized(this){
 					while(wait || q.peek()==null){
+						Thread.sleep(50);
 					}
 
 					task = q.take();
