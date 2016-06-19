@@ -80,7 +80,7 @@ public class FlightControl implements Runnable {
 		String tempCode = "";
 		distance = pictureProcessingHelper.calcDistance(rect);
 		while (!tempCode.startsWith("W00") && distance > 150) {
-			goForwardOneChunk(rect);
+			goForwardOneChunk(rect, 1);
 			addCommand(Command.HOVER, 2000, 10);
 			//downScan.scanForCubes();
 
@@ -93,11 +93,7 @@ public class FlightControl implements Runnable {
 			distance = pictureProcessingHelper.calcDistance(rect);
 		}
 		
-//		if (tempCode.startsWith("W00") && !tempCode.equals("W00.04")) {
-//			
-//		}
-//
-//		if (tempCode.startsWith("W00.04")) {
+		if (tempCode.equals("W00.04")) {
 //			distance = pictureProcessingHelper.calcDistance(rect);
 //			while (distance > 100) {
 //				goForwardOneChunk(rect);
@@ -126,9 +122,15 @@ public class FlightControl implements Runnable {
 //					distance = pictureProcessingHelper.calcDistance(rect);
 //				}
 //			}
-//		} else if (tempCode.startsWith("W00")) {
-//			
-//		}
+		} else if (tempCode.startsWith("W00")) {
+			while (!tempCode.equals("W00.04")) {
+				addCommand(Command.RIGHT, 500, 10);
+				addCommand(Command.HOVER, 2000, 30);
+				rect = findRect(1);
+				qrImg = pictureProcessingHelper.warpImage(camMat, rect);
+				tempCode = pictureProcessingHelper.scanQrCode(qrImg);
+			}
+		}
 
 		System.out.println("CLOSE");
 	}
@@ -241,25 +243,25 @@ public class FlightControl implements Runnable {
 		return newRect;
 	}
 
-	private void goForwardOneChunk(RotatedRect rect) {
+	private void goForwardOneChunk(RotatedRect rect, int lane) {
 		distance = pictureProcessingHelper.calcDistance(rect);
 		addCommand(Command.FORWARD, 1500, 10); // 1 chunk
 		boolean tooClose = false;
 		boolean tooFar = false;
-//		while (!tooClose || !tooFar) {
-//			tooFar = true;
-//			tooClose = true;
-//
-//			currentDistance = pictureProcessingHelper.calcDistance(rect);
-//			if ((distance - currentDistance) > 95) {
-//				addCommand(Command.BACKWARDS, 500, 10);
-//				tooFar = false;
-//			}
-//			if ((distance - currentDistance) < 75) {
-//				addCommand(Command.FORWARD, 500, 10);
-//				tooClose = false;
-//			}
-//		}
+		while (!tooClose || !tooFar) {
+			tooFar = true;
+			tooClose = true;
+
+			currentDistance = pictureProcessingHelper.calcDistance(findRect(lane));
+			if ((distance - currentDistance) > 95) {
+				addCommand(Command.BACKWARDS, 500, 10);
+				tooFar = false;
+			}
+			if ((distance - currentDistance) < 75) {
+				addCommand(Command.FORWARD, 500, 10);
+				tooClose = false;
+			}
+		}
 	}
 	
 	private void addCommand(int task, int duration, int speed) {
