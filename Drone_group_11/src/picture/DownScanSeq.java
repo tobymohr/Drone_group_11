@@ -28,7 +28,6 @@ public class DownScanSeq {
 
 	public void setImage(Mat camMat) {
 		this.camMat = camMat;
-		this.camMat2 = camMat.clone();
 	}
 	
 	public void scanForCubes() {
@@ -40,6 +39,7 @@ public class DownScanSeq {
 		greenDone = false;
 		redDone = false;
 		calculateScanResults();
+		commandController.droneInterface.setFrontCamera();
 	}
 
 	public void scanGreen()
@@ -57,7 +57,7 @@ public class DownScanSeq {
 		}
 	}
 	private boolean scanGreenSeq() {
-		Mat greenMat = camMat;
+		Mat greenMat = camMat.clone();
 		OFVideo.imageChangedGreen = false;
 		greenMat = PPH.findContoursGreenMat(camMat);
 		greenResults.add(PPH.findObjectsMat(greenMat));
@@ -85,9 +85,9 @@ public class DownScanSeq {
 	}
 
 	private boolean scanRedSeq() {
-		Mat redMat = camMat2;
+		Mat redMat = camMat;
 		OFVideo.imageChangedRed = false;
-		redMat = PPH.findContoursGreenMat(camMat2);
+		redMat = PPH.findContoursGreenMat(camMat);
 		redResults.add(PPH.findObjectsMat(redMat));
 
 		// todo make done constraints
@@ -113,6 +113,8 @@ public class DownScanSeq {
 		for (Integer key : map.keySet()) {
 			System.out.println(key + ": penis" + map.get(key).toString());
 		}
+		
+		
 		// TODO: Calc estimate coords and add to coordinate GUI
 		greenResults.clear();
 		redResults.clear();

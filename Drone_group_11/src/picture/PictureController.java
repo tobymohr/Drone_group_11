@@ -280,33 +280,33 @@ public class PictureController {
 	public void grabFromDrone() {
 
 		drone.getVideoManager().start();
-//		drone.getNavDataManager().addBatteryListener(new BatteryListener() {
-//
-//			@Override
-//			public void voltageChanged(int arg0) {
-//				// TODO Auto-generated method stub
-//
-//			}
-//
-//			@Override
-//			public void batteryLevelChanged(int arg0) {
-//				if (arg0 != prevBattery) {
-//					prevBattery = arg0;
-//					Platform.runLater(new Runnable() {
-//						@Override
-//						public void run() {
-//							lowBatteryLbl.setText("Battery: " + arg0 + "%");
-//							if(arg0 < 24){
-//								lowBatteryLbl.setText("Battery level is low: " + arg0 + "%");
-//							}
-//						}
-//					});
-//
-//					lowBatteryLbl.setVisible(true);
-//				}
-//
-//			}
-//		});
+		drone.getNavDataManager().addBatteryListener(new BatteryListener() {
+
+			@Override
+			public void voltageChanged(int arg0) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void batteryLevelChanged(int arg0) {
+				if (arg0 != prevBattery) {
+					prevBattery = arg0;
+					Platform.runLater(new Runnable() {
+						@Override
+						public void run() {
+							lowBatteryLbl.setText("Battery: " + arg0 + "%");
+							if(arg0 < 24){
+								lowBatteryLbl.setText("Battery level is low: " + arg0 + "%");
+							}
+						}
+					});
+
+					lowBatteryLbl.setVisible(true);
+				}
+
+			}
+		});
 		drone.getVideoManager().addImageListener(new ImageListener() {
 			boolean isFirst = true;
 

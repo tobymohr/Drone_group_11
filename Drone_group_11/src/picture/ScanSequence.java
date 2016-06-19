@@ -175,7 +175,7 @@ public class ScanSequence implements Runnable {
 		RotatedRect rect = new RotatedRect();
 		for (int i = 0; i < contours.size(); i++) {
 			RotatedRect rect2 = minAreaRect(contours.get(i));
-			double distance = (camMat.arrayWidth() / 2) - rect.center().x();
+			double distance = (camMat.arrayWidth() / 2) - rect2.center().x();
 			if (distanceFomCenter > distance) {
 				distanceFomCenter = Math.abs(distance);
 				rect = rect2;
