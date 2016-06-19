@@ -1,5 +1,7 @@
-package hsvCalibration;
+package it.polito.teaching.cv;
 
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +10,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.core.MatOfPoint;
@@ -15,8 +18,10 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
-import org.opencv.videoio.VideoCapture;
-
+import de.yadrone.base.ARDrone;
+import de.yadrone.base.IARDrone;
+import de.yadrone.base.command.VideoChannel;
+import de.yadrone.base.video.ImageListener;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -70,14 +75,15 @@ public class ObjRecognitionController
 	private Label hsvCurrentValues;
 	
 	// a timer for acquiring the video stream
-	private ScheduledExecutorService timer;
 	// the OpenCV object that performs the video capture
-	private VideoCapture capture = new VideoCapture();
+	private IARDrone drone = new ARDrone();;
 	// a flag to change the button behavior
 	private boolean cameraActive;
+	private BufferedImage cam = null;
 	
 	// property for object binding
 	private ObjectProperty<String> hsvValuesProp;
+	private ScheduledExecutorService timer;
 		
 	/**
 	 * The action triggered by pushing the button on the GUI
@@ -85,6 +91,31 @@ public class ObjRecognitionController
 	@FXML
 	private void startCamera()
 	{
+		drone.start();
+		drone.getVideoManager().start();
+		drone.getCommandManager().setVideoChannel(VideoChannel.VERT);
+		drone.getVideoManager().addImageListener(new ImageListener() {
+
+			@Override
+			public void imageUpdated(BufferedImage arg0) {
+				cam = arg0;
+				
+			}
+		});
+		Runnable frameGrabber = new Runnable() {
+			
+			@Override
+			public void run()
+			{
+				if(cam != null){
+				Image imageToShow = grabFrame();
+				originalFrame.setImage(imageToShow);
+				}
+			}
+		};
+		
+		this.timer = Executors.newSingleThreadScheduledExecutor();
+		this.timer.scheduleAtFixedRate(frameGrabber, 0, 33, TimeUnit.MILLISECONDS);
 		// bind a text property with the string containing the current range of
 		// HSV values for object detection
 		hsvValuesProp = new SimpleObjectProperty<>();
@@ -97,36 +128,14 @@ public class ObjRecognitionController
 		
 		if (!this.cameraActive)
 		{
-			// start the video capture
-			this.capture.open(1);
-			
-			// is the video stream available?
-			if (this.capture.isOpened())
-			{
 				this.cameraActive = true;
 				
-				// grab a frame every 33 ms (30 frames/sec)
-				Runnable frameGrabber = new Runnable() {
-					
-					@Override
-					public void run()
-					{
-						Image imageToShow = grabFrame();
-						originalFrame.setImage(imageToShow);
-					}
-				};
 				
-				this.timer = Executors.newSingleThreadScheduledExecutor();
-				this.timer.scheduleAtFixedRate(frameGrabber, 0, 33, TimeUnit.MILLISECONDS);
 				
 				// update the button content
 				this.cameraButton.setText("Stop Camera");
-			}
-			else
-			{
-				// log the error
-				System.err.println("Failed to open the camera connection...");
-			}
+			
+			
 		}
 		else
 		{
@@ -135,20 +144,9 @@ public class ObjRecognitionController
 			// update again the button content
 			this.cameraButton.setText("Start Camera");
 			
-			// stop the timer
-			try
-			{
-				this.timer.shutdown();
-				this.timer.awaitTermination(33, TimeUnit.MILLISECONDS);
-			}
-			catch (InterruptedException e)
-			{
-				// log the exception
-				System.err.println("Exception in stopping the frame capture, trying to release the camera now... " + e);
-			}
 			
-			// release the camera
-			this.capture.release();
+			
+			
 		}
 	}
 	
@@ -161,16 +159,14 @@ public class ObjRecognitionController
 	{
 		// init everything
 		Image imageToShow = null;
-		Mat frame = new Mat();
+		Mat frame = new Mat(cam.getHeight(), cam.getWidth(), CvType.CV_8UC3);
 		
 		// check if the capture is open
-		if (this.capture.isOpened())
-		{
 			try
 			{
 				// read the current frame
-				this.capture.read(frame);
-				
+				  byte[] data = ((DataBufferByte) cam.getRaster().getDataBuffer()).getData();
+				  frame.put(0, 0, data);
 				// if the frame is not empty, process it
 				if (!frame.empty())
 				{
@@ -232,7 +228,7 @@ public class ObjRecognitionController
 				System.err.print("ERROR");
 				e.printStackTrace();
 			}
-		}
+		
 		
 		return imageToShow;
 	}

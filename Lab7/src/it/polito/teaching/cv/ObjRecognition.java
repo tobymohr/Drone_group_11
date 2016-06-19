@@ -1,4 +1,4 @@
-package hsvCalibration;
+package it.polito.teaching.cv;
 
 import org.opencv.core.Core;
 
