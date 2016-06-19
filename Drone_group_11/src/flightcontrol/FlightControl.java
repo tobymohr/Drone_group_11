@@ -13,14 +13,23 @@ import org.bytedeco.javacpp.opencv_core.RotatedRect;
 import com.google.zxing.qrcode.encoder.QRCode;
 
 import app.CommandController;
+import de.yadrone.base.command.CommandManager;
 import picture.DownScanSeq;
 import picture.OFVideo;
 import picture.PictureController;
 import picture.PictureProcessingHelper;
 
 public class FlightControl implements Runnable {
-	public static final double CENTER_UPPER = 0.1;
-	public static final double CENTER_LOWER = -0.1;
+	public static final int CHUNK_SIZE = 85;
+	
+	// TODO Tweak values below this line
+	private static final int STRAFE_UPPER = 200;
+	private static final int STRAFE_LOWER = -200;
+	private static final double CENTER_UPPER = 0.1;
+	private static final double CENTER_LOWER = -0.1;
+	private static final int SPIN_TIME = 1000;
+	private static final int SPIN_SPEED = 10;
+
 
 	private PictureProcessingHelper pictureProcessingHelper = new PictureProcessingHelper();
 	private CommandController commandController;
@@ -30,8 +39,6 @@ public class FlightControl implements Runnable {
 	private DownScanSeq downScan = new DownScanSeq(commandController);
 	double distance;
 	double currentDistance;
-	private boolean tooFar = true;
-	private boolean tooClose = true;
 
 	public FlightControl(CommandController cc) {
 		this.commandController = cc;
@@ -65,68 +72,55 @@ public class FlightControl implements Runnable {
 
 	public void flyLaneOne() {
 		commandController.droneInterface.setFrontCamera();
-		// commandController.addCommand(Command.ROTATELEFT, 4000, 30); // spin
-		// 180
-		// sleepThread(4500);
+		// TODO Ensure centered on the start QR 
+		// Rotate 180 degrees
+		commandController.addCommand(Command.ROTATELEFT, 2000, 90);
+		sleepThread(2500);
 
 		List<Mat> contours = pictureProcessingHelper.findQrContours(camMat);
 		RotatedRect rect = rightMostRect(contours);
+		adjustLaneRotate(rect, 1);
 		Mat qrImg = null;
 		String tempCode = "";
-		int i = 0;
-		double distance = pictureProcessingHelper.calcDistance(rect);
-		double currentDistance = pictureProcessingHelper.calcDistance(rect);
-		adjustToRectDistance(rect);
-		do {
-			commandController.addCommand(Command.FORWARD, 1500, 15);
-			sleepThread(2500);
-			// hover
-			commandController.droneInterface.setBottomCamera();
-			do {
-				downScan.scanGreen();
-				downScan.scanRed();
-			} while (!downScan.greenDone && !downScan.redDone);
-			downScan.greenDone = false;
-			downScan.redDone = false;
-
-			// TODO: Scan for immediate threats
-			// boxes
+		while (!tempCode.startsWith("W00")) {
+			goForwardOneChunk(rect);
+			downScan.scanForCubes();
+			
+			// TODO: Scan for immediate threats (boxes)
 
 			contours = pictureProcessingHelper.findQrContours(camMat);
 			if (contours.size() > 0) {
-				rect = rightMostRect(contours);
+				rect = adjustLaneStrafe(rect, rightMostRect(contours), 1);
 				qrImg = pictureProcessingHelper.warpImage(camMat, rect);
 				tempCode = pictureProcessingHelper.scanQrCode(qrImg);
 			}
-		} while (!tempCode.startsWith("W00"));
-
-		//
-		// System.out.println("FOUND");
-		// contours = pictureProcessingHelper.findQrContours(camMat);
-		// rect = rightMostRect(contours);
-		//
-
-		// Vi kan nu se QR kode og centrerer på den
-		// Sekvens flyver nu ud fra QR og ikke mostRightRect
-		do {
-			// kåre centrere QR kode
-			// check distance to QR kode
-//			contours = pictureProcessingHelper.findQrContours(camMat);
-//			rect = mostCenteredRect(contours);
-//			distance = pictureProcessingHelper.calcDistance(rect);
-			adjustToQRDistance();
-			commandController.addCommand(Command.FORWARD, 1000, 10);
-			sleepThread(1500);
-
-			commandController.droneInterface.setBottomCamera();
-			do {
-				downScan.scanGreen();
-				downScan.scanRed();
-			} while (!downScan.greenDone && !downScan.redDone);
-			downScan.greenDone = false;
-			downScan.redDone = false;
-
-		} while (distance > 100);
+		}
+		
+		if (tempCode.startsWith("W00.04")) {
+			distance = pictureProcessingHelper.calcDistance(rect);
+			while (distance > 100) {
+				goForwardOneChunk(rect);
+				downScan.scanForCubes();
+				contours = pictureProcessingHelper.findQrContours(camMat);
+				if (contours.size() > 0) {
+					RotatedRect newRect = null;
+					for (Mat contour : contours) {
+						qrImg = pictureProcessingHelper.warpImage(camMat, minAreaRect(contour));
+						tempCode = pictureProcessingHelper.scanQrCode(qrImg);
+						if (tempCode.startsWith("W00.04")) {
+							newRect = minAreaRect(contour);
+							break;
+						}
+					}
+					if (newRect == null) {
+						newRect = rightMostRect(contours);
+					}
+					rect = adjustLaneStrafe(rect, newRect, 1);
+					distance = pictureProcessingHelper.calcDistance(rect);
+				}				
+			} 
+		}
+		
 		System.out.println("CLOSE");
 	}
 	
@@ -166,11 +160,60 @@ public class FlightControl implements Runnable {
 		}
 		return rect;
 	}
+	
+	private RotatedRect adjustLaneRotate(RotatedRect rect, int lane) {
+		double position = pictureProcessingHelper.isCenterInImage(camMat, rect);
+		while (position != 0) {
+			if (position > 0) {
+				commandController.addCommand(Command.SPINRIGHT, SPIN_TIME, SPIN_SPEED);
+			} else {
+				commandController.addCommand(Command.SPINLEFT, SPIN_TIME, SPIN_SPEED);
+			}
+			List<Mat> contours = pictureProcessingHelper.findQrContours(camMat);
+			switch(lane) {
+			case 1:
+				rect = rightMostRect(contours);
+				break;
+			default:
+				rect = mostCenteredRect(contours);
+				break;
+			}
+			position = pictureProcessingHelper.isCenterInImage(camMat, rect);
+		}
+		return rect;
+	}
+	
+	private RotatedRect adjustLaneStrafe(RotatedRect prevRect, RotatedRect newRect, int lane) {
+		double difference = prevRect.center().x() - newRect.center().x();
+		while (difference > STRAFE_UPPER || difference < STRAFE_LOWER) {
+			// TODO Tweak these values
+			if (difference > STRAFE_UPPER) {
+				commandController.addCommand(Command.LEFT, 500, 15);				
+			} else {
+				commandController.addCommand(Command.RIGHT, 500, 15);	
+			}
+			sleepThread(500);
+			List<Mat> contours = pictureProcessingHelper.findQrContours(camMat);
+			switch(lane) {
+			case 1:
+				newRect = rightMostRect(contours);
+				break;
+			default:
+				newRect = mostCenteredRect(contours);
+				break;
+			}
+			
+			difference = prevRect.center().x() - newRect.center().x();
+		}
+		return newRect;
+	}
 
-	private void adjustToRectDistance(RotatedRect rect) {
+	private void goForwardOneChunk(RotatedRect rect) {
 		distance = pictureProcessingHelper.calcDistance(rect);
-		commandController.addCommand(Command.FORWARD, 1000, 10); // 1 chunk
-		
+		commandController.addCommand(Command.FORWARD, 1500, 10); // 1 chunk
+		sleepThread(2000);
+		boolean tooClose = false;
+		boolean tooFar = false;
 		while(!tooClose || !tooFar){
 			tooFar = true;
 			tooClose = true;
@@ -178,33 +221,17 @@ public class FlightControl implements Runnable {
 			currentDistance = pictureProcessingHelper.calcDistance(rect);
 			if ((distance - currentDistance) > 95) {
 				commandController.addCommand(Command.BACKWARDS, 500, 10);
+				sleepThread(1000);
 				tooFar = false;
 			}
 			if ((distance - currentDistance) < 75) {
 				commandController.addCommand(Command.FORWARD, 500, 10);
+				sleepThread(1000);
 				tooClose = false;
 			}
 		}
 	}
 	
-	private void adjustToQRDistance() {
-		//TODO: sæt distance til QR
-		commandController.addCommand(Command.FORWARD, 1000, 10); // 1 chunk
-		while(!tooClose || !tooFar){
-			tooFar = true;
-			tooClose = true;
-			//TODO:Sæt current distance to QR
-			if((distance - currentDistance) > 95){
-				commandController.addCommand(Command.BACKWARDS, 500, 10);
-				tooFar = false;
-			}
-			if((distance - currentDistance) < 75){
-				commandController.addCommand(Command.FORWARD, 500, 10);
-				tooClose = false;
-			}
-		}
-	}
-
 	private void sleepThread(int duration) {
 		try {
 			Thread.sleep(duration);

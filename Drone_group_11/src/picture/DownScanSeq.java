@@ -30,7 +30,17 @@ public class DownScanSeq {
 		this.camMat = camMat;
 		this.camMat2 = camMat.clone();
 	}
-
+	
+	public void scanForCubes() {
+		commandController.droneInterface.setBottomCamera();
+		do {
+			scanGreen();
+			scanRed();
+		} while (!greenDone && !redDone);
+		greenDone = false;
+		redDone = false;
+		calculateScanResults();
+	}
 
 	public void scanGreen()
 	{
@@ -45,7 +55,6 @@ public class DownScanSeq {
 				}
 			}
 		}
-
 	}
 	private boolean scanGreenSeq() {
 		Mat greenMat = camMat;
@@ -72,9 +81,6 @@ public class DownScanSeq {
 					e.printStackTrace();
 				}
 			}
-		}
-		if (redDone) {
-			calculateScanResults();
 		}
 	}
 
