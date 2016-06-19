@@ -26,7 +26,7 @@ public class ScanSequence implements Runnable {
 	private static final int STRAFE_TIME = 1000;
 	private static final int STRAFE_SPEED = 7;
 	private static final int SPIN_TIME = 1000;
-	private static final int SPIN_SPEED = 15;
+	private static final int SPIN_SPEED = 10;
 	private static final int FORWARD_TIME = 800;
 	private static final int FORWARD_SPEED = 7;
 	private static final int ROTATE_TIME = 1500;
@@ -43,6 +43,7 @@ public class ScanSequence implements Runnable {
 	private static final int noDistFoundLimit = 200;
 	private static final int MAX_FRAME_COUNT = 8;
 	private static final int MAX_ROTATE_COUNT = 15;
+	private double contourSize = 0;
 
 	// #TODO Tweak these values based on testing
 	public static final double CENTER_UPPER = 0.15;
@@ -50,8 +51,10 @@ public class ScanSequence implements Runnable {
 	public static final double CENTER_DIFFERENCE = 0.05;
 	public static final double SMALL_MOVE_LIMIT = 100;
 
+
 	private CommandController commandController;
 	private double chunkSize = 0;
+	private double smallChunkSize = 30;
 	private double previousCenter = -1;
 	private boolean strafeRight = true;
 	private String code = null;
@@ -79,6 +82,7 @@ public class ScanSequence implements Runnable {
 	private boolean runScanSequence = true;
 	private boolean xDone = false;
 	private boolean yDone = false;
+	boolean stopUsingSpin = xDone == true || yDone == true;
 
 	public ScanSequence(CommandController commandController) {
 		this.commandController = commandController;
@@ -186,6 +190,7 @@ public class ScanSequence implements Runnable {
 			if (distanceFomCenter > distance) {
 				distanceFomCenter = Math.abs(distance);
 				rect = rect2;
+				contourSize =  contourArea(contours.get(i));
 			}
 		}
 		return rect;
@@ -211,25 +216,12 @@ public class ScanSequence implements Runnable {
 
 	private void spinCheck(double positionFromCenter) {
 		if (positionFromCenter > 0) {
-			addCommand(Command.SPINRIGHT, SPIN_TIME, SPIN_SPEED);
+			addCommand(Command.SPINRIGHT, SPIN_TIME, SPIN_SPEED + 5);
 		} else {
 			addCommand(Command.SPINLEFT, SPIN_TIME, SPIN_SPEED);
 		}
 	}
 
-	public int getSpinSpeed(List<Mat> matContours) {
-		double allSpeeds = 0;
-		double constant = 9;
-		for (int i = 0; i < matContours.size(); i++) {
-			double area = contourArea(matContours.get(i)) / 1000;
-			double result = constant / area;
-			allSpeeds += result * 10;
-		}
-		if (!Double.isNaN(allSpeeds / matContours.size())) {
-			return (int) (allSpeeds / matContours.size());
-		}
-		return 0;
-	}
 
 	private void scanSequence() {
 		OFVideo.imageChanged = false;
@@ -262,10 +254,7 @@ public class ScanSequence implements Runnable {
 		}
 		System.out.println("CENTERED");
 		if (code != null) {
-			if (code.contains("W01") || code.contains("W03")) {
-				addCommand(Command.ROTATERIGHT, ROTATE_TIME, ROTATE_SPEED);
-				return;
-			} else if (contours.size() == 3) {
+			if (contours.size() == 3) {
 				PictureController.setPlacement(calculatePlacement(camMat, contours));
 				moveToStart = true;
 				rotateCount = 0;
@@ -363,6 +352,28 @@ public class ScanSequence implements Runnable {
 
 		return placement;
 	}
+	
+	public boolean canMoveWithoutSpinCheck(RotatedRect rect){
+		double positionFromCenter = pictureProcessingHelper.isCenterInImageBigger(camMat.clone(), rect);
+		if (positionFromCenter != 0) {
+			if (positionFromCenter > 0) {
+				if(pictureProcessingHelper.getSpinSpeed(contourSize)> 0){
+					addCommand(Command.SPINRIGHT, SPIN_TIME,pictureProcessingHelper.getSpinSpeed(contourSize));
+				}else {
+					addCommand(Command.SPINRIGHT, SPIN_TIME,SPIN_SPEED);
+				}
+			} else {
+				if(pictureProcessingHelper.getSpinSpeed(contourSize)>0){
+					addCommand(Command.SPINLEFT, SPIN_TIME, pictureProcessingHelper.getSpinSpeed(contourSize));
+				}else {
+					addCommand(Command.SPINLEFT, SPIN_TIME, SPIN_SPEED);
+				}
+				
+			}
+			return false;
+		}
+		return true;
+	}
 
 	private void moveDroneToPlacement(CustomPoint placement) {
 		endPlacement = placement;
@@ -374,40 +385,27 @@ public class ScanSequence implements Runnable {
 		if (frameCount >= MAX_FRAME_COUNT) {
 			frameCount = 0;
 			distanceFromQr = pictureProcessingHelper.calcDistance(rect);
-			// if (!Double.isInfinite(distanceFromQr) ||
-			// !Double.isNaN(distanceFromQr)) {
-			// prevDistance = distanceFromQr;
-			// if (chunkSize == 0) {
-			// chunkSize = distanceFromQr;
-			// } else {
-			// chunkSize = distanceFromQr - chunkSize;
-			// }
-			// }
 			chunkSize = 55;
-			// System.out.println("CHUNK " + chunkSize);
-			// System.out.println("DISTANCE FROM QR" + distanceFromQr);
-			// System.out.println("PREVDISTANCE" + prevDistance);
-
-			// if no distances has been measured for a long time
-
+			
 			// Start moving
 			if (moveX && !xDone) {
-				int move = calcMoveXAxis(PictureController.getPlacement().getX(), placement);
-				double positionFromCenter = pictureProcessingHelper.isCenterInImage(camMat.clone(), rect);
-				if (positionFromCenter != 0) {
-					spinCheck(positionFromCenter);
-					return;
+				if (contours.size() > 0 && !stopUsingSpin) {
+					if (!canMoveWithoutSpinCheck(rect)) {
+						return;
+					}
 				}
+				int move = calcMoveXAxis(PictureController.getPlacement().getX(), placement);
 				decideMove(move);
 			} else {
 				if (!yDone) {
-					double positionFromCenter = pictureProcessingHelper.isCenterInImage(camMat.clone(), rect);
-					if (positionFromCenter != 0) {
-						spinCheck(positionFromCenter);
-						return;
+					if (contours.size() > 0 && !stopUsingSpin) {
+						if (!canMoveWithoutSpinCheck(rect)) {
+							return;
+						}
 					}
 					int move = calcMovesYAxis(PictureController.getPlacement().getY(), placement);
 					decideMove(move);
+					
 				}
 			}
 		} else {
@@ -439,23 +437,23 @@ public class ScanSequence implements Runnable {
 			}
 		} else if (move == Command.RIGHT) {
 			if (code.contains("W00")) {
-				placement.setX(placement.getX() + chunkSize);
+				placement.setX(placement.getX() + smallChunkSize);
 			} else if (code.contains("W01")) {
-				placement.setY(placement.getY() - chunkSize);
+				placement.setY(placement.getY() - smallChunkSize);
 			} else if (code.contains("W02")) {
-				placement.setX(placement.getX() - chunkSize);
+				placement.setX(placement.getX() - smallChunkSize);
 			} else {
-				placement.setY(placement.getY() + chunkSize);
+				placement.setY(placement.getY() + smallChunkSize);
 			}
 		} else if (move == Command.LEFT) {
 			if (code.contains("W00")) {
-				placement.setX(placement.getX() - chunkSize);
+				placement.setX(placement.getX() - smallChunkSize);
 			} else if (code.contains("W01")) {
-				placement.setY(placement.getY() + chunkSize);
+				placement.setY(placement.getY() + smallChunkSize);
 			} else if (code.contains("W02")) {
-				placement.setX(placement.getX() - chunkSize);
+				placement.setX(placement.getX() + smallChunkSize);
 			} else {
-				placement.setY(placement.getY() - chunkSize);
+				placement.setY(placement.getY() - smallChunkSize);
 			}
 		}
 		double differenceY = Math.abs((placement.getY() - endPlacement.getY()));
