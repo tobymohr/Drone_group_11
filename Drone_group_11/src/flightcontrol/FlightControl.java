@@ -254,11 +254,11 @@ public class FlightControl implements Runnable {
 
 			currentDistance = pictureProcessingHelper.calcDistance(findRect(lane));
 			if ((distance - currentDistance) > 95) {
-				addCommand(Command.BACKWARDS, 500, 10);
+				addCommand(Command.BACKWARDS, 250, 5);
 				tooFar = false;
 			}
 			if ((distance - currentDistance) < 75) {
-				addCommand(Command.FORWARD, 500, 10);
+				addCommand(Command.FORWARD, 250, 5);
 				tooClose = false;
 			}
 		}
