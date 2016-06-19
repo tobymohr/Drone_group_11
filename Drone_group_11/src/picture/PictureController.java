@@ -187,11 +187,11 @@ public class PictureController {
 						qrCode.setText("speed: " + speed);
 						break;
 					case L:
-						duration += 250;
+						duration += 100;
 						qrDist.setText("duration: " + duration);
 						break;
 					case K:
-						duration -= 250;
+						duration -= 100;
 						qrDist.setText("duration: " + duration);
 						break;
 					case NUMPAD1:
@@ -275,8 +275,8 @@ public class PictureController {
 		drone.start();
 		cC = new CommandController(drone);
 		drone.getCommandManager().setVideoCodec(VideoCodec.H264_720P);
-		cC.droneInterface.setFrontCamera();
-		// cC.dC.setBottomCamera();
+//		cC.droneInterface.setFrontCamera();
+		cC.droneInterface.setBottomCamera();
 		new Thread(cC).start();
 		map = Map.init(new ArrayList<>());
 	}
@@ -540,7 +540,8 @@ public class PictureController {
 
 	public void takeOff() throws InterruptedException {
 		System.out.println("TAKEOFF");
-		shouldScan = true;
+//		shouldScan = true;
+		cC.droneInterface.takeOff();
 	}
 
 	public void showQr() {

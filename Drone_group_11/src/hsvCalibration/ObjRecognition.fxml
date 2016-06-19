@@ -44,7 +44,6 @@
 				<Insets top="25" right="25" bottom="25" left="25" />
 			</padding>
 			<Button fx:id="cameraButton" alignment="center" text="Start camera" onAction="#startCamera" />
-			<Button fx:id="startDrone" alignment="center" text="Start drone" onAction="#startDrone" />
 			<Separator />
 			<Label fx:id="hsvCurrentValues" />
 		</VBox>
