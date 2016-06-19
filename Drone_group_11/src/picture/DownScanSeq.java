@@ -17,7 +17,11 @@ public class DownScanSeq {
 	private Mat camMat2;
 	private ArrayList<ArrayList<CustomPoint>> greenResults;
 	private ArrayList<ArrayList<CustomPoint>> redResults;
+	private ArrayList<CustomPoint> greenReturnResults;
+	private ArrayList<CustomPoint> redReturnResults;
+	private ArrayList<ArrayList<CustomPoint>> subSetResult;
 	private CommandController commandController;
+	private int maxSize = 0;
 
 	public DownScanSeq(CommandController commandController) {
 		greenDone = false;
@@ -39,7 +43,9 @@ public class DownScanSeq {
 		} while (!greenDone && !redDone);
 		greenDone = false;
 		redDone = false;
-		calculateScanResults();
+		
+		PictureController.addCords(calculateScanResults(redResults));
+		PictureController.addCords(calculateScanResults(greenResults));
 	}
 
 	public void scanGreen()
@@ -54,7 +60,7 @@ public class DownScanSeq {
 					e.printStackTrace();
 				}
 			}
-		}
+		} 
 	}
 	private boolean scanGreenSeq() {
 		Mat greenMat = camMat;
@@ -99,10 +105,10 @@ public class DownScanSeq {
 
 
 
-	public void calculateScanResults() {
+	public ArrayList<CustomPoint> calculateScanResults(ArrayList<ArrayList<CustomPoint>> results) {
 		HashMap<Integer, Integer> map = new HashMap<Integer, Integer>();
-
-		for (ArrayList<CustomPoint> points : redResults) {
+		subSetResult.clear();
+		for (ArrayList<CustomPoint> points : results) {
 			Integer value = map.get(points.size());
 			if (value != null) {
 				map.put(points.size(), value++);
@@ -113,10 +119,21 @@ public class DownScanSeq {
 		for (Integer key : map.keySet()) {
 			System.out.println(key + ": penis" + map.get(key).toString());
 		}
-		// TODO: Calc estimate coords and add to coordinate GUI
-		greenResults.clear();
-		redResults.clear();
-		commandController.droneInterface.setFrontCamera();
+		for(int i = 0; i < map.size(); i++){
+			maxSize = map.get(i);
+			
+			if(maxSize < map.get(i)){
+				maxSize = map.get(i);
+			}
+			
+		}
+		subSetResult = new ArrayList<ArrayList<CustomPoint>>();
+		for(ArrayList<CustomPoint> points : results){
+			if(points.size() == maxSize)
+				subSetResult.add(points);
+		}
+		
+		return subSetResult.get(subSetResult.size()-1);
 	}
 
 }

@@ -61,8 +61,8 @@ public class PictureController {
 	public static boolean shouldScan = false;
 	public static boolean shouldTestWall = false;
 	public static boolean shouldLand = false;
-	private static boolean aboveLanding = false;
 	public static boolean shouldFlyControl = false;
+	private static boolean aboveLanding = false;
 	
 	private static int circleCounter = 0;
 	public BufferedImage billede;
@@ -104,14 +104,18 @@ public class PictureController {
 	private Label lowBatteryLbl;
 	@FXML 
 	private Label movelbl;
+	@FXML 
+	private Label coordinatFoundlbl;
 
 	public void setUpKeys() {
 		borderpane.getScene().getWindow().setOnCloseRequest(new EventHandler<WindowEvent>() {
 			@Override
 			public void handle(WindowEvent t) {
 				System.out.println("EXIT");
-				if (cC.droneInterface.getDroneFlying()) {
+				if (cC != null) {
+					if (cC.droneInterface.getDroneFlying()) {
 					land();
+					}
 				}
 				Platform.exit();
 				System.exit(0);
@@ -184,11 +188,11 @@ public class PictureController {
 						qrCode.setText("speed: " + speed);
 						break;
 					case L:
-						duration += 250;
+						duration += 100;
 						qrDist.setText("duration: " + duration);
 						break;
 					case K:
-						duration -= 250;
+						duration -= 100;
 						qrDist.setText("duration: " + duration);
 						break;
 					case NUMPAD1:
@@ -272,7 +276,8 @@ public class PictureController {
 		drone.start();
 		cC = new CommandController(drone);
 		drone.getCommandManager().setVideoCodec(VideoCodec.H264_720P);
-		cC.droneInterface.setFrontCamera();
+//		cC.droneInterface.setFrontCamera();
+		cC.droneInterface.setBottomCamera();
 		new Thread(cC).start();
 		map = Map.init(new ArrayList<>());
 	}
@@ -280,33 +285,33 @@ public class PictureController {
 	public void grabFromDrone() {
 
 		drone.getVideoManager().start();
-//		drone.getNavDataManager().addBatteryListener(new BatteryListener() {
-//
-//			@Override
-//			public void voltageChanged(int arg0) {
-//				// TODO Auto-generated method stub
-//
-//			}
-//
-//			@Override
-//			public void batteryLevelChanged(int arg0) {
-//				if (arg0 != prevBattery) {
-//					prevBattery = arg0;
-//					Platform.runLater(new Runnable() {
-//						@Override
-//						public void run() {
-//							lowBatteryLbl.setText("Battery: " + arg0 + "%");
-//							if(arg0 < 24){
-//								lowBatteryLbl.setText("Battery level is low: " + arg0 + "%");
-//							}
-//						}
-//					});
-//
-//					lowBatteryLbl.setVisible(true);
-//				}
-//
-//			}
-//		});
+		drone.getNavDataManager().addBatteryListener(new BatteryListener() {
+
+			@Override
+			public void voltageChanged(int arg0) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void batteryLevelChanged(int arg0) {
+				if (arg0 != prevBattery) {
+					prevBattery = arg0;
+					Platform.runLater(new Runnable() {
+						@Override
+						public void run() {
+							lowBatteryLbl.setText("Battery: " + arg0 + "%");
+							if(arg0 < 24){
+								lowBatteryLbl.setText("Battery level is low: " + arg0 + "%");
+							}
+						}
+					});
+
+					lowBatteryLbl.setVisible(true);
+				}
+
+			}
+		});
 		drone.getVideoManager().addImageListener(new ImageListener() {
 			boolean isFirst = true;
 
@@ -536,8 +541,9 @@ public class PictureController {
 
 	public void takeOff() throws InterruptedException {
 		System.out.println("TAKEOFF");
-		cC.droneInterface.takeOff();
+//		shouldScan = true;
 		shouldFlyControl = true;
+		cC.droneInterface.takeOff();
 	}
 
 	public void showQr() {
