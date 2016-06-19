@@ -43,11 +43,12 @@ public class OFVideo implements Runnable {
 	public static volatile boolean imageChangedRed;
 	public static volatile boolean imageChangedGreen;
 	private Label movelbl;
+	private Label coordinatFoundlbl;
 	private LandSequence landSeq;
 	private FlightControl fc;
 	
 	
-	public OFVideo(ImageView mainFrame, Label movelbl, Label qrCode,
+	public OFVideo(ImageView mainFrame, Label coordinatFoundlbl, Label movelbl, Label qrCode,
 			Label qrDist, BufferedImage arg0, CommandController cC, ImageView bufferedframe) {
 		this.arg0 = arg0;
 		this.mainFrame = mainFrame;
@@ -55,6 +56,7 @@ public class OFVideo implements Runnable {
 		this.qrDist = qrDist;
 		this.qrCode = qrCode;
 		this.movelbl = movelbl;
+		this.coordinatFoundlbl = coordinatFoundlbl;
 		converter = new OpenCVFrameConverter.ToIplImage();
 		converterMat = new ToMat();
 		converter1 = new Java2DFrameConverter();
@@ -118,12 +120,12 @@ public class OFVideo implements Runnable {
 					Platform.runLater(new Runnable() {
 						@Override
 						public void run() {
-//							qrCode.setText("QR Code: " + OFC.getQrCode());
-							if(scanSequence.placement != null){
-//								qrDist.setText("Position : " + scanSequence.placement.getX() + " , " + scanSequence.placement.getY());
-							}
 							if(CommandController.moveString != null){
 								movelbl.setText("Move : " + CommandController.moveString);
+							}
+							
+							if(PictureController.getPlacement().getX() != 0){
+								 coordinatFoundlbl.setVisible(true);
 							}
 							
 						}
