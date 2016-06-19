@@ -5,7 +5,7 @@ import de.yadrone.base.IARDrone;
 import helper.Command;
 
 public class CommandController implements Runnable {
-	public DroneInterface dC;
+	public DroneInterface droneInterface;
 	private LinkedBlockingDeque<Task> q;
 	private long startTime = 0;
 	public static boolean wait = false;
@@ -13,6 +13,7 @@ public class CommandController implements Runnable {
 	public static final int COUNTER_FACTOR = 6;
 	public static final int COUNTERSPEED_FACTOR = 7;
 	public static boolean droneIsReady = false;
+	public static String moveString = "";
 
 	class Task{
 		public int time;
@@ -27,8 +28,8 @@ public class CommandController implements Runnable {
 
 
 	public CommandController(IARDrone drone) {
-		dC = new DroneCommunicator(drone);
-		dC.setBottomCamera();
+		droneInterface = new DroneCommunicator(drone);
+		droneInterface.setBottomCamera();
 		q = new LinkedBlockingDeque<Task>();
 	}
 
@@ -38,106 +39,90 @@ public class CommandController implements Runnable {
 			try {
 				synchronized(this){
 					while(wait || q.peek()==null){
-						try {
-							dC.hover();
-							System.out.println("HOVER");
-							wait(5000);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
+						Thread.sleep(50);
 					}
 
 					task = q.take();
 					droneIsReady = false;
-					dC.setSpeed(task.speed);
+					droneInterface.setSpeed(task.speed);
 					switch(task.task){
 					
 					//Go commands
 					case Command.FORWARD:
 						startTime = System.currentTimeMillis();
-						dC.goForward(task.time);
-						System.out.println("Forward");
+						droneInterface.goForward(task.time);
+						System.out.println("FORWARD");
+						moveString = "FORWARD";
 						break;
 					case Command.BACKWARDS:
+						System.out.println("BACKWARDS");
+						moveString = "BACKWARDS";
 						startTime = System.currentTimeMillis();
-						dC.goBackwards(task.time);
+						droneInterface.goBackwards(task.time);
 						break;
 					case Command.LEFT:
 						startTime = System.currentTimeMillis();
-						dC.goLeft(task.time);
+						droneInterface.goLeft(task.time);
 						System.out.println("LEFT");
+						moveString = "LEFT";
 						break;
 					case Command.RIGHT:
 						startTime = System.currentTimeMillis();
-						dC.goRight(task.time);
+						droneInterface.goRight(task.time);
 						System.out.println("RIGHT");
+						moveString = "RIGHT";
 						break;
 					case Command.UP:
 						startTime = System.currentTimeMillis();
-						dC.goUp(task.time);
+						droneInterface.goUp(task.time);
 						System.out.println("UP");
+						moveString = "UP";
 						break;
 					case Command.DOWN:
 						startTime = System.currentTimeMillis();
-						dC.goDown(task.time);
+						droneInterface.goDown(task.time);
 						System.out.println("DOWN");
+						moveString = "DOWN";
 						break;
 						//Rotate commands
 					case Command.SPINLEFT:
 						startTime = System.currentTimeMillis();
-						dC.spinLeft(task.time);
+						droneInterface.spinLeft(task.time);
 						System.out.println("SPIN LEFT");
+						moveString = "SPIN LEFT";
 						break;
 					case Command.SPINRIGHT:
 						startTime = System.currentTimeMillis();
-						dC.spinRight(task.time);
+						droneInterface.spinRight(task.time);
 						System.out.println("SPIN RIGHT");
+						moveString = "SPIN RIGHT";
 						break;
 					case Command.ROTATERIGHT:
 						startTime = System.currentTimeMillis();
-						dC.spinRight(task.time);
+						droneInterface.spinRight(task.time);
 						System.out.println("ROTATE RIGHT");
+						moveString = "ROTATE RIGHT";
 						break;
 					case Command.ROTATELEFT:
 						startTime = System.currentTimeMillis();
-						dC.spinLeft(task.time);
+						droneInterface.spinLeft(task.time);
 						System.out.println("ROTATE LEFT");
+						moveString = "ROTATE LEFT";
 						break;
 						//Take off and land
 					case Command.TAKEOFF:
-						dC.takeOff();
+						droneInterface.takeOff();
 						break;
 					case Command.LAND:
-						dC.land();
+						droneInterface.land();
+						break;
+					case Command.NONE: 
+						droneInterface.hover();
+						break;
 					}
-					
-					wait(task.time);
-					
-					System.out.println("TIME " + (int) (task.time) + " SPEED " + (task.speed));
-					
-//					if(task.task == Command.ROTATELEFT){
-//						System.out.println("COUNTER SPIN RIGHT");
-//						dC.setSpeed((int)(task.speed/COUNTERSPEED_FACTOR));
-//						dC.spinRight((int)(task.time/COUNTER_FACTOR));
-//						wait((int)(task.time/COUNTER_FACTOR));
-//					}
-//					
-//					if(task.task == Command.ROTATERIGHT){
-//						System.out.println("COUNTER SPIN LEFT");
-//						dC.setSpeed((int)(task.speed/COUNTERSPEED_FACTOR));
-//						dC.spinLeft((int)(task.time/COUNTER_FACTOR));
-//						wait((int)(task.time/COUNTER_FACTOR));
-//					}
-					
-//					
-//					dC.hover();
-//					wait(1500);
-					
-//					System.out.println("TIME " + (int) (task.time/COUNTER_FACTOR) + " SPEED " + (task.speed/COUNTER_FACTOR));
-					
+					Thread.sleep(task.time);
+					droneInterface.hover();
 					droneIsReady = true;
-					
-				
 				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -154,7 +139,11 @@ public class CommandController implements Runnable {
 	}
 
 	public void emergencyStop(){
-		dC.emergencyStop();
+		droneInterface.emergencyStop();
+	}
+	
+	public boolean isDroneReady() {
+		return droneIsReady;
 	}
 	
 	
@@ -163,7 +152,7 @@ public class CommandController implements Runnable {
 		long difference = System.currentTimeMillis() - startTime;
 		wait = true;
 		synchronized(this){
-			dC.hover();
+			droneInterface.hover();
 			try {
 				wait(duration);
 			} catch (InterruptedException e) {

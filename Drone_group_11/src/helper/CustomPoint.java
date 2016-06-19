@@ -1,5 +1,6 @@
 package helper;
 
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -12,6 +13,7 @@ public class CustomPoint {
 	
 	private double x;
 	private double y;
+	private Color colour; 
 	
 	public CustomPoint() {
 	}
@@ -21,6 +23,11 @@ public class CustomPoint {
 		this.y = y;
 	}
 	
+	public CustomPoint(double x, double y, Color colour) {
+		this.x = x;
+		this.y = y;
+		this.colour = colour;
+	}
 	
 	public double getX() {
 		return x;
@@ -36,6 +43,14 @@ public class CustomPoint {
 
 	public void setY(double y) {
 		this.y = y;
+	}
+	
+	public Color getColour() {
+		return colour;
+	}
+	
+	public void setColour(Color colour) {
+		this.colour = colour;
 	}
 
 	public CustomPoint subtract(CustomPoint p) {
@@ -101,13 +116,25 @@ public class CustomPoint {
 	
 	public static CustomPoint parseQRTextLeft(String text) {
 		int coordinate = Integer.parseInt(text.substring(4));
-		coordinate--;
-		return parseQRText(text.substring(0, 5) + coordinate);
+		int wall = Integer.parseInt(text.substring(1, 3));
+		if (coordinate == 0) {
+			coordinate = 4;
+			wall--;
+		} else {
+			coordinate--;			
+		}
+		return parseQRText("W0" + wall + ".0" + coordinate);
 	}
 	
 	public static CustomPoint parseQRTextRight(String text) {
 		int coordinate = Integer.parseInt(text.substring(4));
-		coordinate++;
-		return parseQRText(text.substring(0, 5) + coordinate);
+		int wall = Integer.parseInt(text.substring(1, 3));
+		if (coordinate == 4) {
+			coordinate = 0;
+			wall++;
+		} else {
+			coordinate++;			
+		}
+		return parseQRText("W0" + wall + ".0" + coordinate);
 	}
 }

@@ -3,6 +3,7 @@ package picture;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -21,13 +22,18 @@ import org.bytedeco.javacv.OpenCVFrameGrabber;
 import org.bytedeco.javacv.VideoInputFrameGrabber;
 
 import app.CommandController;
+import coordinateSystem.Map;
 import de.yadrone.base.ARDrone;
 import de.yadrone.base.IARDrone;
+import de.yadrone.base.command.H264;
+import de.yadrone.base.command.VideoBitRateMode;
 import de.yadrone.base.command.VideoCodec;
 import de.yadrone.base.exception.ARDroneException;
 import de.yadrone.base.exception.IExceptionListener;
+import de.yadrone.base.navdata.BatteryListener;
 import de.yadrone.base.video.ImageListener;
 import helper.Command;
+import helper.CustomPoint;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
@@ -43,8 +49,6 @@ import javafx.scene.layout.HBox;
 import javafx.stage.WindowEvent;
 
 public class PictureController {
-
-	//NavDataTracker nav = new NavDataTracker();
 	private PictureProcessingHelper OFC = new PictureProcessingHelper();
 	private CommandController cC;
 	private IARDrone drone;
@@ -55,7 +59,10 @@ public class PictureController {
 	private Set<KeyCode> pressedKeys = new HashSet<KeyCode>();
 	private Mat camMat = null;
 	public static boolean shouldScan = false;
+	public static boolean shouldTestWall = false;
+	public static boolean shouldLand = false;
 	private static boolean aboveLanding = false;
+	
 	private static int circleCounter = 0;
 	public BufferedImage billede;
 	public int navn = 0;
@@ -64,14 +71,14 @@ public class PictureController {
 	public static int colorInt = 4;
 	public static boolean restart = false;
 	public static final int SHOW_QR = 0;
-	public static final int SHOW_FILTER= 1;
+	public static final int SHOW_FILTER = 1;
 	public static final int SHOW_POLYGON = 2;
-	public static final int SHOW_LANDING= 3;
+	public static final int SHOW_LANDING = 3;
 	public static int imageInt = SHOW_POLYGON;
 	private static int counts = 0;
-	
+	private int prevBattery = 0;
 	public static volatile boolean imageChanged;
-
+	private static Map map;
 
 	// CAMERA
 	@FXML
@@ -92,20 +99,28 @@ public class PictureController {
 	private Label headingLbl;
 	@FXML
 	private ImageView bufferedframe;
+	@FXML
+	private Label lowBatteryLbl;
+	@FXML 
+	private Label movelbl;
+	@FXML 
+	private Label coordinatFoundlbl;
 
 	public void setUpKeys() {
 		borderpane.getScene().getWindow().setOnCloseRequest(new EventHandler<WindowEvent>() {
-            @Override
-            public void handle(WindowEvent t) {
-            	System.out.println("EXIT");
-            	if(cC.dC.getDroneFlying()){
-            		land();
-            	}
-                Platform.exit();
-                System.exit(0);
-            }
+			@Override
+			public void handle(WindowEvent t) {
+				System.out.println("EXIT");
+				if (cC != null) {
+					if (cC.droneInterface.getDroneFlying()) {
+					land();
+					}
+				}
+				Platform.exit();
+				System.exit(0);
+			}
 		});
-		
+
 		borderpane.getScene().setOnKeyPressed(new EventHandler<KeyEvent>() {
 			@Override
 			public void handle(KeyEvent event) {
@@ -128,7 +143,7 @@ public class PictureController {
 						cC.addCommand(Command.RIGHT, duration, speed);
 						break;
 					case M:
-						cC.dC.land();
+						cC.droneInterface.land();
 						break;
 					case F:
 						navn++;
@@ -159,16 +174,16 @@ public class PictureController {
 						cC.addCommand(Command.SPINRIGHT, duration, speed);
 						break;
 					case ENTER:
-						cC.dC.hover();
+						cC.droneInterface.hover();
 						break;
 					case O:
 						speed += 5;
-						cC.dC.setSpeed(speed);
+						cC.droneInterface.setSpeed(speed);
 						qrCode.setText("speed: " + speed);
 						break;
 					case I:
 						speed -= 5;
-						cC.dC.setSpeed(speed);
+						cC.droneInterface.setSpeed(speed);
 						qrCode.setText("speed: " + speed);
 						break;
 					case L:
@@ -196,8 +211,9 @@ public class PictureController {
 						System.out.println("Max: " + OFC.blueMax);
 						break;
 					case T:
-						cC.dC.setBottomCamera();
+						cC.droneInterface.setBottomCamera();
 					default:
+					
 
 						break;
 					}
@@ -235,8 +251,7 @@ public class PictureController {
 		setUpKeys();
 		grabFromDrone();
 		land();
-		
-		
+
 	}
 
 	public static double getMinThresh() {
@@ -260,33 +275,61 @@ public class PictureController {
 		drone.start();
 		cC = new CommandController(drone);
 		drone.getCommandManager().setVideoCodec(VideoCodec.H264_720P);
-		cC.dC.setFrontCamera();
-//		cC.dC.setBottomCamera();
+		cC.droneInterface.setFrontCamera();
+		// cC.dC.setBottomCamera();
 		new Thread(cC).start();
-		
+		map = Map.init(new ArrayList<>());
 	}
 
 	public void grabFromDrone() {
 
 		drone.getVideoManager().start();
+		drone.getNavDataManager().addBatteryListener(new BatteryListener() {
+
+			@Override
+			public void voltageChanged(int arg0) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void batteryLevelChanged(int arg0) {
+				if (arg0 != prevBattery) {
+					prevBattery = arg0;
+					Platform.runLater(new Runnable() {
+						@Override
+						public void run() {
+							lowBatteryLbl.setText("Battery: " + arg0 + "%");
+							if(arg0 < 24){
+								lowBatteryLbl.setText("Battery level is low: " + arg0 + "%");
+							}
+						}
+					});
+
+					lowBatteryLbl.setVisible(true);
+				}
+
+			}
+		});
 		drone.getVideoManager().addImageListener(new ImageListener() {
 			boolean isFirst = true;
 
 			@Override
 			public void imageUpdated(BufferedImage arg0) {
 				if (isFirst) {
-					new Thread(ofvideo = new OFVideo(mainFrame, qrCode, qrDist,
+					new Thread(ofvideo = new OFVideo(mainFrame,coordinatFoundlbl, movelbl, qrCode, qrDist,
 							arg0, cC, bufferedframe)).start();
 					isFirst = false;
-					//nav.initCompass(drone, headingLbl);
 				}
 				ofvideo.setArg0(arg0);
 				billede = arg0;
 				imageChanged = true;
 			}
 		});
-		drone.getCommandManager().setVideoBitrate(100000);
-
+		drone.getCommandManager().setVideoBitrateControl(VideoBitRateMode.MANUAL);
+		drone.getCommandManager().setVideoBitrate(H264.MAX_BITRATE);
+		drone.getCommandManager().setVideoCodecFps(H264.MAX_FPS);
+		System.out.println("Videocodec Set.");
 	}
 
 	public void grabFromVideo() throws org.bytedeco.javacv.FrameGrabber.Exception {
@@ -295,7 +338,7 @@ public class PictureController {
 		OpenCVFrameConverter.ToMat converterMat = new OpenCVFrameConverter.ToMat();
 		FrameGrabber grabber = new VideoInputFrameGrabber(0);
 		grabber.start();
-		
+
 		Runnable frameGrabber = new Runnable() {
 			boolean isFirst = true;
 
@@ -321,7 +364,7 @@ public class PictureController {
 
 					break;
 				}
-				
+
 				switch (imageInt) {
 				case SHOW_QR:
 					showQr(camMat.clone());
@@ -344,11 +387,6 @@ public class PictureController {
 					showPolygons(camMat, filteredMat);
 					break;
 				}
-
-				
-				
-				
-				
 
 				Platform.runLater(new Runnable() {
 					@Override
@@ -376,13 +414,11 @@ public class PictureController {
 	public void showLanding(Mat mat) throws InterruptedException {
 		Mat landing = mat;
 		int circles = 0;
-		
-		
+
 		boolean check = OFC.checkDecodedQR(mat);
-		if(check){
-			
+		if (check) {
+
 			circles = OFC.myCircle(mat);
-			
 //			for(int i = 0; i < 4; ){
 				if (circles > 0) {
 					aboveLanding = true;
@@ -406,10 +442,10 @@ public class PictureController {
 					circleCounter = 0;
 					counts = 0;
 				}
-				if(counts == 3){
+				while(counts == 3){
 					System.out.println("landing");
 					
-					cC.dC.land();
+					cC.droneInterface.land();
 				}
 //			}
 		}
@@ -417,7 +453,7 @@ public class PictureController {
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
 		mainFrame.setImage(imageLanding);
 		// System.out.println(aboveLanding);
-		
+
 	}
 
 	public void showFilter(Mat filteredMat) {
@@ -498,27 +534,52 @@ public class PictureController {
 	}
 
 	public void land() {
-		cC.dC.land();
+		cC.droneInterface.land();
+		shouldScan = false;
 	}
 
 	public void takeOff() throws InterruptedException {
 		System.out.println("TAKEOFF");
 		shouldScan = true;
 	}
-	
-	public void showQr(){
+
+	public void showQr() {
 		imageInt = SHOW_QR;
 	}
-	
-	public void showPolygon(){
+
+	public void showPolygon() {
 		imageInt = SHOW_POLYGON;
 	}
-	
-	public void showLanding(){
+
+	public void showLanding() {
 		imageInt = SHOW_LANDING;
 	}
-	
-	public void showFilter(){
+
+	public void showFilter() {
 		imageInt = SHOW_FILTER;
+	}
+	
+	public static void addCord(CustomPoint point) {
+		map.addCord(point);
+	}
+
+	public static void addCord(CustomPoint point, CustomPoint placement) {
+		map.addCord(point, placement);
+	}
+
+	public static void addCords(ArrayList<CustomPoint> tempList) {
+		map.addCords(tempList);
+	}
+
+	public static void addCords(ArrayList<CustomPoint> tempList, CustomPoint placement) {
+		map.addCords(tempList, placement);
+	}
+	
+	public static CustomPoint getPlacement() {
+		return map.getPlacement();
+	}
+	
+	public static void setPlacement(CustomPoint placement) {
+		map.setPlacement(placement);
 	}
 }

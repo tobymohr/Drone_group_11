@@ -11,12 +11,13 @@ import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
 
 import app.CommandController;
 import de.yadrone.base.IARDrone;
-import javacvdemo.AvoidWallDemo;
+import helper.Command;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import picture.DownScanSeq.scanGreen;
 
 public class OFVideo implements Runnable {
 	private Java2DFrameConverter converter1;
@@ -28,30 +29,36 @@ public class OFVideo implements Runnable {
 	private Label qrDist;
 	private BufferedImage arg0;
 	private PictureProcessingHelper OFC = new PictureProcessingHelper();
-	private CommandController cC;
+	private CommandController commandController;
 	private static boolean aboveLanding = false;
 	private static int circleCounter = 0;
 	private static int counts = 0;
 	// Scansequence fields
 	private ScanSequence scanSequence;
+	private DownScanSeq downScanSeq;
 	private boolean isFirst = true;
 	public boolean wallClose = false;
 	public static volatile boolean imageChanged;
+	public static volatile boolean imageChangedRed;
+	public static volatile boolean imageChangedGreen;
+	private Label movelbl;
+	private Label coordinatFoundlbl;
+	private LandSequence landSeq;
 	
-	private AvoidWallDemo CK;
-	
-	public OFVideo(ImageView mainFrame, Label qrCode,
+	public OFVideo(ImageView mainFrame, Label coordinatFoundlbl, Label movelbl, Label qrCode,
 			Label qrDist, BufferedImage arg0, CommandController cC, ImageView bufferedframe) {
 		this.arg0 = arg0;
 		this.mainFrame = mainFrame;
 		this.bufferedframe = bufferedframe;
 		this.qrDist = qrDist;
 		this.qrCode = qrCode;
+		this.movelbl = movelbl;
+		this.coordinatFoundlbl = coordinatFoundlbl;
 		converter = new OpenCVFrameConverter.ToIplImage();
 		converterMat = new ToMat();
 		converter1 = new Java2DFrameConverter();
 		scanSequence = new ScanSequence(cC);
-		CK = new AvoidWallDemo(cC);
+		landSeq = new LandSequence(cC);
 	}
 
 	public void setArg0(BufferedImage arg0) {
@@ -108,9 +115,14 @@ public class OFVideo implements Runnable {
 					Platform.runLater(new Runnable() {
 						@Override
 						public void run() {
-							qrCode.setText("QR Code: " + OFC.getQrCode());
-							qrDist.setText("Dist: " + OFC.getDistance());
-
+							if(CommandController.moveString != null){
+								movelbl.setText("Move : " + CommandController.moveString);
+							}
+							
+							if(PictureController.getPlacement().getX() != 0){
+//								 coordinatFoundlbl.setVisible(true);
+							}
+							
 						}
 					});
 					if (PictureController.shouldScan) {
@@ -121,13 +133,15 @@ public class OFVideo implements Runnable {
 							isFirst = false;
 						}
 					}
-//					if (PictureController.shouldScan){
-//						CK.setImage(newImg.clone());
-//						if(isFirst){
-//							new Thread(CK).start();
+//					if (PictureController.shouldScan) {
+//						if (isFirst) {
+//							downScanSeq = new DownScanSeq(newImg.clone(), commandController);
+//							downScanSeq.startThreads();
 //							isFirst = false;
 //						}
-//						scanSequence.imageChanged = true;
+//						downScanSeq.setImage(newImg.clone());
+//						imageChangedRed = true;
+//						imageChangedGreen = true;
 //					}
 
 				} else {
@@ -135,6 +149,7 @@ public class OFVideo implements Runnable {
 				}
 			}
 		} catch (Exception e) {
+		
 			e.printStackTrace();
 		}
 
@@ -164,35 +179,35 @@ public class OFVideo implements Runnable {
 		if (check) {
 
 			circles = OFC.myCircle(mat);
-
-			// for(int i = 0; i < 4; ){
-			if (circles > 0) {
-				aboveLanding = true;
-				// If false restart landing sequence
-				// Drone skal flye lidt ned
-				System.out.println("going down");
-				// Thread.sleep(10);
-				cC.dC.goDown(6);
-				Thread.sleep(10);
-				counts++;
-				System.out.println(counts);
-			} else {
-				circles = 0;
-				circleCounter++;
-				System.out.println(circleCounter);
-
-			}
-			if (circleCounter >= 120) {
-				aboveLanding = false;
-				circleCounter = 0;
-				counts = 0;
-			}
-			if (counts == 3) {
-				System.out.println("landing");
-
-				cC.dC.land();
-			}
-			// }
+//			for(int i = 0; i < 4; ){
+				if (circles > 0) {
+					aboveLanding = true;
+					// If false restart landing sequence
+					//Drone skal flyve lidt ned
+					System.out.println("going down");
+//					Thread.sleep(10);
+					commandController.addCommand(Command.DOWN, 100, 20);
+					Thread.sleep(200);
+					counts++;
+					System.out.println(counts);
+					}
+				else {
+						circles = 0;
+						circleCounter++;
+						System.out.println(circleCounter);
+						
+					}
+				if(circleCounter>=120){
+					aboveLanding = false;
+					circleCounter = 0;
+					counts = 0;
+				}
+				if(counts == 3){
+					System.out.println("landing");
+					
+					commandController.droneInterface.land();
+				}
+//			}
 		}
 		BufferedImage bufferedImageLanding = MatToBufferedImage(landing);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
