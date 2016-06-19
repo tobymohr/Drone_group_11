@@ -61,8 +61,8 @@ public class PictureController {
 	public static boolean shouldScan = false;
 	public static boolean shouldTestWall = false;
 	public static boolean shouldLand = false;
-	private static boolean aboveLanding = false;
 	public static boolean shouldFlyControl = false;
+	private static boolean aboveLanding = false;
 	
 	private static int circleCounter = 0;
 	public BufferedImage billede;
@@ -188,11 +188,11 @@ public class PictureController {
 						qrCode.setText("speed: " + speed);
 						break;
 					case L:
-						duration += 250;
+						duration += 100;
 						qrDist.setText("duration: " + duration);
 						break;
 					case K:
-						duration -= 250;
+						duration -= 100;
 						qrDist.setText("duration: " + duration);
 						break;
 					case NUMPAD1:
@@ -276,7 +276,8 @@ public class PictureController {
 		drone.start();
 		cC = new CommandController(drone);
 		drone.getCommandManager().setVideoCodec(VideoCodec.H264_720P);
-		cC.droneInterface.setFrontCamera();
+//		cC.droneInterface.setFrontCamera();
+		cC.droneInterface.setBottomCamera();
 		new Thread(cC).start();
 		map = Map.init(new ArrayList<>());
 	}
@@ -540,8 +541,9 @@ public class PictureController {
 
 	public void takeOff() throws InterruptedException {
 		System.out.println("TAKEOFF");
-		cC.droneInterface.takeOff();
+//		shouldScan = true;
 		shouldFlyControl = true;
+		cC.droneInterface.takeOff();
 	}
 
 	public void showQr() {
