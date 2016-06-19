@@ -239,6 +239,15 @@ public class PictureProcessingHelper {
 		double middleX = img.arrayWidth() / 2;
 		return checkForCenterInImage(rect.center().x(), xleft, xright, middleX);
 	}
+	
+	public double isCenterInImageBigger(Mat img, RotatedRect rect) {
+		double factor = 3.5;
+		double xleft = img.arrayWidth() / factor;
+		double xright = (img.arrayWidth() / factor) * (factor - 1);
+		double middleX = img.arrayWidth() / 2;
+		return checkForCenterInImage(rect.center().x(), xleft, xright, middleX);
+	}
+
 
 	private double checkForCenterInImage(float posX, double xLeft, double xRight, double middleX) {
 
@@ -256,26 +265,21 @@ public class PictureProcessingHelper {
 
 	}
 
-	public int getSpinSpeed(List<Mat> matContours) {
-		double allSpeeds = 0;
-		for (int i = 0; i < matContours.size(); i++) {
-			double area = contourArea(matContours.get(i)) / 1000;
-			double constant = 9;
-			double result = constant / area;
-			allSpeeds += result * 10;
-		}
-		if (!Double.isNaN(allSpeeds / matContours.size())) {
-			return (int) (allSpeeds / matContours.size());
+	public int getSpinSpeed(double area) {
+		double constant = 500;
+		double result = area / constant;
+		if (!Double.isNaN(result)) {
+			return (int)result;
 		}
 		return 0;
 	}
+
 
 	public Mat extractQRImage(Mat srcImage) {
 		Mat img1 = new Mat(srcImage.arraySize(), CV_8UC1, 1);
 		cvtColor(srcImage, img1, CV_RGB2GRAY);
 		Canny(img1, img1, 75, 200);
 		MatVector matContour = new MatVector();
-		getSpinSpeed(findQrContours(srcImage));
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
@@ -283,7 +287,6 @@ public class PictureProcessingHelper {
 			if (matContour.get(i).total() > 2 && matContour.get(i).total() < 6
 					&& contourArea(matContour.get(i)) > MIN_AREA && checkAngles(matContour.get(i), rect)) {
 				drawContours(srcImage, matContour, i, Scalar.WHITE, 3, 8, null, 1, null);
-
 				img1 = warpImage(srcImage, rect);
 				if (scanQrCode(img1) != null) {
 					putText(srcImage, code, new Point((int) rect.center().x() - 25, (int) rect.center().y() + 80), 1, 2,
@@ -314,6 +317,7 @@ public class PictureProcessingHelper {
 		MatVector matContour = new MatVector();
 		List<Mat> result = new ArrayList<>();
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+		
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
 			RotatedRect rect = minAreaRect(matContour.get(i));
@@ -326,10 +330,10 @@ public class PictureProcessingHelper {
 	}
 
 	public List<Mat> findQrContoursNoThresh(Mat srcImage) {
-		Mat img1 = new Mat(srcImage.arraySize(), CV_8UC1, 1);
-//		Mat img1 = findContoursBlackMat(srcImage);
-		cvtColor(srcImage, img1, CV_RGB2GRAY);
-		Canny(img1, img1, 75, 200);
+//		Mat img1 = new Mat(srcImage.arraySize(), CV_8UC1, 1);
+		Mat img1 = findContoursBlackMat(srcImage);
+//		cvtColor(srcImage, img1, CV_RGB2GRAY);
+//		Canny(img1, img1, 75, 200);
 		MatVector matContour = new MatVector();
 		List<Mat> result = new ArrayList<>();
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);

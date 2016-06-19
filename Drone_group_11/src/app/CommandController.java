@@ -121,6 +121,7 @@ public class CommandController implements Runnable {
 						break;
 					}
 					Thread.sleep(task.time);
+					System.out.println("TASK SPEED " + task.speed );
 					droneInterface.hover();
 					droneIsReady = true;
 				}
