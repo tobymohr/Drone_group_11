@@ -2,21 +2,14 @@ package flightcontrol;
 
 import static org.bytedeco.javacpp.opencv_imgproc.minAreaRect;
 
-import java.sql.Time;
 import java.util.List;
-
-import helper.Command;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_core.RotatedRect;
 
-import com.google.zxing.qrcode.encoder.QRCode;
-
 import app.CommandController;
-import de.yadrone.base.command.CommandManager;
+import helper.Command;
 import picture.DownScanSeq;
-import picture.OFVideo;
-import picture.PictureController;
 import picture.PictureProcessingHelper;
 
 public class FlightControl implements Runnable {
@@ -33,8 +26,6 @@ public class FlightControl implements Runnable {
 	private PictureProcessingHelper pictureProcessingHelper = new PictureProcessingHelper();
 	private CommandController commandController;
 	private Mat camMat;
-	private int timeOut;
-	private double centerDistance;
 	private DownScanSeq downScan = new DownScanSeq(commandController);
 	double distance;
 	double currentDistance;
@@ -56,10 +47,8 @@ public class FlightControl implements Runnable {
 		commandController.droneInterface.hover();
 		sleepThread(2000);
 		System.out.println("UP");
-		commandController.addCommand(Command.UP, 5000, 15);
-		sleepThread(5000);
-		commandController.addCommand(Command.UP, 5000, 15);
-		sleepThread(5000);
+		commandController.addCommand(Command.UP, 2750, 15);
+		sleepThread(3750);
 
 		flyLaneOne();
 		// flyLaneTwo();
@@ -71,7 +60,7 @@ public class FlightControl implements Runnable {
 
 	public void flyLaneOne() {
 		commandController.droneInterface.setFrontCamera();
-		// TODO Ensure centered on the start QR
+		// TODO Ensure centered on the start QR (W02.00)
 		// Rotate 180 degrees
 		commandController.addCommand(Command.ROTATELEFT, 2000, 90);
 		sleepThread(2500);
@@ -83,7 +72,8 @@ public class FlightControl implements Runnable {
 		adjustLaneRotate(1);
 		Mat qrImg = null;
 		String tempCode = "";
-		while (!tempCode.startsWith("W00")) {
+		distance = pictureProcessingHelper.calcDistance(rect);
+		while (!tempCode.startsWith("W00") && distance > 150) {
 			goForwardOneChunk(rect);
 			downScan.scanForCubes();
 
@@ -93,6 +83,11 @@ public class FlightControl implements Runnable {
 			rect = adjustLaneStrafe(rect, newRect, 1);
 			qrImg = pictureProcessingHelper.warpImage(camMat, rect);
 			tempCode = pictureProcessingHelper.scanQrCode(qrImg);
+			distance = pictureProcessingHelper.calcDistance(rect);
+		}
+		
+		if (tempCode.startsWith("W00") && !tempCode.equals("W00.04")) {
+			
 		}
 
 		if (tempCode.startsWith("W00.04")) {
@@ -124,34 +119,26 @@ public class FlightControl implements Runnable {
 					distance = pictureProcessingHelper.calcDistance(rect);
 				}
 			}
+		} else if (tempCode.startsWith("W00")) {
+			
 		}
 
 		System.out.println("CLOSE");
 	}
 
 	private void flyLaneTwo() {
-		// TODO Auto-generated method stub
-
 	}
 
 	private void flyLaneThree() {
-		// TODO Auto-generated method stub
-
 	}
 
 	private void flyLaneFour() {
-		// TODO Auto-generated method stub
-
 	}
 
 	private void flyLaneFive() {
-		// TODO Auto-generated method stub
-
 	}
 
 	private void flyLaneSix() {
-		// TODO Auto-generated method stub
-
 	}
 
 	private boolean checkAspectRatio(RotatedRect rect) {

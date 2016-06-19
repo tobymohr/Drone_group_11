@@ -233,7 +233,7 @@ public class PictureProcessingHelper {
 	}
 
 	public double isCenterInImage(Mat img, RotatedRect rect) {
-		double factor = 2.7;
+		double factor = 3.5;
 		double xleft = img.arrayWidth() / factor;
 		double xright = (img.arrayWidth() / factor) * (factor - 1);
 		double middleX = img.arrayWidth() / 2;
