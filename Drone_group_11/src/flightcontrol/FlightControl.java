@@ -10,6 +10,7 @@ import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_core.RotatedRect;
 
 import app.CommandController;
+import de.yadrone.base.command.HoverCommand;
 import helper.Command;
 import picture.DownScanSeq;
 import picture.PictureProcessingHelper;
@@ -80,6 +81,7 @@ public class FlightControl implements Runnable {
 		distance = pictureProcessingHelper.calcDistance(rect);
 		while (!tempCode.startsWith("W00") && distance > 150) {
 			goForwardOneChunk(rect);
+			addCommand(Command.HOVER, 2000, 10);
 			//downScan.scanForCubes();
 
 			// TODO: Scan for immediate threats (boxes)
@@ -202,6 +204,7 @@ public class FlightControl implements Runnable {
 	private RotatedRect adjustLaneRotate(int lane) {
 		RotatedRect rect = findRect(lane);
 		double position = pictureProcessingHelper.isCenterInImage(camMat, rect);
+		System.out.println(position);
 		while (position != 0) {
 			if (position > 0) {
 				addCommand(Command.SPINRIGHT, SPIN_TIME, SPIN_SPEED);
