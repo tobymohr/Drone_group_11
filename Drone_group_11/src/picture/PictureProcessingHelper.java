@@ -327,6 +327,7 @@ public class PictureProcessingHelper {
 
 	public List<Mat> findQrContoursNoThresh(Mat srcImage) {
 		Mat img1 = new Mat(srcImage.arraySize(), CV_8UC1, 1);
+//		Mat img1 = findContoursBlackMat(srcImage);
 		cvtColor(srcImage, img1, CV_RGB2GRAY);
 		Canny(img1, img1, 75, 200);
 		MatVector matContour = new MatVector();
