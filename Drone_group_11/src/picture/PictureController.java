@@ -318,7 +318,7 @@ public class PictureController {
 			@Override
 			public void imageUpdated(BufferedImage arg0) {
 				if (isFirst) {
-					new Thread(ofvideo = new OFVideo(mainFrame, movelbl, qrCode, qrDist,
+					new Thread(ofvideo = new OFVideo(mainFrame,coordinatFoundlbl, movelbl, qrCode, qrDist,
 							arg0, cC, bufferedframe)).start();
 					isFirst = false;
 				}
