@@ -537,7 +537,7 @@ public class PictureController {
 	public void takeOff() throws InterruptedException {
 		System.out.println("TAKEOFF");
 		cC.droneInterface.takeOff();
-//		shouldFlyControl = true;
+		shouldFlyControl = true;
 	}
 
 	public void showQr() {

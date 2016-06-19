@@ -21,15 +21,14 @@ import picture.PictureProcessingHelper;
 
 public class FlightControl implements Runnable {
 	public static final int CHUNK_SIZE = 85;
-	
+
 	// TODO Tweak values below this line
 	private static final int STRAFE_UPPER = 200;
 	private static final int STRAFE_LOWER = -200;
 	private static final double CENTER_UPPER = 0.1;
 	private static final double CENTER_LOWER = -0.1;
-	private static final int SPIN_TIME = 1000;
+	private static final int SPIN_TIME = 500;
 	private static final int SPIN_SPEED = 10;
-
 
 	private PictureProcessingHelper pictureProcessingHelper = new PictureProcessingHelper();
 	private CommandController commandController;
@@ -63,45 +62,51 @@ public class FlightControl implements Runnable {
 		sleepThread(5000);
 
 		flyLaneOne();
-		flyLaneTwo();
-		flyLaneThree();
-		flyLaneFour();
-		flyLaneFive();
-		flyLaneSix();
+		// flyLaneTwo();
+		// flyLaneThree();
+		// flyLaneFour();
+		// flyLaneFive();
+		// flyLaneSix();
 	}
 
 	public void flyLaneOne() {
 		commandController.droneInterface.setFrontCamera();
-		// TODO Ensure centered on the start QR 
+		// TODO Ensure centered on the start QR
 		// Rotate 180 degrees
 		commandController.addCommand(Command.ROTATELEFT, 2000, 90);
 		sleepThread(2500);
+		commandController.droneInterface.hover();
+		sleepThread(500);
 
 		List<Mat> contours = pictureProcessingHelper.findQrContours(camMat);
 		RotatedRect rect = rightMostRect(contours);
-		adjustLaneRotate(rect, 1);
+		adjustLaneRotate(1);
 		Mat qrImg = null;
 		String tempCode = "";
 		while (!tempCode.startsWith("W00")) {
 			goForwardOneChunk(rect);
 			downScan.scanForCubes();
-			
+
 			// TODO: Scan for immediate threats (boxes)
 
-			contours = pictureProcessingHelper.findQrContours(camMat);
-			if (contours.size() > 0) {
-				rect = adjustLaneStrafe(rect, rightMostRect(contours), 1);
-				qrImg = pictureProcessingHelper.warpImage(camMat, rect);
-				tempCode = pictureProcessingHelper.scanQrCode(qrImg);
-			}
+			RotatedRect newRect = findRect(1);
+			rect = adjustLaneStrafe(rect, newRect, 1);
+			qrImg = pictureProcessingHelper.warpImage(camMat, rect);
+			tempCode = pictureProcessingHelper.scanQrCode(qrImg);
 		}
-		
+
 		if (tempCode.startsWith("W00.04")) {
 			distance = pictureProcessingHelper.calcDistance(rect);
 			while (distance > 100) {
 				goForwardOneChunk(rect);
 				downScan.scanForCubes();
 				contours = pictureProcessingHelper.findQrContours(camMat);
+				int i = 0;
+				while (contours.size() == 0 && i < 10) {
+					sleepThread(50);
+					contours = pictureProcessingHelper.findQrContours(camMat);
+					i++;
+				}
 				if (contours.size() > 0) {
 					RotatedRect newRect = null;
 					for (Mat contour : contours) {
@@ -117,127 +122,11 @@ public class FlightControl implements Runnable {
 					}
 					rect = adjustLaneStrafe(rect, newRect, 1);
 					distance = pictureProcessingHelper.calcDistance(rect);
-				}				
-			} 
+				}
+			}
 		}
-		
+
 		System.out.println("CLOSE");
-	}
-	
-	private boolean checkAspectRatio(RotatedRect rect) {
-		double center = pictureProcessingHelper.center(rect);
-		if (center > CENTER_UPPER || center < CENTER_LOWER) {
-			return false;
-		}
-		return true;
-	}
-
-	private RotatedRect rightMostRect(List<Mat> contours){
-		double distanceFomCenter = Double.MAX_VALUE;
-		RotatedRect rect = new RotatedRect();
-		for (int i = 0; i < contours.size(); i++) {
-			RotatedRect rect2 = minAreaRect(contours.get(i));
-			double distance = (camMat.arrayWidth() / 2) - rect.center().x();
-			if (distanceFomCenter > distance && checkAspectRatio(rect2)) {
-				distanceFomCenter = distance;
-				rect = rect2;
-			}
-		}
-		return rect;
-	}
-	
-
-	private RotatedRect mostCenteredRect(List<Mat> contours) {
-		double distanceFomCenter = Double.MAX_VALUE;
-		RotatedRect rect = new RotatedRect();
-		for (int i = 0; i < contours.size(); i++) {
-			RotatedRect rect2 = minAreaRect(contours.get(i));
-			double distance = (camMat.arrayWidth() / 2) - rect.center().x();
-			if (distanceFomCenter > distance && checkAspectRatio(rect2)) {
-				distanceFomCenter = Math.abs(distance);
-				rect = rect2;
-			}
-		}
-		return rect;
-	}
-	
-	private RotatedRect adjustLaneRotate(RotatedRect rect, int lane) {
-		double position = pictureProcessingHelper.isCenterInImage(camMat, rect);
-		while (position != 0) {
-			if (position > 0) {
-				commandController.addCommand(Command.SPINRIGHT, SPIN_TIME, SPIN_SPEED);
-			} else {
-				commandController.addCommand(Command.SPINLEFT, SPIN_TIME, SPIN_SPEED);
-			}
-			List<Mat> contours = pictureProcessingHelper.findQrContours(camMat);
-			switch(lane) {
-			case 1:
-				rect = rightMostRect(contours);
-				break;
-			default:
-				rect = mostCenteredRect(contours);
-				break;
-			}
-			position = pictureProcessingHelper.isCenterInImage(camMat, rect);
-		}
-		return rect;
-	}
-	
-	private RotatedRect adjustLaneStrafe(RotatedRect prevRect, RotatedRect newRect, int lane) {
-		double difference = prevRect.center().x() - newRect.center().x();
-		while (difference > STRAFE_UPPER || difference < STRAFE_LOWER) {
-			// TODO Tweak these values
-			if (difference > STRAFE_UPPER) {
-				commandController.addCommand(Command.LEFT, 500, 15);				
-			} else {
-				commandController.addCommand(Command.RIGHT, 500, 15);	
-			}
-			sleepThread(500);
-			List<Mat> contours = pictureProcessingHelper.findQrContours(camMat);
-			switch(lane) {
-			case 1:
-				newRect = rightMostRect(contours);
-				break;
-			default:
-				newRect = mostCenteredRect(contours);
-				break;
-			}
-			
-			difference = prevRect.center().x() - newRect.center().x();
-		}
-		return newRect;
-	}
-
-	private void goForwardOneChunk(RotatedRect rect) {
-		distance = pictureProcessingHelper.calcDistance(rect);
-		commandController.addCommand(Command.FORWARD, 1500, 10); // 1 chunk
-		sleepThread(2000);
-		boolean tooClose = false;
-		boolean tooFar = false;
-		while(!tooClose || !tooFar){
-			tooFar = true;
-			tooClose = true;
-
-			currentDistance = pictureProcessingHelper.calcDistance(rect);
-			if ((distance - currentDistance) > 95) {
-				commandController.addCommand(Command.BACKWARDS, 500, 10);
-				sleepThread(1000);
-				tooFar = false;
-			}
-			if ((distance - currentDistance) < 75) {
-				commandController.addCommand(Command.FORWARD, 500, 10);
-				sleepThread(1000);
-				tooClose = false;
-			}
-		}
-	}
-	
-	private void sleepThread(int duration) {
-		try {
-			Thread.sleep(duration);
-		} catch (InterruptedException e) {
-			System.out.println("InterruptedEX");
-		}
 	}
 
 	private void flyLaneTwo() {
@@ -265,4 +154,128 @@ public class FlightControl implements Runnable {
 
 	}
 
+	private boolean checkAspectRatio(RotatedRect rect) {
+		double center = pictureProcessingHelper.center(rect);
+		if (center > CENTER_UPPER || center < CENTER_LOWER) {
+			return false;
+		}
+		return true;
+	}
+
+	private RotatedRect findRect(int lane) {
+		List<Mat> contours = pictureProcessingHelper.findQrContours(camMat);
+		int i = 0;
+		while (contours.size() == 0 && i < 10) {
+			sleepThread(50);
+			contours = pictureProcessingHelper.findQrContours(camMat);
+			i++;
+		}
+		switch (lane) {
+		case 1:
+			return rightMostRect(contours);
+		default:
+			return mostCenteredRect(contours);
+		}
+	}
+
+	private RotatedRect rightMostRect(List<Mat> contours) {
+		double distanceFomCenter = Double.MAX_VALUE;
+		RotatedRect rect = new RotatedRect();
+		for (int i = 0; i < contours.size(); i++) {
+			RotatedRect rect2 = minAreaRect(contours.get(i));
+			double distance = (camMat.arrayWidth() / 2) - rect.center().x();
+			if (distanceFomCenter > distance && checkAspectRatio(rect2)) {
+				distanceFomCenter = distance;
+				rect = rect2;
+			}
+		}
+		return rect;
+	}
+
+	private RotatedRect mostCenteredRect(List<Mat> contours) {
+		double distanceFomCenter = Double.MAX_VALUE;
+		RotatedRect rect = new RotatedRect();
+		for (int i = 0; i < contours.size(); i++) {
+			RotatedRect rect2 = minAreaRect(contours.get(i));
+			double distance = (camMat.arrayWidth() / 2) - rect.center().x();
+			if (distanceFomCenter > distance && checkAspectRatio(rect2)) {
+				distanceFomCenter = Math.abs(distance);
+				rect = rect2;
+			}
+		}
+		return rect;
+	}
+
+	private RotatedRect adjustLaneRotate(int lane) {
+		RotatedRect rect = findRect(lane);
+		double position = pictureProcessingHelper.isCenterInImage(camMat, rect);
+		while (position != 0) {
+			if (position > 0) {
+				commandController.addCommand(Command.SPINRIGHT, SPIN_TIME, SPIN_SPEED);
+			} else {
+				commandController.addCommand(Command.SPINLEFT, SPIN_TIME, SPIN_SPEED);
+			}
+			sleepThread(SPIN_TIME);
+			rect = findRect(lane);
+			position = pictureProcessingHelper.isCenterInImage(camMat, rect);
+		}
+		return rect;
+	}
+
+	private RotatedRect adjustLaneStrafe(RotatedRect prevRect, RotatedRect newRect, int lane) {
+		double difference = prevRect.center().x() - newRect.center().x();
+		while (difference > STRAFE_UPPER || difference < STRAFE_LOWER) {
+			// TODO Tweak these values
+			if (difference > STRAFE_UPPER) {
+				commandController.addCommand(Command.LEFT, 500, 15);
+			} else {
+				commandController.addCommand(Command.RIGHT, 500, 15);
+			}
+			sleepThread(500);
+			List<Mat> contours = pictureProcessingHelper.findQrContours(camMat);
+			switch (lane) {
+			case 1:
+				newRect = rightMostRect(contours);
+				break;
+			default:
+				newRect = mostCenteredRect(contours);
+				break;
+			}
+
+			difference = prevRect.center().x() - newRect.center().x();
+		}
+		return newRect;
+	}
+
+	private void goForwardOneChunk(RotatedRect rect) {
+		distance = pictureProcessingHelper.calcDistance(rect);
+		commandController.addCommand(Command.FORWARD, 1500, 10); // 1 chunk
+		sleepThread(2000);
+		boolean tooClose = false;
+		boolean tooFar = false;
+		while (!tooClose || !tooFar) {
+			tooFar = true;
+			tooClose = true;
+
+			currentDistance = pictureProcessingHelper.calcDistance(rect);
+			if ((distance - currentDistance) > 95) {
+				commandController.addCommand(Command.BACKWARDS, 500, 10);
+				sleepThread(1000);
+				tooFar = false;
+			}
+			if ((distance - currentDistance) < 75) {
+				commandController.addCommand(Command.FORWARD, 500, 10);
+				sleepThread(1000);
+				tooClose = false;
+			}
+		}
+	}
+
+	private void sleepThread(int duration) {
+		try {
+			Thread.sleep(duration);
+		} catch (InterruptedException e) {
+			System.out.println("InterruptedEX");
+		}
+	}
 }
