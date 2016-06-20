@@ -136,4 +136,28 @@ public class CustomPoint {
 		}
 		return parseQRText("W0" + wall + ".0" + coordinate);
 	}
+	
+	public static CustomPoint horiFlipCoords(CustomPoint customPoint){
+		double distance = Math.sqrt(customPoint.getX()*customPoint.getX() + customPoint.getY()*customPoint.getY());
+		CustomPoint movedPoint = new CustomPoint();
+		movedPoint.setX(customPoint.getX() - distance);
+		movedPoint.setY(customPoint.getY() - distance);
+		movedPoint.setX(movedPoint.getX()*-1);
+		customPoint.setX(movedPoint.getX() + distance);
+		customPoint.setY(movedPoint.getY() + distance);
+		return customPoint;
+		
+	}
+	
+	public static CustomPoint vertFlipCoords(CustomPoint customPoint){
+		double distance = Math.sqrt(customPoint.getX()*customPoint.getX() + customPoint.getY()*customPoint.getY());
+		CustomPoint movedPoint = new CustomPoint();
+		movedPoint.setX(customPoint.getX() - distance);
+		movedPoint.setY(customPoint.getY() - distance);
+		movedPoint.setY(movedPoint.getY()*-1);
+		customPoint.setX(movedPoint.getX() + distance);
+		customPoint.setY(movedPoint.getY() + distance);
+		return customPoint;
+		
+	}
 }

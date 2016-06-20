@@ -140,6 +140,14 @@ public class OFVideo implements Runnable {
 						imageChangedRed = true;
 						imageChangedGreen = true;
 					}
+					if (PictureController.shouldLand) {
+						landSeq.setImage(newImg.clone());
+						imageChanged = true;
+						if (isFirst) {
+							new Thread(landSeq).start();
+							isFirst = false;
+						}
+					}
 
 				} else {
 					Thread.sleep(50);

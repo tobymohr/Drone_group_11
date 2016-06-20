@@ -2,6 +2,7 @@ package app;
 
 import de.yadrone.base.IARDrone;
 import de.yadrone.base.command.CommandManager;
+import de.yadrone.base.command.FlyingMode;
 import de.yadrone.base.command.VideoChannel;
 
 
@@ -202,6 +203,12 @@ public class DroneCommunicator implements DroneInterface {
 				}
 			});
 		}
+	}
+
+	@Override
+	public void setFlightMode(FlyingMode mode) {
+		// TODO Auto-generated method stub
+		commandManager.setFlyingMode(mode);
 	}
 	
 }

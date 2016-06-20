@@ -1,5 +1,6 @@
 package app;
 
+import de.yadrone.base.command.FlyingMode;
 import de.yadrone.base.command.VideoChannel;
 
 public interface DroneInterface {
@@ -23,4 +24,5 @@ public interface DroneInterface {
 	public void setFrontCamera();
 	public VideoChannel getVideoChannel();
 	public void hover();
+	public void setFlightMode(FlyingMode mode);
 }

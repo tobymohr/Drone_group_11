@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
 
+import de.yadrone.base.command.FlyingMode;
 import app.CommandController;
 import helper.Command;
 
@@ -38,13 +39,15 @@ public class LandSequence implements Runnable {
 
 		//TAKEOFF sequence
 		System.out.println("HOVER");
+		
+		commandController.droneInterface.setFlightMode(FlyingMode.HOVER_ON_TOP_OF_ROUNDEL);
 		commandController.droneInterface.hover();
 		while (code == null) {
 			code = pictureProcessingHelper.scanQrCode(camMat);
 			sleep(10);
 		}
 		System.out.println(code);
-
+		sleep(20000);
 		sleep(1900);
 		commandController.addCommand(Command.UP, 2600, 15);
 		sleep(2600);
