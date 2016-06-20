@@ -100,13 +100,16 @@ public class ScanSequence implements Runnable {
 		System.out.println("UP");
 		commandController.addCommand(Command.UP, 2500, 12);
 
-		while (runScanSequence) {
-			if (OFVideo.imageChanged) {
-				scanSequence();
-			} else {
-				sleep(50);
-			}
-		}
+//		while (runScanSequence) {
+//			if (OFVideo.imageChanged) {
+//				scanSequence();
+//			} else {
+//				sleep(50);
+//			}
+//		}
+		moveToStart = true;
+		code = "W00.03";
+		PictureController.setPlacement(new CustomPoint(694, 721));
 
 		firstAxisToMove();
 		System.out.println("LETS GOOOOOOO MOTHERFUCKER");
