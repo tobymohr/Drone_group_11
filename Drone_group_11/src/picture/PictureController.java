@@ -61,6 +61,7 @@ public class PictureController {
 	public static boolean shouldScan = false;
 	public static boolean shouldTestWall = false;
 	public static boolean shouldLand = false;
+	public static boolean shouldFlyControl = false;
 	private static boolean aboveLanding = false;
 	
 	private static int circleCounter = 0;
@@ -540,7 +541,7 @@ public class PictureController {
 
 	public void takeOff() throws InterruptedException {
 		System.out.println("TAKEOFF");
-		shouldScan = true;
+		shouldFlyControl = true;
 	}
 
 	public void showQr() {
