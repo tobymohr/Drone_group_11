@@ -73,18 +73,18 @@ public class ObjRecognitionController
 	// FXML label to show the current values set with the sliders
 	@FXML
 	private Label hsvCurrentValues;
-	
+
 	// a timer for acquiring the video stream
 	// the OpenCV object that performs the video capture
 	private IARDrone drone = new ARDrone();;
 	// a flag to change the button behavior
 	private boolean cameraActive;
 	private BufferedImage cam = null;
-	
+
 	// property for object binding
 	private ObjectProperty<String> hsvValuesProp;
 	private ScheduledExecutorService timer;
-		
+
 	/**
 	 * The action triggered by pushing the button on the GUI
 	 */
@@ -94,48 +94,49 @@ public class ObjRecognitionController
 		drone.start();
 		drone.getVideoManager().start();
 		drone.getCommandManager().setVideoChannel(VideoChannel.VERT);
+		
 		drone.getVideoManager().addImageListener(new ImageListener() {
 
 			@Override
 			public void imageUpdated(BufferedImage arg0) {
 				cam = arg0;
-				
+
 			}
 		});
 		Runnable frameGrabber = new Runnable() {
-			
+
 			@Override
 			public void run()
 			{
 				if(cam != null){
-				Image imageToShow = grabFrame();
-				originalFrame.setImage(imageToShow);
+					Image imageToShow = grabFrame();
+					originalFrame.setImage(imageToShow);
 				}
 			}
 		};
-		
+
 		this.timer = Executors.newSingleThreadScheduledExecutor();
 		this.timer.scheduleAtFixedRate(frameGrabber, 0, 33, TimeUnit.MILLISECONDS);
 		// bind a text property with the string containing the current range of
 		// HSV values for object detection
 		hsvValuesProp = new SimpleObjectProperty<>();
 		this.hsvCurrentValues.textProperty().bind(hsvValuesProp);
-				
+
 		// set a fixed width for all the image to show and preserve image ratio
 		this.imageViewProperties(this.originalFrame, 400);
 		this.imageViewProperties(this.maskImage, 200);
 		this.imageViewProperties(this.morphImage, 200);
-		
+
 		if (!this.cameraActive)
 		{
-				this.cameraActive = true;
-				
-				
-				
-				// update the button content
-				this.cameraButton.setText("Stop Camera");
-			
-			
+			this.cameraActive = true;
+
+
+
+			// update the button content
+			this.cameraButton.setText("Stop Camera");
+
+
 		}
 		else
 		{
@@ -143,13 +144,13 @@ public class ObjRecognitionController
 			this.cameraActive = false;
 			// update again the button content
 			this.cameraButton.setText("Start Camera");
-			
-			
-			
-			
+
+
+
+
 		}
 	}
-	
+
 	/**
 	 * Get a frame from the opened video stream (if any)
 	 * 
@@ -160,79 +161,94 @@ public class ObjRecognitionController
 		// init everything
 		Image imageToShow = null;
 		Mat frame = new Mat(cam.getHeight(), cam.getWidth(), CvType.CV_8UC3);
-		
+
 		// check if the capture is open
-			try
+		try
+		{
+			// read the current frame
+			byte[] data = ((DataBufferByte) cam.getRaster().getDataBuffer()).getData();
+			frame.put(0, 0, data);
+			// if the frame is not empty, process it
+			if (!frame.empty())
 			{
-				// read the current frame
-				  byte[] data = ((DataBufferByte) cam.getRaster().getDataBuffer()).getData();
-				  frame.put(0, 0, data);
-				// if the frame is not empty, process it
-				if (!frame.empty())
-				{
-					// init
-					Mat blurredImage = new Mat();
-					Mat hsvImage = new Mat();
-					Mat mask = new Mat();
-					Mat morphOutput = new Mat();
-					
-					// remove some noise
-					Imgproc.blur(frame, blurredImage, new Size(7, 7));
-					
-					// convert the frame to HSV
-					Imgproc.cvtColor(blurredImage, hsvImage, Imgproc.COLOR_BGR2HSV);
-					
-					// get thresholding values from the UI
-					// remember: H ranges 0-180, S and V range 0-255
-					Scalar minValues = new Scalar(this.hueStart.getValue(), this.saturationStart.getValue(),
-							this.valueStart.getValue());
-					Scalar maxValues = new Scalar(this.hueStop.getValue(), this.saturationStop.getValue(),
-							this.valueStop.getValue());
-					
-					// show the current selected HSV range
-					String valuesToPrint = "Hue range: " + minValues.val[0] + "-" + maxValues.val[0]
-							+ "\tSaturation range: " + minValues.val[1] + "-" + maxValues.val[1] + "\tValue range: "
-							+ minValues.val[2] + "-" + maxValues.val[2];
-					this.onFXThread(this.hsvValuesProp, valuesToPrint);
-					
+				// init
+				Mat blurredImage = new Mat();
+				Mat hsvImage = new Mat();
+				Mat mask = new Mat();
+				Mat morphOutput = new Mat();
+				Mat lowerHue = new Mat();
+				Mat upperHue = new Mat();
+
+				// remove some noise
+				Imgproc.blur(frame, blurredImage, new Size(7, 7));
+
+				// convert the frame to HSV
+				Imgproc.cvtColor(blurredImage, hsvImage, Imgproc.COLOR_BGR2HSV);
+
+				// get thresholding values from the UI
+				// remember: H ranges 0-180, S and V range 0-255
+
+				Scalar minValues = new Scalar(this.hueStart.getValue(), this.saturationStart.getValue(),
+						this.valueStart.getValue());
+				Scalar maxValues = new Scalar(this.hueStop.getValue(), this.saturationStop.getValue(),
+						this.valueStop.getValue());
+
+				// show the current selected HSV range
+				String valuesToPrint = "Hue range: " + minValues.val[0] + "-" + maxValues.val[0]
+						+ "\tSaturation range: " + minValues.val[1] + "-" + maxValues.val[1] + "\tValue range: "
+						+ minValues.val[2] + "-" + maxValues.val[2];
+				this.onFXThread(this.hsvValuesProp, valuesToPrint);
+				
+				if(this.hueStart.getValue()>this.hueStop.getValue()){
+				
+					Scalar scalar1 = new Scalar(0, this.saturationStart.getValue(), this.valueStart.getValue());
+					Scalar scalar2 = new Scalar(this.hueStop.getValue(), this.saturationStop.getValue(), this.valueStop.getValue());
+					Scalar scalar3 = new Scalar(this.hueStart.getValue(), this.saturationStart.getValue(), this.valueStart.getValue());
+					Scalar scalar4 = new Scalar(180, this.saturationStop.getValue(), this.valueStop.getValue());
+					Core.inRange(hsvImage, scalar1, scalar2, lowerHue);
+					Core.inRange(hsvImage, scalar3, scalar4, upperHue);
+					Core.addWeighted(lowerHue, 1.0, upperHue, 1.0, 0.0, mask);
+				}else{
 					// threshold HSV image to select tennis balls
 					Core.inRange(hsvImage, minValues, maxValues, mask);
-					// show the partial output
-					this.onFXThread(this.maskImage.imageProperty(), this.mat2Image(mask));
-					
-					// morphological operators
-					// dilate with large element, erode with small ones
-					Mat dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(24, 24));
-					Mat erodeElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(12, 12));
-					
-					Imgproc.erode(mask, morphOutput, erodeElement);
-					Imgproc.erode(mask, morphOutput, erodeElement);
-					
-					Imgproc.dilate(mask, morphOutput, dilateElement);
-					Imgproc.dilate(mask, morphOutput, dilateElement);
-					
-					// show the partial output
-					this.onFXThread(this.morphImage.imageProperty(), this.mat2Image(morphOutput));
-					
-					// find the tennis ball(s) contours and show them
-					frame = this.findAndDrawBalls(morphOutput, frame);
-					
-					// convert the Mat object (OpenCV) to Image (JavaFX)
-					imageToShow = mat2Image(frame);
 				}
 				
+				// show the partial output
+				this.onFXThread(this.maskImage.imageProperty(), this.mat2Image(mask));
+
+				// morphological operators
+				// dilate with large element, erode with small ones
+				Mat dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(24, 24));
+				Mat erodeElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(12, 12));
+
+				Imgproc.erode(mask, morphOutput, erodeElement);
+				Imgproc.erode(mask, morphOutput, erodeElement);
+
+				Imgproc.dilate(mask, morphOutput, dilateElement);
+				Imgproc.dilate(mask, morphOutput, dilateElement);
+
+				// show the partial output
+				this.onFXThread(this.morphImage.imageProperty(), this.mat2Image(morphOutput));
+
+				// find the tennis ball(s) contours and show them
+				frame = this.findAndDrawBalls(morphOutput, frame);
+
+				// convert the Mat object (OpenCV) to Image (JavaFX)
+				imageToShow = mat2Image(frame);
 			}
-			catch (Exception e)
-			{
-				// log the (full) error
-				System.err.print("ERROR");
-				e.printStackTrace();
-			}
-		
-		
+
+		}
+		catch (Exception e)
+		{
+			// log the (full) error
+			System.err.print("ERROR");
+			e.printStackTrace();
+		}
+
+
 		return imageToShow;
 	}
-	
+
 	/**
 	 * Given a binary image containing one or more closed surfaces, use it as a
 	 * mask to find and highlight the objects contours
@@ -249,10 +265,10 @@ public class ObjRecognitionController
 		// init
 		List<MatOfPoint> contours = new ArrayList<>();
 		Mat hierarchy = new Mat();
-		
+
 		// find contours
 		Imgproc.findContours(maskedImage, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
-		
+
 		// if any contour exist...
 		if (hierarchy.size().height > 0 && hierarchy.size().width > 0)
 		{
@@ -262,10 +278,10 @@ public class ObjRecognitionController
 				Imgproc.drawContours(frame, contours, idx, new Scalar(250, 0, 0));
 			}
 		}
-		
+
 		return frame;
 	}
-	
+
 	/**
 	 * Set typical {@link ImageView} properties: a fixed width and the
 	 * information to preserve the original image ration
@@ -282,7 +298,7 @@ public class ObjRecognitionController
 		// preserve the image ratio
 		image.setPreserveRatio(true);
 	}
-	
+
 	/**
 	 * Convert a {@link Mat} object (OpenCV) in the corresponding {@link Image}
 	 * for JavaFX
@@ -301,7 +317,7 @@ public class ObjRecognitionController
 		// buffer
 		return new Image(new ByteArrayInputStream(buffer.toArray()));
 	}
-	
+
 	/**
 	 * Generic method for putting element running on a non-JavaFX thread on the
 	 * JavaFX thread, to properly update the UI
@@ -314,7 +330,7 @@ public class ObjRecognitionController
 	private <T> void onFXThread(final ObjectProperty<T> property, final T value)
 	{
 		Platform.runLater(new Runnable() {
-			
+
 			@Override
 			public void run()
 			{
@@ -322,5 +338,5 @@ public class ObjRecognitionController
 			}
 		});
 	}
-	
+
 }
