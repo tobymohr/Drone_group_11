@@ -2,7 +2,6 @@ package picture;
 
 import java.awt.image.BufferedImage;
 
-import org.bytedeco.javacpp.opencv_core.IplImage;
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.Java2DFrameConverter;
@@ -10,7 +9,6 @@ import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
 
 import app.CommandController;
-import de.yadrone.base.IARDrone;
 import helper.Command;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;

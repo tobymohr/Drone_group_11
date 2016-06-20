@@ -3,7 +3,6 @@ package picture;
 import static org.bytedeco.javacpp.opencv_core.CV_32FC1;
 import static org.bytedeco.javacpp.opencv_core.CV_8U;
 import static org.bytedeco.javacpp.opencv_core.CV_8UC1;
-import static org.bytedeco.javacpp.opencv_core.CV_PI;
 import static org.bytedeco.javacpp.opencv_core.addWeighted;
 import static org.bytedeco.javacpp.opencv_core.cvCreateImage;
 import static org.bytedeco.javacpp.opencv_core.cvGetSeqElem;
@@ -63,8 +62,6 @@ import org.bytedeco.javacpp.opencv_core.Rect;
 import org.bytedeco.javacpp.opencv_core.RotatedRect;
 import org.bytedeco.javacpp.opencv_core.Scalar;
 import org.bytedeco.javacpp.opencv_core.Size;
-import org.bytedeco.javacpp.opencv_highgui;
-import org.bytedeco.javacpp.helper.opencv_imgcodecs;
 import org.bytedeco.javacpp.indexer.IntBufferIndexer;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
@@ -79,8 +76,6 @@ import com.google.zxing.qrcode.QRCodeReader;
 import coordinateSystem.Vector;
 import helper.Circle;
 import helper.CustomPoint;
-import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.image.Image;
 
 public class PictureProcessingHelper {
 
@@ -112,9 +107,6 @@ public class PictureProcessingHelper {
 	}
 
 	public Mat findContoursBlueMat(Mat img) {
-
-		MatVector contoursSwagger = new MatVector();
-
 		Mat mathsv3 = new Mat(img.arraySize(), img.arrayDepth(), img.arrayChannels());
 		cvtColor(img, mathsv3, CV_BGR2HSV);
 		Mat scalarBlue1 = new Mat(new Scalar(blueMin, 50, 50, 0));
@@ -124,7 +116,6 @@ public class PictureProcessingHelper {
 	}
 
 	public Mat findContoursBlackMat(Mat img) {
-		MatVector contour1 = new MatVector();
 		Mat matHSV = new Mat(img.arraySize(), img.arrayDepth(), img.arrayChannels());
 		cvtColor(img, matHSV, CV_RGB2HSV);
 		Mat scalar1 = new Mat(new Scalar(0, 0, 0, 0));
@@ -135,7 +126,6 @@ public class PictureProcessingHelper {
 	}
 
 	public Mat findContoursRedMat(Mat img) {
-		MatVector matContour = new MatVector();
 		Mat mathsv3 = new Mat(img.arraySize(), CV_8U, 3);
 		Mat mathueLower = new Mat(img.arraySize(), CV_8U, 1);
 		Mat mathueUpper = new Mat(img.arraySize(), CV_8U, 1);
@@ -153,7 +143,6 @@ public class PictureProcessingHelper {
 	}
 
 	public Mat findContoursGreenMat(Mat img) {
-		MatVector matContour = new MatVector();
 		Mat imghsv = new Mat(img.arraySize(), 8, 3);
 		Mat imgbin = new Mat(img.arraySize(), 8, 1);
 		cvtColor(img, imghsv, CV_BGR2HSV);
@@ -719,28 +708,6 @@ public class PictureProcessingHelper {
 		dilate(thresh, thresh, dilateElement);
 		dilate(thresh, thresh, dilateElement);
 		return thresh;
-	}
-
-	public double calcAngles(IplImage coloredImage, CvSeq points) {
-
-		/**
-		 * THIS DOES NOT WORK, FIX OR DELETE IF NEEDED
-		 */
-
-		double angle = 0;
-		ArrayList<CvPoint> listen = new ArrayList<CvPoint>();
-		for (int i = 0; i < 5; i++) {
-			listen.add(new CvPoint(cvGetSeqElem(points, i)));
-		}
-		// find the maximum cosine of the angle between joint edges
-		for (int j = 0; j < listen.size() - 1; j++) {
-
-			angle = Math.atan2(listen.get(j + 1).y() - listen.get(j).y(), listen.get(j + 1).x() - listen.get(j).x())
-					* 180.0 / CV_PI;
-			// System.out.println(angle);
-			break;
-		}
-		return angle;
 	}
 
 	public double center(RotatedRect rect) {

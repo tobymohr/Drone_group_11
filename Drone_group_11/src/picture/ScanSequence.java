@@ -3,7 +3,6 @@ package picture;
 import static org.bytedeco.javacpp.opencv_imgproc.contourArea;
 import static org.bytedeco.javacpp.opencv_imgproc.minAreaRect;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,7 +11,6 @@ import java.util.Map;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_core.RotatedRect;
-import org.bytedeco.javacpp.opencv_imgcodecs;
 
 import app.CommandController;
 import helper.Command;

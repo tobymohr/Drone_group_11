@@ -3,7 +3,6 @@ package picture;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
 
@@ -20,7 +19,7 @@ public class DownScanSeq implements Runnable {
 	private static final double PIXELS_PER_CM_X = MAX_RES_Y/85.0;
 	public boolean greenDone;
 	public boolean redDone;
-	private PictureProcessingHelper PPH;
+	private PictureProcessingHelper pictureProcessingHelper;
 	private Mat camMat;
 	private Mat camMat2;
 	private ArrayList<ArrayList<CustomPoint>> greenResults = new ArrayList<ArrayList<CustomPoint>>();
@@ -36,14 +35,14 @@ public class DownScanSeq implements Runnable {
 	public DownScanSeq(CommandController commandController, Mat mat) {
 		greenDone = true;
 		redDone = false;
-		PPH = new PictureProcessingHelper();
+		pictureProcessingHelper = new PictureProcessingHelper();
 		camMat = mat;
 		this.commandController = commandController;
 	}
 	public DownScanSeq(CommandController commandController) {
 		greenDone = true;
 		redDone = false;
-		PPH = new PictureProcessingHelper();
+		pictureProcessingHelper = new PictureProcessingHelper();
 		this.commandController = commandController;
 	}
 	
@@ -89,8 +88,8 @@ public class DownScanSeq implements Runnable {
 	private boolean scanGreenSeq() {
 		Mat greenMat = camMat.clone();
 		OFVideo.imageChangedGreen = false;
-		greenMat = PPH.findContoursGreenMat(camMat);
-		greenResults.add(PPH.findObjectsMat(greenMat));
+		greenMat = pictureProcessingHelper.findContoursGreenMat(camMat);
+		greenResults.add(pictureProcessingHelper.findObjectsMat(greenMat));
 		
 		// todo make done constraints
 		if (greenResults.size() == 50) {
@@ -117,8 +116,8 @@ public class DownScanSeq implements Runnable {
 	private boolean scanRedSeq() {
 		Mat redMat = camMat;
 		OFVideo.imageChangedRed = false;
-		redMat = PPH.findContoursRedMat(camMat);
-		redResults.add(PPH.findObjectsMat(redMat));
+		redMat = pictureProcessingHelper.findContoursRedMat(camMat);
+		redResults.add(pictureProcessingHelper.findObjectsMat(redMat));
 
 		// todo make done constraints
 		if (redResults.size() == 50) {
