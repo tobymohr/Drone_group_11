@@ -1,5 +1,6 @@
 package picture;
 
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -61,6 +62,7 @@ public class PictureController {
 	public static boolean shouldScan = false;
 	public static boolean shouldTestWall = false;
 	public static boolean shouldLand = false;
+	public static boolean shouldFlyControl = false;
 	private static boolean aboveLanding = false;
 	
 	private static int circleCounter = 0;
@@ -275,8 +277,8 @@ public class PictureController {
 		drone.start();
 		cC = new CommandController(drone);
 		drone.getCommandManager().setVideoCodec(VideoCodec.H264_720P);
-		cC.droneInterface.setFrontCamera();
-		// cC.dC.setBottomCamera();
+//		cC.droneInterface.setFrontCamera();
+		 cC.droneInterface.setBottomCamera();
 		new Thread(cC).start();
 		map = Map.init(new ArrayList<>());
 	}
@@ -529,7 +531,7 @@ public class PictureController {
 
 	public void takeOff() throws InterruptedException {
 		System.out.println("TAKEOFF");
-		shouldScan = true;
+		shouldFlyControl = true;
 	}
 
 	public void showQr() {
@@ -559,10 +561,14 @@ public class PictureController {
 	public static void addCords(ArrayList<CustomPoint> tempList) {
 		map.addCords(tempList);
 	}
+	public static void addCords(ArrayList<CustomPoint> tempList, Color color) {
+		map.addCords(tempList, color);
+	}
 
 	public static void addCords(ArrayList<CustomPoint> tempList, CustomPoint placement) {
 		map.addCords(tempList, placement);
 	}
+	
 	
 	public static CustomPoint getPlacement() {
 		return map.getPlacement();
