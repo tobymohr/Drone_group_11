@@ -49,7 +49,7 @@ import javafx.scene.layout.HBox;
 import javafx.stage.WindowEvent;
 
 public class PictureController {
-	private PictureProcessingHelper OFC = new PictureProcessingHelper();
+	private PictureProcessingHelper pictureProcessingHelper = new PictureProcessingHelper();
 	private CommandController cC;
 	private IARDrone drone;
 	private OFVideo ofvideo;
@@ -195,20 +195,20 @@ public class PictureController {
 						qrDist.setText("duration: " + duration);
 						break;
 					case NUMPAD1:
-						OFC.blueMin -= 1;
-						System.out.println("Min: " + OFC.blueMin);
+						pictureProcessingHelper.blueMin -= 1;
+						System.out.println("Min: " + pictureProcessingHelper.blueMin);
 						break;
 					case NUMPAD2:
-						OFC.blueMin += 1;
-						System.out.println("Min: " + OFC.blueMin);
+						pictureProcessingHelper.blueMin += 1;
+						System.out.println("Min: " + pictureProcessingHelper.blueMin);
 						break;
 					case NUMPAD4:
-						OFC.blueMax -= 1;
-						System.out.println("Max: " + OFC.blueMax);
+						pictureProcessingHelper.blueMax -= 1;
+						System.out.println("Max: " + pictureProcessingHelper.blueMax);
 						break;
 					case NUMPAD5:
-						OFC.blueMax += 1;
-						System.out.println("Max: " + OFC.blueMax);
+						pictureProcessingHelper.blueMax += 1;
+						System.out.println("Max: " + pictureProcessingHelper.blueMax);
 						break;
 					case T:
 						cC.droneInterface.setBottomCamera();
@@ -351,16 +351,16 @@ public class PictureController {
 
 				switch (colorInt) {
 				case 1:
-					filteredMat = OFC.findContoursBlackMat(camMat);
+					filteredMat = pictureProcessingHelper.findContoursBlackMat(camMat);
 					break;
 				case 2:
-					filteredMat = OFC.findContoursRedMat(camMat);
+					filteredMat = pictureProcessingHelper.findContoursRedMat(camMat);
 					break;
 				case 3:
-					filteredMat = OFC.findContoursGreenMat(camMat);
+					filteredMat = pictureProcessingHelper.findContoursGreenMat(camMat);
 					break;
 				default:
-					filteredMat = OFC.findContoursBlueMat(camMat);
+					filteredMat = pictureProcessingHelper.findContoursBlueMat(camMat);
 
 					break;
 				}
@@ -391,8 +391,8 @@ public class PictureController {
 				Platform.runLater(new Runnable() {
 					@Override
 					public void run() {
-						qrCode.setText("QR Code Found: " + OFC.getQrCode());
-						qrDist.setText("Dist: " + OFC.getDistance());
+						qrCode.setText("QR Code Found: " + pictureProcessingHelper.getQrCode());
+						qrDist.setText("Dist: " + pictureProcessingHelper.getDistance());
 					}
 				});
 
@@ -405,7 +405,7 @@ public class PictureController {
 	}
 
 	public void showQr(Mat camMat) {
-		Mat qrMat = OFC.extractQRImage(camMat);
+		Mat qrMat = pictureProcessingHelper.extractQRImage(camMat);
 		BufferedImage bufferedImageQr = MatToBufferedImage(qrMat);
 		Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
 		mainFrame.setImage(imageQr);
@@ -415,10 +415,10 @@ public class PictureController {
 		Mat landing = mat;
 		int circles = 0;
 
-		boolean check = OFC.checkDecodedQR(mat);
+		boolean check = pictureProcessingHelper.checkDecodedQR(mat);
 		if (check) {
 
-			circles = OFC.myCircle(mat);
+			circles = pictureProcessingHelper.findCircles(mat);
 //			for(int i = 0; i < 4; ){
 				if (circles > 0) {
 					aboveLanding = true;
@@ -464,8 +464,8 @@ public class PictureController {
 	}
 
 	public void showPolygons(Mat camMat, Mat filteredMat) {
-		filteredMat = OFC.erodeAndDilate(filteredMat);
-		Mat polyImage = OFC.findPolygonsMat(camMat, filteredMat, 4);
+		filteredMat = pictureProcessingHelper.erodeAndDilate(filteredMat);
+		Mat polyImage = pictureProcessingHelper.findPolygonsMat(camMat, filteredMat, 4);
 
 		BufferedImage bufferedImage = MatToBufferedImage(polyImage);
 		Image imagePoly = SwingFXUtils.toFXImage(bufferedImage, null);
@@ -490,17 +490,6 @@ public class PictureController {
 
 		return newImg;
 
-	}
-
-	public IplImage grabFromCam(OpenCVFrameConverter.ToIplImage converter, FrameGrabber grabber) {
-		IplImage newImg = null;
-		try {
-			newImg = converter.convert(grabber.grab());
-		} catch (org.bytedeco.javacv.FrameGrabber.Exception e) {
-			e.printStackTrace();
-
-		}
-		return newImg;
 	}
 
 	public void trackBlack() {

@@ -58,7 +58,7 @@ public class LandSequence implements Runnable {
 		
 		//check during flight sequence
 		while (true) {
-			circles = OFC.myCircle(camMat);
+			circles = OFC.findCircles(camMat);
 			if (circles > 0) {
 				commandController.addCommand(Command.DOWN, 1000, 20);
 				sleep(2000);
@@ -82,7 +82,7 @@ public class LandSequence implements Runnable {
 		//LANDING sequence
 		while (true) {
 
-			circles = OFC.myCircle(camMat);
+			circles = OFC.findCircles(camMat);
 			if (circles > 0) {
 				commandController.addCommand(Command.DOWN, 1000, 20);
 				sleep(1000);

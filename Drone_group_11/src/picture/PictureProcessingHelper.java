@@ -758,7 +758,7 @@ public class PictureProcessingHelper {
 		return ratio - 1.43;
 	}
 
-	public int myCircle(Mat img) {
+	public int findCircles(Mat img) {
 
 		IplImage src = new IplImage(img);
 		IplImage gray = cvCreateImage(cvGetSize(src), 8, 1);
@@ -789,43 +789,7 @@ public class PictureProcessingHelper {
 
 		return circles.total();
 	}
-
-	// public Mat calcOptFlow(Mat prevImg, Mat img, Mat prevPts){
-	// Mat status = new Mat(), error = new Mat(), nextPts = new Mat(),
-	// goodPoints = new Mat();
-	// Mat pFrame = imread("image0.png");
-	// Mat cFrame = imread("image1.png");
-	// Mat pGray = new Mat();
-	// Mat cGray = new Mat();
-	//
-	// pFrame.convertTo(pGray, CV_32FC1);
-	// cFrame.convertTo(cGray, CV_32FC1);
-	// Mat Optical_Flow = new Mat();
-	//
-	// DenseOpticalFlow tvl1 = createOptFlow_DualTVL1();
-	// tvl1.calc(pGray, cGray, Optical_Flow);
-	//
-	// Mat OF = new Mat(pGray.rows(), pGray.cols(), CV_32FC1);
-	// FloatBuffer in = Optical_Flow.getFloatBuffer();
-	// FloatBuffer out = OF.getFloatBuffer();
-	//
-	// int height = pGray.rows();
-	// int width = pGray.cols();
-	//
-	// for(int y = 0; y < height; y++) {
-	// for(int x = 0; x < width; x++) {
-	// float xVelocity = in.get();
-	// float yVelocity = in.get();
-	// float pixelVelocity = (float)Math.sqrt(xVelocity*xVelocity +
-	// yVelocity*yVelocity);
-	// out.put(pixelVelocity);
-	// }
-	// }
-	// imwrite("OF.png", OF);
-	// return img;
-	//
-	//
-	// }
+	
 	public boolean isBlueTowerAhead(MatVector contours) {
 		return contours.size() > 200 ? true : false;
 	}

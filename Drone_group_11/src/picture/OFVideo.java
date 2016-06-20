@@ -28,7 +28,7 @@ public class OFVideo implements Runnable {
 	private Label qrCode;
 	private Label qrDist;
 	private BufferedImage arg0;
-	private PictureProcessingHelper OFC = new PictureProcessingHelper();
+	private PictureProcessingHelper pictureProcessingHelper = new PictureProcessingHelper();
 	private CommandController commandController;
 	private static boolean aboveLanding = false;
 	private static int circleCounter = 0;
@@ -77,19 +77,19 @@ public class OFVideo implements Runnable {
 
 				switch (PictureController.colorInt) {
 				case 1:
-					filteredImage = OFC.findContoursBlackMat(newImg);
+					filteredImage = pictureProcessingHelper.findContoursBlackMat(newImg);
 					break;
 				case 2:
-					filteredImage = OFC.findContoursRedMat(newImg);
+					filteredImage = pictureProcessingHelper.findContoursRedMat(newImg);
 					break;
 				case 3:
-					filteredImage = OFC.findContoursGreenMat(newImg);
+					filteredImage = pictureProcessingHelper.findContoursGreenMat(newImg);
 					BufferedImage bufferedImageCont = MatToBufferedImage(filteredImage);
 					Image imageCont = SwingFXUtils.toFXImage(bufferedImageCont, null);
 					bufferedframe.setImage(imageCont);
 					break;
 				default:
-					filteredImage = OFC.findContoursBlueMat(newImg);
+					filteredImage = pictureProcessingHelper.findContoursBlueMat(newImg);
 					break;
 				}
 
@@ -157,7 +157,7 @@ public class OFVideo implements Runnable {
 
 	public void showQr(Mat camMat) {
 
-		Mat qrMat = OFC.extractQRImage(camMat);
+		Mat qrMat = pictureProcessingHelper.extractQRImage(camMat);
 		BufferedImage bufferedImageQr = MatToBufferedImage(qrMat);
 		Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
 		mainFrame.setImage(imageQr);
@@ -175,10 +175,10 @@ public class OFVideo implements Runnable {
 		// }
 		// }
 
-		boolean check = OFC.checkDecodedQR(mat);
+		boolean check = pictureProcessingHelper.checkDecodedQR(mat);
 		if (check) {
 
-			circles = OFC.myCircle(mat);
+			circles = pictureProcessingHelper.findCircles(mat);
 //			for(int i = 0; i < 4; ){
 				if (circles > 0) {
 					aboveLanding = true;
@@ -220,22 +220,14 @@ public class OFVideo implements Runnable {
 		BufferedImage bufferedMatImage = MatToBufferedImage(filteredMat);
 		Image imageFilter = SwingFXUtils.toFXImage(bufferedMatImage, null);
 		mainFrame.setImage(imageFilter);
-
 	}
 
 	public void showPolygons(Mat camMat, Mat filteredMat) {
-		filteredMat = OFC.erodeAndDilate(filteredMat);
-		Mat polyImage = OFC.findPolygonsMat(camMat, filteredMat, 4);
+		filteredMat = pictureProcessingHelper.erodeAndDilate(filteredMat);
+		Mat polyImage = pictureProcessingHelper.findPolygonsMat(camMat, filteredMat, 4);
 		BufferedImage bufferedImage = MatToBufferedImage(polyImage);
 		Image imagePoly = SwingFXUtils.toFXImage(bufferedImage, null);
 		mainFrame.setImage(imagePoly);
-	}
-
-	public BufferedImage IplImageToBufferedImage(IplImage src) {
-		OpenCVFrameConverter.ToIplImage grabberConverter = new OpenCVFrameConverter.ToIplImage();
-		Java2DFrameConverter paintConverter = new Java2DFrameConverter();
-		Frame frame = grabberConverter.convert(src);
-		return paintConverter.getBufferedImage(frame, 1);
 	}
 
 	public BufferedImage MatToBufferedImage(Mat src) {
