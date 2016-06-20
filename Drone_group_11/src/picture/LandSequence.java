@@ -1,20 +1,16 @@
 package picture;
 
-import static org.bytedeco.javacpp.opencv_imgproc.minAreaRect;
-
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
-import org.bytedeco.javacpp.opencv_core.RotatedRect;
 
 import app.CommandController;
 import helper.Command;
 
 public class LandSequence implements Runnable {
 
-	private PictureProcessingHelper OFC = new PictureProcessingHelper();
+	private PictureProcessingHelper pictureProcessingHelper = new PictureProcessingHelper();
 	private CommandController commandController;
 	public boolean wallClose = false;
 	private Map<Integer, Integer> moveSet = new HashMap<>();
@@ -44,7 +40,7 @@ public class LandSequence implements Runnable {
 		System.out.println("HOVER");
 		commandController.droneInterface.hover();
 		while (code == null) {
-			code = OFC.scanQrCode(camMat);
+			code = pictureProcessingHelper.scanQrCode(camMat);
 			sleep(10);
 		}
 		System.out.println(code);
@@ -58,12 +54,12 @@ public class LandSequence implements Runnable {
 		
 		//check during flight sequence
 		while (true) {
-			circles = OFC.myCircle(camMat);
+			circles = pictureProcessingHelper.findCircles(camMat);
 			if (circles > 0) {
 				commandController.addCommand(Command.DOWN, 1000, 20);
 				sleep(2000);
 				 while (checkCode == null) {
-				 checkCode = OFC.scanQrCode(camMat);
+				 checkCode = pictureProcessingHelper.scanQrCode(camMat);
 				 sleep(10);
 				 }
 				commandController.addCommand(Command.UP, 1000, 17);
@@ -82,13 +78,13 @@ public class LandSequence implements Runnable {
 		//LANDING sequence
 		while (true) {
 
-			circles = OFC.myCircle(camMat);
+			circles = pictureProcessingHelper.findCircles(camMat);
 			if (circles > 0) {
 				commandController.addCommand(Command.DOWN, 1000, 20);
 				sleep(1000);
 			}
 
-			boolean check = OFC.checkDecodedQR(camMat);
+			boolean check = pictureProcessingHelper.checkDecodedQR(camMat);
 
 			if (check || circles > 0) {
 				commandController.droneInterface.land();
