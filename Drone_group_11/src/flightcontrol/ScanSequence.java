@@ -1,4 +1,4 @@
-package picture;
+package flightcontrol;
 
 import static org.bytedeco.javacpp.opencv_imgproc.contourArea;
 import static org.bytedeco.javacpp.opencv_imgproc.minAreaRect;
@@ -17,6 +17,9 @@ import org.bytedeco.javacpp.opencv_imgcodecs;
 import app.CommandController;
 import helper.Command;
 import helper.CustomPoint;
+import picture.OFVideo;
+import picture.PictureController;
+import picture.PictureProcessingHelper;
 
 public class ScanSequence implements Runnable {
 	private static final int MIN_HIT_COUNT = 6;

@@ -21,6 +21,7 @@ public class CustomPoint {
 	public CustomPoint(double x, double y) {
 		this.x = x;
 		this.y = y;
+		this.colour = Color.BLACK;
 	}
 	
 	public CustomPoint(double x, double y, Color colour) {

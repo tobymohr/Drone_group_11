@@ -1,4 +1,4 @@
-package picture;
+package flightcontrol;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -7,6 +7,9 @@ import org.bytedeco.javacpp.opencv_core.Mat;
 
 import app.CommandController;
 import helper.CustomPoint;
+import picture.OFVideo;
+import picture.PictureController;
+import picture.PictureProcessingHelper;
 
 public class DownScanSeq {
 

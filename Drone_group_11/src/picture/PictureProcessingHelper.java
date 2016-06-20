@@ -77,6 +77,7 @@ import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
 
 import coordinateSystem.Vector;
+import flightcontrol.ScanSequence;
 import helper.Circle;
 import helper.CustomPoint;
 import javafx.embed.swing.SwingFXUtils;

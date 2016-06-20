@@ -11,7 +11,11 @@ import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
 
 import app.CommandController;
 import de.yadrone.base.IARDrone;
+import flightcontrol.DownScanSeq;
 import flightcontrol.FlightControl;
+import flightcontrol.FlightControl2;
+import flightcontrol.LandSequence;
+import flightcontrol.ScanSequence;
 import helper.Command;
 import helper.CustomPoint;
 import javafx.application.Platform;
@@ -45,7 +49,7 @@ public class OFVideo implements Runnable {
 	private Label movelbl;
 	private Label coordinatFoundlbl;
 	private LandSequence landSeq;
-	private FlightControl fc;
+	private FlightControl2 fc2;
 	
 	
 	public OFVideo(ImageView mainFrame, Label coordinatFoundlbl, Label movelbl, Label qrCode,
@@ -62,7 +66,7 @@ public class OFVideo implements Runnable {
 		converter1 = new Java2DFrameConverter();
 		scanSequence = new ScanSequence(cC);
 		landSeq = new LandSequence(cC);
-		fc = new FlightControl(cC);
+		fc2 = new FlightControl2(cC);
 
 	}
 
@@ -132,28 +136,23 @@ public class OFVideo implements Runnable {
 					});
 					//TODO: sæt fc2 op
 					if (PictureController.shouldFlyControl) {
-						fc.setImage(newImg.clone());
-						
-					}
-					if (PictureController.shouldScan) {
-						scanSequence.setImage(newImg.clone());
-						imageChanged = true;
+						fc2.setImage(newImg.clone());
 						if (isFirst) {
-							new Thread(scanSequence).start();
+							new Thread(fc2).run();
 							isFirst = false;
 						}
+						imageChanged = true;
 					}
-//					if (PictureController.shouldScan) {
-//						if (isFirst) {
-//							downScanSeq = new DownScanSeq(newImg.clone(), commandController);
-//							downScanSeq.startThreads();
-//							isFirst = false;
-//						}
-//						downScanSeq.setImage(newImg.clone());
-//						imageChangedRed = true;
-//						imageChangedGreen = true;
-//					}
-
+					
+					if (PictureController.shouldScan) {
+						scanSequence.setImage(newImg);
+						if (isFirst) {
+							new Thread(scanSequence).run();
+							isFirst = false;
+						}
+						imageChanged = true;
+					
+					}
 				} else {
 					Thread.sleep(50);
 				}

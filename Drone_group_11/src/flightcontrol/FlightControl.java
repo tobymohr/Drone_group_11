@@ -12,7 +12,6 @@ import org.bytedeco.javacpp.opencv_core.RotatedRect;
 import app.CommandController;
 import de.yadrone.base.command.HoverCommand;
 import helper.Command;
-import picture.DownScanSeq;
 import picture.PictureProcessingHelper;
 
 public class FlightControl implements Runnable {

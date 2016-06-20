@@ -1,4 +1,4 @@
-package picture;
+package flightcontrol;
 
 import static org.bytedeco.javacpp.opencv_imgproc.minAreaRect;
 
@@ -11,6 +11,7 @@ import org.bytedeco.javacpp.opencv_core.RotatedRect;
 
 import app.CommandController;
 import helper.Command;
+import picture.PictureProcessingHelper;
 
 public class LandSequence implements Runnable {
 
