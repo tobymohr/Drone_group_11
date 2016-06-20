@@ -147,7 +147,7 @@ public class OFVideo implements Runnable {
 					if (PictureController.shouldScan) {
 						scanSequence.setImage(newImg);
 						if (isFirst) {
-							new Thread(scanSequence).run();
+							new Thread(scanSequence).start();
 							isFirst = false;
 						}
 						imageChanged = true;
