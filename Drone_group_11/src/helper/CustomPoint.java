@@ -137,27 +137,26 @@ public class CustomPoint {
 		return parseQRText("W0" + wall + ".0" + coordinate);
 	}
 	
-	public static CustomPoint horiFlipCoords(CustomPoint customPoint){
-		double distance = Math.sqrt(customPoint.getX()*customPoint.getX() + customPoint.getY()*customPoint.getY());
+	public void horiFlipCoords(){
+		double distance = Math.sqrt(this.getX()*this.getX() + this.getY()*this.getY());
 		CustomPoint movedPoint = new CustomPoint();
-		movedPoint.setX(customPoint.getX() - distance);
-		movedPoint.setY(customPoint.getY() - distance);
+		movedPoint.setX(this.getX() - distance);
+		movedPoint.setY(this.getY() - distance);
 		movedPoint.setX(movedPoint.getX()*-1);
-		customPoint.setX(movedPoint.getX() + distance);
-		customPoint.setY(movedPoint.getY() + distance);
-		return customPoint;
+		this.setX(movedPoint.getX() + distance);
+		this.setY(movedPoint.getY() + distance);
 		
 	}
 	
-	public static CustomPoint vertFlipCoords(CustomPoint customPoint){
-		double distance = Math.sqrt(customPoint.getX()*customPoint.getX() + customPoint.getY()*customPoint.getY());
+	public void vertFlipCoords(){
+		double distance = Math.sqrt(this.getX()*this.getX() + this.getY()*this.getY());
 		CustomPoint movedPoint = new CustomPoint();
-		movedPoint.setX(customPoint.getX() - distance);
-		movedPoint.setY(customPoint.getY() - distance);
+		movedPoint.setX(this.getX() - distance);
+		movedPoint.setY(this.getY() - distance);
 		movedPoint.setY(movedPoint.getY()*-1);
-		customPoint.setX(movedPoint.getX() + distance);
-		customPoint.setY(movedPoint.getY() + distance);
-		return customPoint;
+		this.setX(movedPoint.getX() + distance);
+		this.setY(movedPoint.getY() + distance);
+
 		
 	}
 }

@@ -30,8 +30,8 @@ public class DownScanSeq implements Runnable {
 	private int maxSize = 0;
 
 	public DownScanSeq(CommandController commandController, Mat mat) {
-		greenDone = false;
-		redDone = false;
+		greenDone = true;
+		redDone = true;
 		pictureProcessingHelper = new PictureProcessingHelper();
 		camMat = mat;
 		this.commandController = commandController;
@@ -49,10 +49,9 @@ public class DownScanSeq implements Runnable {
 	}
 
 	public void run() {
-		// commandController.droneInterface.setBottomCamera();
+		 commandController.droneInterface.setBottomCamera();
 		do {
 			System.out.println("before green");
-			System.out.println(greenDone + " red: " + redDone);
 			scanGreen();
 			System.out.println("after green");
 			scanRed();
@@ -68,12 +67,15 @@ public class DownScanSeq implements Runnable {
 		PictureController.addCords(calculateScanResults(redResults), Color.RED);
 		PictureController.addCords(calculateScanResults(greenResults),
 				Color.GREEN);
-		PictureController.addCord(new CustomPoint(460 + 30, 107 + 30));
-		PictureController.addCord(CustomPoint.horiFlipCoords(new CustomPoint(
-				460 + 30, 107 + 30)));
-		PictureController.addCord(CustomPoint.vertFlipCoords(new CustomPoint(
-				460 + 30, 107 + 30)));
-		
+//		CustomPoint flipPoint = new CustomPoint(460/PIXELS_PER_CM_X+10, 107/PIXELS_PER_CM_Y+10);
+//		CustomPoint flipPoint2 = new CustomPoint(460/PIXELS_PER_CM_X+10, 107/PIXELS_PER_CM_Y+10);
+//		PictureController.addCord(flipPoint);
+//		flipPoint.horiFlipCoords();
+//	
+//		PictureController.addCord(flipPoint);
+//		flipPoint2.vertFlipCoords();
+//		
+//		PictureController.addCord(flipPoint2);
 		
 		// commandController.droneInterface.setFrontCamera();
 
@@ -81,7 +83,6 @@ public class DownScanSeq implements Runnable {
 
 	public void scanGreen() {
 		while (!greenDone) {
-			System.out.println("In while !green done. ImagechangedGreen: " + OFVideo.imageChangedGreen);
 			if (OFVideo.imageChangedGreen) {
 				scanGreenSeq();
 			} else {
@@ -99,7 +100,6 @@ public class DownScanSeq implements Runnable {
 		OFVideo.imageChangedGreen = false;
 		greenMat = pictureProcessingHelper.findContoursGreenMat(camMat);
 		greenResults.add(pictureProcessingHelper.findObjectsMat(greenMat));
-		System.out.println("AM I HERE?!");
 		// todo make done constraints
 		if (greenResults.size() == 100) {
 			greenDone = true;
