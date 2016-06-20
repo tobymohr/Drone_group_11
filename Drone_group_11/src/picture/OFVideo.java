@@ -81,9 +81,9 @@ public class OFVideo implements Runnable {
 					break;
 				case 3:
 					filteredImage = pictureProcessingHelper.findContoursGreenMat(newImg);
-					BufferedImage bufferedImageCont = MatToBufferedImage(filteredImage);
-					Image imageCont = SwingFXUtils.toFXImage(bufferedImageCont, null);
-					bufferedframe.setImage(imageCont);
+//					BufferedImage bufferedImageCont = MatToBufferedImage(filteredImage);
+//					Image imageCont = SwingFXUtils.toFXImage(bufferedImageCont, null);
+//					bufferedframe.setImage(imageCont);
 					break;
 				default:
 					filteredImage = pictureProcessingHelper.findContoursBlueMat(newImg);
@@ -137,8 +137,9 @@ public class OFVideo implements Runnable {
 							isFirst = false;
 						}
 						downScanSeq.setImage(newImg.clone());
-						imageChangedRed = true;
 						imageChangedGreen = true;
+						imageChangedRed = true;
+						
 					}
 					if (PictureController.shouldLand) {
 						landSeq.setImage(newImg.clone());

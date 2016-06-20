@@ -276,7 +276,7 @@ public class PictureController {
 		});
 		drone.start();
 		cC = new CommandController(drone);
-		drone.getCommandManager().setVideoCodec(VideoCodec.H264_720P);
+		drone.getCommandManager().setVideoCodec(VideoCodec.H264_360P);
 //		cC.droneInterface.setFrontCamera();
 		 cC.droneInterface.setBottomCamera();
 		new Thread(cC).start();

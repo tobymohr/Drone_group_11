@@ -79,6 +79,7 @@ import helper.CustomPoint;
 
 public class PictureProcessingHelper {
 
+	private static final int MAX_CONTOUR_AREA = 450;
 	private OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
 	private double distance = 500;
 	private Java2DFrameConverter converter1 = new Java2DFrameConverter();
@@ -131,10 +132,10 @@ public class PictureProcessingHelper {
 		Mat mathueUpper = new Mat(img.arraySize(), CV_8U, 1);
 		Mat imgbin3 = new Mat(img.arraySize(), CV_8U, 3);
 		cvtColor(img, mathsv3, CV_BGR2HSV);
-		Mat scalar1 = new Mat(new Scalar(0, 100, 100, 0));
-		Mat scalar2 = new Mat(new Scalar(10, 255, 255, 0));
-		Mat scalar3 = new Mat(new Scalar(160, 100, 100, 0));
-		Mat scalar4 = new Mat(new Scalar(179, 255, 255, 0));
+		Mat scalar1 = new Mat(new Scalar(0, 180, 60, 0));
+		Mat scalar2 = new Mat(new Scalar(23, 255, 255, 0));
+		Mat scalar3 = new Mat(new Scalar(158, 180, 60, 0));
+		Mat scalar4 = new Mat(new Scalar(180, 255, 255, 0));
 		// Two ranges to get full color spectrum
 		inRange(mathsv3, scalar1, scalar2, mathueLower);
 		inRange(mathsv3, scalar3, scalar4, mathueUpper);
@@ -146,8 +147,8 @@ public class PictureProcessingHelper {
 		Mat imghsv = new Mat(img.arraySize(), 8, 3);
 		Mat imgbin = new Mat(img.arraySize(), 8, 1);
 		cvtColor(img, imghsv, CV_BGR2HSV);
-		Mat scalar1 = new Mat(new Scalar(55, 72, 41, 0));
-		Mat scalar2 = new Mat(new Scalar(77, 88, 192, 0));
+		Mat scalar1 = new Mat(new Scalar(48, 125, 0, 0));
+		Mat scalar2 = new Mat(new Scalar(83, 255, 100, 0));
 		// Two ranges to get full color spectrum
 		inRange(imghsv, scalar1, scalar2, imgbin);
 		return imgbin;
@@ -160,7 +161,7 @@ public class PictureProcessingHelper {
 		MatVector contour = new MatVector();
 		findContours(filteredImage, contour, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
 		for (int i = 0; i < contour.size(); i++) {
-			if (contourArea(contour.get(i)) > 1000) {
+			if (contourArea(contour.get(i)) > MAX_CONTOUR_AREA) {
 				Point2f centerPoint = minAreaRect(contour.get(i)).center();
 				opencv_core.Point p = new opencv_core.Point((int) centerPoint.x(), (int) centerPoint.y());
 
