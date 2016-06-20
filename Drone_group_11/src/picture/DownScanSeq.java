@@ -92,7 +92,7 @@ public class DownScanSeq implements Runnable {
 		greenResults.add(pictureProcessingHelper.findObjectsMat(greenMat));
 		
 		// todo make done constraints
-		if (greenResults.size() == 50) {
+		if (greenResults.size() == 100) {
 			greenDone = true;
 		}
 		return greenDone;
@@ -120,7 +120,7 @@ public class DownScanSeq implements Runnable {
 		redResults.add(pictureProcessingHelper.findObjectsMat(redMat));
 
 		// todo make done constraints
-		if (redResults.size() == 50) {
+		if (redResults.size() == 100) {
 			redDone = true;
 		}
 		return redDone;
@@ -154,7 +154,7 @@ public class DownScanSeq implements Runnable {
 		}
 		for(CustomPoint point : subSetResult.get(subSetResult.size()-1)){
 			System.out.println("x: " + point.getX() + " y: " + point.getY());
-//			PictureController.setPlacement(new CustomPoint(460,107)); 
+			PictureController.setPlacement(new CustomPoint(460,107)); 
 			point.setX(CENTER_OF_DRONE_X - point.getX()/PIXELS_PER_CM_X);
 			point.setY(CENTER_OF_DRONE_Y - point.getY()/PIXELS_PER_CM_Y);
 			System.out.println("xnew: " + point.getX() + " ynew: " + point.getY());}
