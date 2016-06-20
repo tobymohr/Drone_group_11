@@ -65,7 +65,13 @@ public class Map extends JFrame {
 		}
 		repaint();
 	}
-	
+	public void addCords(ArrayList<CustomPoint> tempList, Color color) {
+		for (CustomPoint cord : tempList) {
+			cords.add(
+					new CustomPoint(cord.getX() + placement.getX(), cord.getY() + placement.getY(), color));
+		}
+		repaint();
+	}
 	public CustomPoint getPlacement() {
 		return placement;
 	}

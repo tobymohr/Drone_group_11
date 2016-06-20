@@ -1,5 +1,6 @@
 package picture;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -29,7 +30,6 @@ public class DownScanSeq implements Runnable {
 	private ArrayList<ArrayList<CustomPoint>> subSetResult;
 	private CommandController commandController;
 	private int maxSize = 0;
-	private int counter = 0;
 	
 	
 
@@ -66,8 +66,8 @@ public class DownScanSeq implements Runnable {
 		System.out.println("out");
 		System.out.println(redResults.size());
 //		System.out.println(greenResults.size());
-		PictureController.addCords(calculateScanResults(redResults));
-//		PictureController.addCords(calculateScanResults(greenResults));
+		PictureController.addCords(calculateScanResults(redResults), Color.RED);
+//		PictureController.addCords(calculateScanResults(greenResults), Color.GREEN);
 //		commandController.droneInterface.setFrontCamera();
 
 	}
@@ -93,7 +93,7 @@ public class DownScanSeq implements Runnable {
 		greenResults.add(PPH.findObjectsMat(greenMat));
 		
 		// todo make done constraints
-		if (greenResults.size() == 100) {
+		if (greenResults.size() == 50) {
 			greenDone = true;
 		}
 		return greenDone;
@@ -121,7 +121,7 @@ public class DownScanSeq implements Runnable {
 		redResults.add(PPH.findObjectsMat(redMat));
 
 		// todo make done constraints
-		if (redResults.size() == 100) {
+		if (redResults.size() == 50) {
 			redDone = true;
 		}
 		return redDone;
@@ -155,9 +155,9 @@ public class DownScanSeq implements Runnable {
 		}
 		for(CustomPoint point : subSetResult.get(subSetResult.size()-1)){
 			System.out.println("x: " + point.getX() + " y: " + point.getY());
-			PictureController.setPlacement(new CustomPoint(460,107)); 
+//			PictureController.setPlacement(new CustomPoint(460,107)); 
 			point.setX(CENTER_OF_DRONE_X - point.getX()/PIXELS_PER_CM_X);
-			point.setY(CENTER_OF_DRONE_Y + point.getY()/PIXELS_PER_CM_Y);
+			point.setY(CENTER_OF_DRONE_Y - point.getY()/PIXELS_PER_CM_Y);
 			System.out.println("xnew: " + point.getX() + " ynew: " + point.getY());}
 			
 		return subSetResult.get(subSetResult.size()-1);
