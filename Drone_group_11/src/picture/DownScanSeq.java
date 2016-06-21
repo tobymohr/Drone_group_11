@@ -25,7 +25,7 @@ public class DownScanSeq implements Runnable {
 	private Mat camMat2;
 	private ArrayList<ArrayList<CustomPoint>> greenResults = new ArrayList<ArrayList<CustomPoint>>();
 	private ArrayList<ArrayList<CustomPoint>> redResults = new ArrayList<ArrayList<CustomPoint>>();
-//	private ArrayList<ArrayList<CustomPoint>> subSetResult;
+	// private ArrayList<ArrayList<CustomPoint>> subSetResult;
 	private CommandController commandController;
 	public static boolean flyingEast = true;
 	private int maxSize = 0;
@@ -55,10 +55,6 @@ public class DownScanSeq implements Runnable {
 			System.out.println("Start green scan");
 			long start;
 			long elapsedTime;
-			greenDone = false;
-			redDone = false;
-//			redResults.clear();
-//			greenResults.clear();
 			start = System.currentTimeMillis();
 			scanRedGreen();
 			elapsedTime = System.currentTimeMillis() - start;
@@ -74,16 +70,6 @@ public class DownScanSeq implements Runnable {
 		PictureController.addCords(calculateScanResults(redResults), Color.RED);
 		PictureController.addCords(calculateScanResults(greenResults),
 				Color.GREEN);
-		CustomPoint flipPoint1 = new CustomPoint(460 + 10, 107 + 10);
-		CustomPoint flipPoint2 = new CustomPoint(460 + 10, 107 + 10);
-		CustomPoint flipPoint3 = new CustomPoint(460 + 10, 107 + 10);
-		PictureController.addCord(flipPoint1);
-		flipPoint2.horiFlipCoords();
-
-		PictureController.addCord(flipPoint2);
-		flipPoint3.vertFlipCoords();
-
-		PictureController.addCord(flipPoint3);
 
 		// commandController.droneInterface.setFrontCamera();
 
@@ -201,13 +187,9 @@ public class DownScanSeq implements Runnable {
 						+ point.getY());
 				if (flyingEast) {
 					// TODO: flip Vertical
-//					point.setY(point.getX() - Math.abs(point.getX() - PictureController.getPlacement().getX()));
 				} else {
-					//TODO: flip horizontal
-//					point.setX(point.getY() - (point.getY() - PictureController.getPlacement().getY()));
+					// TODO: flip horizontal
 				}
-//				System.out.println("x_new: " + point.getX() + " y_new: "
-//						+ point.getY());
 			}
 
 			return subSetResult.get(subSetResult.size() - 1);
