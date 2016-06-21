@@ -138,13 +138,6 @@ public class CustomPoint {
 	}
 	
 	public void horiFlipCoords(){
-		double distance = Math.sqrt(this.getX()*this.getX() + this.getY()*this.getY());
-		CustomPoint movedPoint = new CustomPoint();
-		movedPoint.setX(this.getX() - distance);
-		movedPoint.setY(this.getY() - distance);
-		movedPoint.setX(movedPoint.getX()*-1);
-		this.setX(movedPoint.getX() + distance);
-		this.setY(movedPoint.getY() + distance);
 		
 	}
 	

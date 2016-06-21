@@ -3,6 +3,7 @@ package picture;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Timer;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
 
@@ -24,14 +25,14 @@ public class DownScanSeq implements Runnable {
 	private Mat camMat2;
 	private ArrayList<ArrayList<CustomPoint>> greenResults = new ArrayList<ArrayList<CustomPoint>>();
 	private ArrayList<ArrayList<CustomPoint>> redResults = new ArrayList<ArrayList<CustomPoint>>();
-	private ArrayList<ArrayList<CustomPoint>> subSetResult;
+//	private ArrayList<ArrayList<CustomPoint>> subSetResult;
 	private CommandController commandController;
-	public static boolean flyingEast;
+	public static boolean flyingEast = true;
 	private int maxSize = 0;
 
 	public DownScanSeq(CommandController commandController, Mat mat) {
-		greenDone = true;
-		redDone = true;
+		greenDone = false;
+		redDone = false;
 		pictureProcessingHelper = new PictureProcessingHelper();
 		camMat = mat;
 		this.commandController = commandController;
@@ -49,36 +50,63 @@ public class DownScanSeq implements Runnable {
 	}
 
 	public void run() {
-		 commandController.droneInterface.setBottomCamera();
+		// commandController.droneInterface.setBottomCamera();
 		do {
-			System.out.println("before green");
-			scanGreen();
-			System.out.println("after green");
-			scanRed();
-			System.out.println("after red");
+			System.out.println("Start green scan");
+			long start;
+			long elapsedTime;
+			greenDone = false;
+			redDone = false;
+//			redResults.clear();
+//			greenResults.clear();
+			start = System.currentTimeMillis();
+			scanRedGreen();
+			elapsedTime = System.currentTimeMillis() - start;
+			System.out.println("Time for green and green scan: " + elapsedTime
+					+ " ms");
 		} while (!greenDone && !redDone);
 		greenDone = false;
 		redDone = false;
 
-		System.out.println("out");
 		System.out.println(redResults.size());
 		System.out.println(greenResults.size());
 		PictureController.setPlacement(new CustomPoint(460, 107));
 		PictureController.addCords(calculateScanResults(redResults), Color.RED);
 		PictureController.addCords(calculateScanResults(greenResults),
 				Color.GREEN);
-//		CustomPoint flipPoint = new CustomPoint(460/PIXELS_PER_CM_X+10, 107/PIXELS_PER_CM_Y+10);
-//		CustomPoint flipPoint2 = new CustomPoint(460/PIXELS_PER_CM_X+10, 107/PIXELS_PER_CM_Y+10);
-//		PictureController.addCord(flipPoint);
-//		flipPoint.horiFlipCoords();
-//	
-//		PictureController.addCord(flipPoint);
-//		flipPoint2.vertFlipCoords();
-//		
-//		PictureController.addCord(flipPoint2);
-		
+		CustomPoint flipPoint1 = new CustomPoint(460 + 10, 107 + 10);
+		CustomPoint flipPoint2 = new CustomPoint(460 + 10, 107 + 10);
+		CustomPoint flipPoint3 = new CustomPoint(460 + 10, 107 + 10);
+		PictureController.addCord(flipPoint1);
+		flipPoint2.horiFlipCoords();
+
+		PictureController.addCord(flipPoint2);
+		flipPoint3.vertFlipCoords();
+
+		PictureController.addCord(flipPoint3);
+
 		// commandController.droneInterface.setFrontCamera();
 
+	}
+
+	private void scanRedGreen() {
+
+		while (!(redResults.size() == 100 && greenResults.size() == 100)) {
+			if (OFVideo.imageChanged) {
+				OFVideo.imageChanged = false;
+
+				Mat objectsGreen = pictureProcessingHelper
+						.findContoursGreenMat(camMat.clone());
+				Mat objectsRed = pictureProcessingHelper
+						.findContoursRedMat(camMat.clone());
+				greenResults.add(pictureProcessingHelper
+						.findObjectsMat(objectsGreen));
+				redResults.add(pictureProcessingHelper
+						.findObjectsMat(objectsRed));
+			}
+		}
+		greenDone = true;
+		redDone = true;
 	}
 
 	public void scanGreen() {
@@ -136,6 +164,7 @@ public class DownScanSeq implements Runnable {
 
 	public ArrayList<CustomPoint> calculateScanResults(
 			ArrayList<ArrayList<CustomPoint>> results) {
+		maxSize = 0;
 		HashMap<Integer, Integer> map = new HashMap<Integer, Integer>();
 		// subSetResult.clear();
 		for (ArrayList<CustomPoint> points : results) {
@@ -155,7 +184,7 @@ public class DownScanSeq implements Runnable {
 			}
 		}
 		System.out.println(maxSize);
-		subSetResult = new ArrayList<ArrayList<CustomPoint>>();
+		ArrayList<ArrayList<CustomPoint>> subSetResult = new ArrayList<ArrayList<CustomPoint>>();
 		for (ArrayList<CustomPoint> points : results) {
 			if (points.size() == maxSize)
 				subSetResult.add(points);
@@ -165,16 +194,22 @@ public class DownScanSeq implements Runnable {
 				System.out
 						.println("x: " + point.getX() + " y: " + point.getY());
 
-				if (flyingEast) {
-
-				} else {
-
-				}
 				point.setX(CENTER_OF_DRONE_X - point.getX() / PIXELS_PER_CM_X);
 				point.setY(CENTER_OF_DRONE_Y - point.getY() / PIXELS_PER_CM_Y);
+
 				System.out.println("x_new: " + point.getX() + " y_new: "
 						+ point.getY());
+				if (flyingEast) {
+					// TODO: flip Vertical
+//					point.setY(point.getX() - Math.abs(point.getX() - PictureController.getPlacement().getX()));
+				} else {
+					//TODO: flip horizontal
+//					point.setX(point.getY() - (point.getY() - PictureController.getPlacement().getY()));
+				}
+//				System.out.println("x_new: " + point.getX() + " y_new: "
+//						+ point.getY());
 			}
+
 			return subSetResult.get(subSetResult.size() - 1);
 		}
 

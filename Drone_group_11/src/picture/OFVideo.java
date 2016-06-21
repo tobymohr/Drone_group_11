@@ -137,6 +137,7 @@ public class OFVideo implements Runnable {
 							isFirst = false;
 						}
 						downScanSeq.setImage(newImg.clone());
+						imageChanged = true;
 						imageChangedGreen = true;
 						imageChangedRed = true;
 						

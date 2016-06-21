@@ -171,6 +171,26 @@ public class PictureProcessingHelper {
 		}
 		return results;
 	}
+	
+	public ArrayList<CustomPoint> findObjectsMatNew(Mat filteredImage) {
+		ArrayList<CustomPoint> results = new ArrayList<>();;
+		MatVector contours = new MatVector();
+		Mat hierarchy = new Mat();
+		findContours(filteredImage, contours, hierarchy, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
+		for (int i = 0; i < contours.size(); i++) {
+//			if(contourArea(contour.get(i)) > 50){
+//				System.out.println(contourArea(contour.get(i)));
+//			}
+			if (contourArea(contours.get(i)) > MAX_CONTOUR_AREA) {
+				Point2f centerPoint = minAreaRect(contours.get(i)).center();
+				opencv_core.Point p = new opencv_core.Point((int) centerPoint.x(), (int) centerPoint.y());
+
+				results.add(new CustomPoint(p.x(), p.y()));
+				line(filteredImage, p, p, new Scalar(255, 0, 0, 0), 16, CV_AA, 0);
+			}
+		}
+		return results;
+	}
 
 	public Mat warpImage(Mat crop, RotatedRect rect) {
 		vertices = new Point2f(4);
