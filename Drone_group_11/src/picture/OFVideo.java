@@ -138,7 +138,7 @@ public class OFVideo implements Runnable {
 					if (PictureController.shouldFlyControl) {
 						fc2.setImage(newImg.clone());
 						if (isFirst) {
-							new Thread(fc2).run();
+							new Thread(fc2).start();
 							isFirst = false;
 						}
 						imageChanged = true;

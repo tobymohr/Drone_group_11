@@ -14,5 +14,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/YaDroneZxing"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/dronez"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Yadrone"/>
+	<classpathentry kind="lib" path="C:/Users/Toby/Dropbox/Gruppeting/CDIO-Projekt/yadrone_032.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/YaDrones"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

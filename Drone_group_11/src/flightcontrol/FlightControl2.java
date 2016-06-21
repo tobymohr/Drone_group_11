@@ -11,12 +11,12 @@ import picture.PictureController;
 import picture.PictureProcessingHelper;
 
 public class FlightControl2 implements Runnable {
-	private static final int CHUNK_SIZE_Y = 55;
-	private static final int MAX_Y_CORD = 1010;
-	private static final int MIN_Y_CORD = 60;
-	private static final int MAX_X_CORD = 847;
-	private static final int MIN_X_CORD = 80;
-	private static final int CHUNK_SIZE_X = MAX_X_CORD / 6;
+	private static final int CHUNK_SIZE_Y = 80;
+	public static final int MAX_Y_CORD = 950;
+	public static final int MIN_Y_CORD = 220;
+	public static final int MAX_X_CORD = 847;
+	public static final int MIN_X_CORD = 80;
+	public static final int CHUNK_SIZE_X = MAX_X_CORD / 6;
 	
 	private MoveHelper moveHelper;
 	private PictureProcessingHelper pictureProcessingHelper = new PictureProcessingHelper();
@@ -39,8 +39,8 @@ public class FlightControl2 implements Runnable {
 
 	@Override
 	public void run() {
-		populateMoves();
 		PictureController.setPlacement(new CustomPoint(0, 0));
+		populateMoves();
 		commandController.droneInterface.takeOff();
 
 		sleepThread(2000);
@@ -48,23 +48,61 @@ public class FlightControl2 implements Runnable {
 		commandController.droneInterface.hover();
 		sleepThread(2000);
 		System.out.println("UP");
-		commandController.addCommand(Command.UP, 2750, 30);
-		sleepThread(3750);
+		commandController.addCommand(Command.UP, 400, 100);
 		PictureController.setPlacement(new CustomPoint(847, 50));
 		flyLaneOne();
+//		commandController.addCommand(Command.LEFT, MoveHelper.FIELD_DURATION , MoveHelper.FIELD_SPEED);
+//		flyLaneTwo();
+//		commandController.addCommand(Command.RIGHT, MoveHelper.FIELD_DURATION , MoveHelper.FIELD_SPEED);
+//		flyLaneThree();
+//		System.out.println("WON THE CHALLENGE. SO GUT SO NICE, FUCK RØVKJÆR");
+		
 	}
 	
 	private void flyLaneOne(){
 //		downScan.scanForCubes();
 		//TODO LANDING FIS
+		boolean backwards = true;
 		for (CustomPoint point : moves.get(1)) {
 			System.out.println("MOVE TO: " + point.toString());
-			moveHelper.moveDroneToPlacement(point, "W00.04");
+//			moveHelper.moveDroneToPlacement(point, "W02.00");
 //			downScan.scanForCubes();
+			backwards = moveHelper.moveOneChunk(backwards, point.getY(), "W02.02", "W00.02");
 			//TODO LANDING FIS
 		}
 		System.out.println("DONE");
 	}
+	
+	private void flyLaneTwo(){
+//		downScan.scanForCubes();
+		//TODO LANDING FIS
+		boolean backwards = true;
+		for (CustomPoint point : moves.get(2)) {
+			System.out.println("MOVE TO: " + point.toString());
+			backwards = moveHelper.moveOneChunk(backwards, point.getY(), "WWW", "LOL");
+//			downScan.scanForCubes();
+			
+			//TODO LANDING FIS
+		}
+		moveHelper.backwards = true;
+		System.out.println("DONE");
+	}
+	
+	private void flyLaneThree(){
+//		downScan.scanForCubes();
+		//TODO LANDING FIS
+		for (CustomPoint point : moves.get(2)) {
+			System.out.println("MOVE TO: " + point.toString());
+			moveHelper.moveDroneToPlacement(point, "W02.00");
+//			downScan.scanForCubes();
+			
+			//TODO LANDING FIS
+		}
+		moveHelper.backwards = true;
+		System.out.println("DONE");
+	}
+	
+	
 
 	
 	private void sleepThread(int duration) {
@@ -112,5 +150,11 @@ public class FlightControl2 implements Runnable {
 			tempList6.add(new CustomPoint(MAX_X_CORD - CHUNK_SIZE_X * 5, j));
 		}
 		moves.put(6, tempList6);
+		PictureController.addCords(tempList);
+		PictureController.addCords(tempList2);
+		PictureController.addCords(tempList3);
+		PictureController.addCords(tempList4);
+		PictureController.addCords(tempList5);
+		PictureController.addCords(tempList6);
 	}
 }

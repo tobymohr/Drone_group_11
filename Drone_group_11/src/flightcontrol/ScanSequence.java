@@ -22,6 +22,7 @@ import picture.PictureController;
 import picture.PictureProcessingHelper;
 
 public class ScanSequence implements Runnable {
+	
 	private static final int MIN_HIT_COUNT = 6;
 	private static final int FORWARD_TIME_2 = 800;
 	private static final int BACKWARD_TIME = 1500;
@@ -29,7 +30,7 @@ public class ScanSequence implements Runnable {
 	private static final int STRAFE_TIME = 800;
 	private static final int STRAFE_SPEED = 7;
 	private static final int SPIN_TIME = 500;
-	private static final int SPIN_SPEED = 5;
+	private static final int SPIN_SPEED = 20;
 	private static final int FORWARD_TIME = 800;
 	private static final int FORWARD_SPEED = 7;
 	private static final int ROTATE_TIME = 1000;
@@ -118,7 +119,7 @@ public class ScanSequence implements Runnable {
 		frameCount = 0;
 
 		while (moveToStart) {
-			moveDroneToPlacement(new CustomPoint(847, 50));
+			moveDroneToPlacement(new CustomPoint(847, FlightControl2.MIN_Y_CORD));
 		}
 		System.out.println("START THE CUDE SEQUENCE");
 

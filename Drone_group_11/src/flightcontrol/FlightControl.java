@@ -67,7 +67,7 @@ public class FlightControl implements Runnable {
 		commandController.droneInterface.setFrontCamera();
 		// TODO Ensure centered on the start QR (W02.00)
 		// Rotate 180 degrees
-//		commandController.addCommand(Command.ROTATELEFT, 2000, 90);
+//		
 //		sleepThread(2500);
 		commandController.droneInterface.hover();
 		sleepThread(500);
