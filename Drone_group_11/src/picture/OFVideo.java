@@ -9,7 +9,14 @@ import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
 
 import app.CommandController;
+import de.yadrone.base.IARDrone;
+import flightcontrol.DownScanSeq;
+import flightcontrol.FlightControl;
+import flightcontrol.FlightControl2;
+import flightcontrol.LandSequence;
+import flightcontrol.ScanSequence;
 import helper.Command;
+import helper.CustomPoint;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.control.Label;
@@ -41,6 +48,8 @@ public class OFVideo implements Runnable {
 	private Label movelbl;
 	private Label coordinatFoundlbl;
 	private LandSequence landSeq;
+	private FlightControl2 fc2;
+	
 	
 	public OFVideo(ImageView mainFrame, Label coordinatFoundlbl, Label movelbl, Label qrCode,
 			Label qrDist, BufferedImage arg0, CommandController cC, ImageView bufferedframe) {
@@ -56,6 +65,8 @@ public class OFVideo implements Runnable {
 		converter1 = new Java2DFrameConverter();
 		scanSequence = new ScanSequence(cC);
 		landSeq = new LandSequence(cC);
+		fc2 = new FlightControl2(cC);
+
 	}
 
 	public void setArg0(BufferedImage arg0) {
@@ -122,41 +133,52 @@ public class OFVideo implements Runnable {
 							
 						}
 					});
-					if (PictureController.shouldScan) {
-						scanSequence.setImage(newImg.clone());
+					//TODO: sæt fc2 op
+					if (PictureController.shouldFlyControl) {
+						fc2.setImage(newImg.clone());
+						if (isFirst) {
+							new Thread(fc2).start();
+							isFirst = false;
+						}
 						imageChanged = true;
+					}
+					
+					if (PictureController.shouldScan) {
+						scanSequence.setImage(newImg);
 						if (isFirst) {
 							new Thread(scanSequence).start();
 							isFirst = false;
 						}
-					}
-					if (PictureController.shouldFlyControl) {
-						if (isFirst) {
-							downScanSeq = new DownScanSeq(commandController, newImg.clone());
-							new Thread(downScanSeq).start();
-							isFirst = false;
-						}
-						downScanSeq.setImage(newImg.clone());
 						imageChanged = true;
-						imageChangedGreen = true;
-						imageChangedRed = true;
-						
+					
 					}
-					if (PictureController.shouldLand) {
-						landSeq.setImage(newImg.clone());
-						imageChanged = true;
-						if (isFirst) {
-							new Thread(landSeq).start();
-							isFirst = false;
-						}
-					}
+//					if (PictureController.shouldFlyControl) {
+//						if (isFirst) {
+//							downScanSeq = new DownScanSeq(commandController, newImg.clone());
+//							new Thread(downScanSeq).start();
+//							isFirst = false;
+//						}
+//						downScanSeq.setImage(newImg.clone());
+//						imageChanged = true;
+//						imageChangedGreen = true;
+//						imageChangedRed = true;
+//						
+//					}
+//					if (PictureController.shouldLand) {
+//						landSeq.setImage(newImg.clone());
+//						imageChanged = true;
+//						if (isFirst) {
+//							new Thread(landSeq).start();
+//							isFirst = false;
+//						}
+//					}
 
 				} else {
 					Thread.sleep(50);
 				}
 			}
 		} catch (Exception e) {
-		
+
 			e.printStackTrace();
 		}
 
@@ -170,7 +192,8 @@ public class OFVideo implements Runnable {
 		mainFrame.setImage(imageQr);
 	}
 
-	public void showLanding(Mat mat, Mat filteredMat) throws InterruptedException {
+	public void showLanding(Mat mat, Mat filteredMat)
+			throws InterruptedException {
 		Mat landing = mat;
 		int circles = 0;
 
@@ -223,7 +246,9 @@ public class OFVideo implements Runnable {
 
 	}
 
-	public void showFilter(Mat filteredMat) {
+	public void showFilter(Mat filteredMat)
+
+	{
 		BufferedImage bufferedMatImage = MatToBufferedImage(filteredMat);
 		Image imageFilter = SwingFXUtils.toFXImage(bufferedMatImage, null);
 		mainFrame.setImage(imageFilter);

@@ -110,6 +110,11 @@ public class CommandController implements Runnable {
 						moveString = "ROTATE LEFT";
 						break;
 						//Take off and land
+					case Command.HOVER:
+						startTime = System.currentTimeMillis();
+						droneInterface.hover();
+						moveString = "Hover";
+						break;
 					case Command.TAKEOFF:
 						droneInterface.takeOff();
 						break;
@@ -121,8 +126,8 @@ public class CommandController implements Runnable {
 						break;
 					}
 					Thread.sleep(task.time);
-					System.out.println("TASK SPEED " + task.speed );
 					droneInterface.hover();
+					Thread.sleep(task.time);
 					droneIsReady = true;
 				}
 			} catch (InterruptedException e) {

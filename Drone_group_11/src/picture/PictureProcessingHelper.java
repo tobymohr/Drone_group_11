@@ -37,6 +37,7 @@ import static org.bytedeco.javacpp.opencv_imgproc.findContours;
 import static org.bytedeco.javacpp.opencv_imgproc.getPerspectiveTransform;
 import static org.bytedeco.javacpp.opencv_imgproc.getStructuringElement;
 import static org.bytedeco.javacpp.opencv_imgproc.line;
+import static org.bytedeco.javacpp.opencv_imgproc.circle;
 import static org.bytedeco.javacpp.opencv_imgproc.minAreaRect;
 import static org.bytedeco.javacpp.opencv_imgproc.moments;
 import static org.bytedeco.javacpp.opencv_imgproc.putText;
@@ -62,6 +63,9 @@ import org.bytedeco.javacpp.opencv_core.Rect;
 import org.bytedeco.javacpp.opencv_core.RotatedRect;
 import org.bytedeco.javacpp.opencv_core.Scalar;
 import org.bytedeco.javacpp.opencv_core.Size;
+import org.bytedeco.javacpp.opencv_highgui;
+import org.bytedeco.javacpp.opencv_imgproc;
+import org.bytedeco.javacpp.helper.opencv_imgcodecs;
 import org.bytedeco.javacpp.indexer.IntBufferIndexer;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
@@ -74,6 +78,7 @@ import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
 
 import coordinateSystem.Vector;
+import flightcontrol.ScanSequence;
 import helper.Circle;
 import helper.CustomPoint;
 
@@ -243,14 +248,6 @@ public class PictureProcessingHelper {
 	}
 
 	public double isCenterInImage(Mat img, RotatedRect rect) {
-		double factor = 2.7;
-		double xleft = img.arrayWidth() / factor;
-		double xright = (img.arrayWidth() / factor) * (factor - 1);
-		double middleX = img.arrayWidth() / 2;
-		return checkForCenterInImage(rect.center().x(), xleft, xright, middleX);
-	}
-	
-	public double isCenterInImageBigger(Mat img, RotatedRect rect) {
 		double factor = 3.5;
 		double xleft = img.arrayWidth() / factor;
 		double xright = (img.arrayWidth() / factor) * (factor - 1);
@@ -258,6 +255,13 @@ public class PictureProcessingHelper {
 		return checkForCenterInImage(rect.center().x(), xleft, xright, middleX);
 	}
 
+	public double isCenterInImageBigger(Mat img, RotatedRect rect) {
+		double factor = 3.5;
+		double xleft = img.arrayWidth() / factor;
+		double xright = (img.arrayWidth() / factor) * (factor - 1);
+		double middleX = img.arrayWidth() / 2;
+		return checkForCenterInImage(rect.center().x(), xleft, xright, middleX);
+	}
 
 	private double checkForCenterInImage(float posX, double xLeft, double xRight, double middleX) {
 
@@ -279,27 +283,68 @@ public class PictureProcessingHelper {
 		double constant = 500;
 		double result = area / constant;
 		if (!Double.isNaN(result)) {
-			return (int)result;
+			return (int) result;
 		}
 		return 0;
 	}
 
+	
+	private RotatedRect mostCenteredRect(List<Mat> contours, Mat srcImage) {
+		double distanceFomCenter = Double.MAX_VALUE;
+		RotatedRect rect = new RotatedRect();
+		for (int i = 0; i < contours.size(); i++) {
+			if ( contourArea(contours.get(i)) > 1000) {
+				RotatedRect rect2 = minAreaRect(contours.get(i));
+				int angle = Math.abs((int) rect.angle());
+				float height;
+				float width;
+				if (angle >= 0 && angle < 10) {
+					height = (int) rect2.size().height();
+					width = (int) rect2.size().width();
+				} else {
+					height = rect2.size().width();
+					width = rect2.size().height();
+				}
+				double distance = (srcImage.arrayWidth() / 2) - rect2.center().x();
+				double ratio = height / width;
+				if (distanceFomCenter > distance && ratio > 1.15) {
+					distanceFomCenter = Math.abs(distance);
+					rect = rect2;
+				}
+			}
+		}
+		return rect;
+	}
 
 	public Mat extractQRImage(Mat srcImage) {
 		Mat img1 = new Mat(srcImage.arraySize(), CV_8UC1, 1);
+		List<Mat> matsForRects = new ArrayList<>();
 		cvtColor(srcImage, img1, CV_RGB2GRAY);
 		Canny(img1, img1, 75, 200);
 		MatVector matContour = new MatVector();
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+		
+//		double factor = 3.5;
+//		double xleft = srcImage.arrayWidth() / factor;
+//		double xright = (srcImage.arrayWidth() / factor) * (factor - 1);
+//		line(srcImage, new Point((int) xleft, (int) srcImage.arrayHeight()/4), new Point((int) xleft, (int) (srcImage.arrayHeight()/4)*3), Scalar.GREEN);
+//		line(srcImage, new Point((int) xright, (int) srcImage.arrayHeight()/4), new Point((int) xright, (int) (srcImage.arrayHeight()/4)*3), Scalar.GREEN);
+		
+		
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
 			RotatedRect rect = minAreaRect(matContour.get(i));
-			if (matContour.get(i).total() > 2 && matContour.get(i).total() < 6
+
+			if (matContour.get(i).total() == 4
 					&& contourArea(matContour.get(i)) > MIN_AREA && checkAngles(matContour.get(i), rect)) {
+				matsForRects.add(matContour.get(i));
+				
+				
 				drawContours(srcImage, matContour, i, Scalar.WHITE, 3, 8, null, 1, null);
 				img1 = warpImage(srcImage, rect);
-				if (scanQrCode(img1) != null) {
-					putText(srcImage, code, new Point((int) rect.center().x() - 25, (int) rect.center().y() + 80), 1, 2,
+				String qrCode = scanQrCode(img1);
+				if (qrCode != null && !qrCode.equals("")) {
+					putText(srcImage, qrCode, new Point((int) rect.center().x() - 25, (int) rect.center().y() + 80), 1, 2,
 							Scalar.GREEN, 2, 8, false);
 				}
 				distance = calcDistance(rect);
@@ -317,6 +362,10 @@ public class PictureProcessingHelper {
 				}
 			}
 		}
+		
+//		RotatedRect rectCenter = mostCenteredRect(matsForRects, srcImage);
+//		circle(srcImage, new Point((int) rectCenter.center().x(), (int) rectCenter.center().y()), 22, Scalar.RED);
+
 		return srcImage;
 	}
 
@@ -327,7 +376,7 @@ public class PictureProcessingHelper {
 		MatVector matContour = new MatVector();
 		List<Mat> result = new ArrayList<>();
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
-		
+
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
 			RotatedRect rect = minAreaRect(matContour.get(i));
@@ -340,10 +389,10 @@ public class PictureProcessingHelper {
 	}
 
 	public List<Mat> findQrContoursNoThresh(Mat srcImage) {
-//		Mat img1 = new Mat(srcImage.arraySize(), CV_8UC1, 1);
+		// Mat img1 = new Mat(srcImage.arraySize(), CV_8UC1, 1);
 		Mat img1 = findContoursBlackMat(srcImage);
-//		cvtColor(srcImage, img1, CV_RGB2GRAY);
-//		Canny(img1, img1, 75, 200);
+		// cvtColor(srcImage, img1, CV_RGB2GRAY);
+		// Canny(img1, img1, 75, 200);
 		MatVector matContour = new MatVector();
 		List<Mat> result = new ArrayList<>();
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
@@ -387,10 +436,10 @@ public class PictureProcessingHelper {
 		bitmap = new BinaryBitmap(new HybridBinarizer(source));
 		try {
 			Result detectionResult = reader.decode(bitmap);
-			code = detectionResult.getText();
+			String code = detectionResult.getText();
 			return code;
 		} catch (Exception e) {
-			return null;
+			return "";
 		}
 
 	}

@@ -5,6 +5,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -33,6 +34,7 @@ import de.yadrone.base.exception.ARDroneException;
 import de.yadrone.base.exception.IExceptionListener;
 import de.yadrone.base.navdata.BatteryListener;
 import de.yadrone.base.video.ImageListener;
+import flightcontrol.FlightControl2;
 import helper.Command;
 import helper.CustomPoint;
 import javafx.application.Platform;
@@ -189,11 +191,11 @@ public class PictureController {
 						qrCode.setText("speed: " + speed);
 						break;
 					case L:
-						duration += 250;
+						duration += 100;
 						qrDist.setText("duration: " + duration);
 						break;
 					case K:
-						duration -= 250;
+						duration -= 100;
 						qrDist.setText("duration: " + duration);
 						break;
 					case NUMPAD1:
@@ -276,9 +278,9 @@ public class PictureController {
 		});
 		drone.start();
 		cC = new CommandController(drone);
-		drone.getCommandManager().setVideoCodec(VideoCodec.H264_360P);
-//		cC.droneInterface.setFrontCamera();
-		 cC.droneInterface.setBottomCamera();
+		drone.getCommandManager().setVideoCodec(VideoCodec.H264_720P);
+		cC.droneInterface.setFrontCamera();
+//		cC.droneInterface.setBottomCamera();
 		new Thread(cC).start();
 		map = Map.init(new ArrayList<>());
 	}
@@ -529,10 +531,10 @@ public class PictureController {
 	}
 
 	public void takeOff() throws InterruptedException {
-		System.out.println("TAKEOFF");
 //		cC.droneInterface.takeOff();
-		shouldFlyControl = true;
+//		shouldFlyControl = true;
 //		shouldLand = true;
+		shouldScan = true;
 	}
 
 	public void showQr() {

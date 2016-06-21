@@ -1,8 +1,9 @@
-package picture;
+package flightcontrol;
 
 import static org.bytedeco.javacpp.opencv_imgproc.contourArea;
 import static org.bytedeco.javacpp.opencv_imgproc.minAreaRect;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -11,26 +12,31 @@ import java.util.Map;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_core.RotatedRect;
+import org.bytedeco.javacpp.opencv_imgcodecs;
 
 import app.CommandController;
 import helper.Command;
 import helper.CustomPoint;
+import picture.OFVideo;
+import picture.PictureController;
+import picture.PictureProcessingHelper;
 
 public class ScanSequence implements Runnable {
+	
 	private static final int MIN_HIT_COUNT = 6;
 	private static final int FORWARD_TIME_2 = 800;
 	private static final int BACKWARD_TIME = 1500;
 	private static final int BACKWARD_SPEED = 9;
-	private static final int STRAFE_TIME = 1000;
+	private static final int STRAFE_TIME = 800;
 	private static final int STRAFE_SPEED = 7;
-	private static final int SPIN_TIME = 1000;
-	private static final int SPIN_SPEED = 10;
+	private static final int SPIN_TIME = 500;
+	private static final int SPIN_SPEED = 20;
 	private static final int FORWARD_TIME = 800;
 	private static final int FORWARD_SPEED = 7;
-	private static final int ROTATE_TIME = 1500;
-	private static final int ROTATE_SPEED = 25;
+	private static final int ROTATE_TIME = 300;
+	private static final int ROTATE_SPEED = 90;
 	private static final int FIELD_DURATION = 1500;
-	private static final int FIELD_SPEED = 7;
+	private static final int FIELD_SPEED = 12;
 	private static final int FIELD_SMALL_DURATION = 800;
 	private static final int FIELD_SMALL_SPEED = 6;
 	private static final int MAX_Y_CORD = 1060;
@@ -100,23 +106,25 @@ public class ScanSequence implements Runnable {
 		System.out.println("UP");
 		commandController.addCommand(Command.UP, 2500, 12);
 
-//		while (runScanSequence) {
-//			if (OFVideo.imageChanged) {
-//				scanSequence();
-//			} else {
-//				sleep(50);
-//			}
-//		}
-		moveToStart = true;
-		code = "W00.03";
-		PictureController.setPlacement(new CustomPoint(694, 721));
+		while (runScanSequence) {
+			if (OFVideo.imageChanged) {
+				scanSequence();
+			} else {
+				sleep(50);
+			}
+		}
 
 		firstAxisToMove();
 		System.out.println("LETS GOOOOOOO MOTHERFUCKER");
 		frameCount = 0;
 
 		while (moveToStart) {
-			moveDroneToPlacement(new CustomPoint(847, 50));
+			if (OFVideo.imageChanged) {
+				moveDroneToPlacement(new CustomPoint(847, FlightControl2.MIN_Y_CORD));
+			} else {
+				sleep(50);
+			}
+			
 		}
 		System.out.println("START THE CUDE SEQUENCE");
 
@@ -413,6 +421,32 @@ public class ScanSequence implements Runnable {
 			frameCount++;
 		}
 	}
+	
+	private CustomPoint dynamicCheck(double distanceFromQr){
+		CustomPoint tempPlace = PictureController.getPlacement();
+		if (!Double.isInfinite(distanceFromQr)) {
+
+			
+			if (code.contains("W02")) {
+				tempPlace.setY(FlightControl2.MIN_Y_CORD + distanceFromQr);
+				PictureController.setPlacement(tempPlace);
+			}
+			if (code.contains("W00")) {
+				tempPlace.setY(FlightControl2.MAX_Y_CORD - distanceFromQr);
+				PictureController.setPlacement(tempPlace);
+			}
+			
+			if (code.contains("W03")) {
+				tempPlace.setY(FlightControl2.MIN_X_CORD + distanceFromQr);
+				PictureController.setPlacement(tempPlace);
+			}
+			if (code.contains("W01")) {
+				tempPlace.setY(FlightControl2.MAX_X_CORD - distanceFromQr);
+				PictureController.setPlacement(tempPlace);
+			}
+		}
+		return tempPlace;
+	}
 
 	private void updateRelativeCord(int move) {
 		CustomPoint placement = PictureController.getPlacement();
@@ -456,7 +490,11 @@ public class ScanSequence implements Runnable {
 			} else {
 				placement.setY(placement.getY() - smallChunkSize);
 			}
+			
+			
 		}
+		placement = dynamicCheck(distanceFromQr);
+		
 		double differenceY = Math.abs((placement.getY() - endPlacement.getY()));
 		boolean endYCondition = differenceY > 0 && differenceY < 60;
 
