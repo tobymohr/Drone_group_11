@@ -9,14 +9,11 @@ import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
 
 import app.CommandController;
-import de.yadrone.base.IARDrone;
 import flightcontrol.DownScanSeq;
-import flightcontrol.FlightControlDeprecated;
 import flightcontrol.FlightControl;
 import flightcontrol.LandSequence;
 import flightcontrol.ScanSequence;
 import helper.Command;
-import helper.CustomPoint;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.control.Label;
@@ -152,26 +149,26 @@ public class OFVideo implements Runnable {
 						imageChanged = true;
 					
 					}
-//					if (PictureController.shouldFlyControl) {
-//						if (isFirst) {
-//							downScanSeq = new DownScanSeq(commandController, newImg.clone());
-//							new Thread(downScanSeq).start();
-//							isFirst = false;
-//						}
-//						downScanSeq.setImage(newImg.clone());
-//						imageChanged = true;
-//						imageChangedGreen = true;
-//						imageChangedRed = true;
-//						
-//					}
-//					if (PictureController.shouldLand) {
-//						landSeq.setImage(newImg.clone());
-//						imageChanged = true;
-//						if (isFirst) {
-//							new Thread(landSeq).start();
-//							isFirst = false;
-//						}
-//					}
+					if (PictureController.shouldFlyControl) {
+						if (isFirst) {
+							downScanSeq = new DownScanSeq(commandController, newImg.clone());
+							new Thread(downScanSeq).start();
+							isFirst = false;
+						}
+						downScanSeq.setImage(newImg.clone());
+						imageChanged = true;
+						imageChangedGreen = true;
+						imageChangedRed = true;
+						
+					}
+					if (PictureController.shouldLand) {
+						landSeq.setImage(newImg.clone());
+						imageChanged = true;
+						if (isFirst) {
+							new Thread(landSeq).start();
+							isFirst = false;
+						}
+					}
 
 				} else {
 					Thread.sleep(50);
