@@ -34,7 +34,7 @@ import de.yadrone.base.exception.ARDroneException;
 import de.yadrone.base.exception.IExceptionListener;
 import de.yadrone.base.navdata.BatteryListener;
 import de.yadrone.base.video.ImageListener;
-import flightcontrol.FlightControl2;
+import flightcontrol.FlightControl;
 import helper.Command;
 import helper.CustomPoint;
 import javafx.application.Platform;

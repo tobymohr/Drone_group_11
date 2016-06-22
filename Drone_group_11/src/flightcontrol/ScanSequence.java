@@ -3,7 +3,6 @@ package flightcontrol;
 import static org.bytedeco.javacpp.opencv_imgproc.contourArea;
 import static org.bytedeco.javacpp.opencv_imgproc.minAreaRect;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,7 +11,6 @@ import java.util.Map;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_core.RotatedRect;
-import org.bytedeco.javacpp.opencv_imgcodecs;
 
 import app.CommandController;
 import helper.Command;
@@ -120,7 +118,7 @@ public class ScanSequence implements Runnable {
 
 		while (moveToStart) {
 			if (OFVideo.imageChanged) {
-				moveDroneToPlacement(new CustomPoint(847, FlightControl2.MIN_Y_CORD));
+				moveDroneToPlacement(new CustomPoint(847, FlightControl.MIN_Y_CORD));
 			} else {
 				sleep(50);
 			}
@@ -428,20 +426,20 @@ public class ScanSequence implements Runnable {
 
 			
 			if (code.contains("W02")) {
-				tempPlace.setY(FlightControl2.MIN_Y_CORD + distanceFromQr);
+				tempPlace.setY(FlightControl.MIN_Y_CORD + distanceFromQr);
 				PictureController.setPlacement(tempPlace);
 			}
 			if (code.contains("W00")) {
-				tempPlace.setY(FlightControl2.MAX_Y_CORD - distanceFromQr);
+				tempPlace.setY(FlightControl.MAX_Y_CORD - distanceFromQr);
 				PictureController.setPlacement(tempPlace);
 			}
 			
 			if (code.contains("W03")) {
-				tempPlace.setY(FlightControl2.MIN_X_CORD + distanceFromQr);
+				tempPlace.setY(FlightControl.MIN_X_CORD + distanceFromQr);
 				PictureController.setPlacement(tempPlace);
 			}
 			if (code.contains("W01")) {
-				tempPlace.setY(FlightControl2.MAX_X_CORD - distanceFromQr);
+				tempPlace.setY(FlightControl.MAX_X_CORD - distanceFromQr);
 				PictureController.setPlacement(tempPlace);
 			}
 		}
