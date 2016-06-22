@@ -3,7 +3,6 @@ package flightcontrol;
 import static org.bytedeco.javacpp.opencv_imgproc.contourArea;
 import static org.bytedeco.javacpp.opencv_imgproc.minAreaRect;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,7 +11,6 @@ import java.util.Map;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_core.RotatedRect;
-import org.bytedeco.javacpp.opencv_imgcodecs;
 
 import app.CommandController;
 import helper.Command;
@@ -119,7 +117,7 @@ public class ScanSequence implements Runnable {
 		frameCount = 0;
 
 		while (moveToStart) {
-			moveDroneToPlacement(new CustomPoint(847, FlightControl2.MIN_Y_CORD));
+			moveDroneToPlacement(new CustomPoint(847, FlightControl.MIN_Y_CORD));
 		}
 		System.out.println("START THE CUDE SEQUENCE");
 

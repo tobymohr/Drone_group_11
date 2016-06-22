@@ -17,11 +17,8 @@ public class DownScanSeq {
 	public boolean redDone;
 	private PictureProcessingHelper PPH;
 	private Mat camMat;
-	private Mat camMat2;
 	private ArrayList<ArrayList<CustomPoint>> greenResults;
 	private ArrayList<ArrayList<CustomPoint>> redResults;
-	private ArrayList<CustomPoint> greenReturnResults;
-	private ArrayList<CustomPoint> redReturnResults;
 	private ArrayList<ArrayList<CustomPoint>> subSetResult;
 	private CommandController commandController;
 	private int maxSize = 0;

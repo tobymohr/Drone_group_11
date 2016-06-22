@@ -5,7 +5,6 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashMap;
 
 public class CustomPoint {
 	private static final int MAX_Y_COORDINATE = 5;

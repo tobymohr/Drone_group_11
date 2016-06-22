@@ -4,7 +4,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -33,7 +32,6 @@ import de.yadrone.base.exception.ARDroneException;
 import de.yadrone.base.exception.IExceptionListener;
 import de.yadrone.base.navdata.BatteryListener;
 import de.yadrone.base.video.ImageListener;
-import flightcontrol.FlightControl2;
 import helper.Command;
 import helper.CustomPoint;
 import javafx.application.Platform;
@@ -421,7 +419,7 @@ public class PictureController {
 		boolean check = OFC.checkDecodedQR(mat);
 		if (check) {
 
-			circles = OFC.myCircle(mat);
+			circles = OFC.findCircle(mat);
 //			for(int i = 0; i < 4; ){
 				if (circles > 0) {
 					aboveLanding = true;

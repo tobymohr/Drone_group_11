@@ -10,14 +10,11 @@ import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
 
 import app.CommandController;
-import de.yadrone.base.IARDrone;
 import flightcontrol.DownScanSeq;
 import flightcontrol.FlightControl;
-import flightcontrol.FlightControl2;
 import flightcontrol.LandSequence;
 import flightcontrol.ScanSequence;
 import helper.Command;
-import helper.CustomPoint;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.control.Label;
@@ -33,7 +30,7 @@ public class OFVideo implements Runnable {
 	private Label qrCode;
 	private Label qrDist;
 	private BufferedImage arg0;
-	private PictureProcessingHelper OFC = new PictureProcessingHelper();
+	private PictureProcessingHelper pictureProcessingHelper = new PictureProcessingHelper();
 	private CommandController commandController;
 	private static boolean aboveLanding = false;
 	private static int circleCounter = 0;
@@ -49,7 +46,7 @@ public class OFVideo implements Runnable {
 	private Label movelbl;
 	private Label coordinatFoundlbl;
 	private LandSequence landSeq;
-	private FlightControl2 fc2;
+	private FlightControl fc2;
 	
 	
 	public OFVideo(ImageView mainFrame, Label coordinatFoundlbl, Label movelbl, Label qrCode,
@@ -66,7 +63,7 @@ public class OFVideo implements Runnable {
 		converter1 = new Java2DFrameConverter();
 		scanSequence = new ScanSequence(cC);
 		landSeq = new LandSequence(cC);
-		fc2 = new FlightControl2(cC);
+		fc2 = new FlightControl(cC);
 
 	}
 
@@ -86,19 +83,19 @@ public class OFVideo implements Runnable {
 
 				switch (PictureController.colorInt) {
 				case 1:
-					filteredImage = OFC.findContoursBlackMat(newImg);
+					filteredImage = pictureProcessingHelper.findContoursBlackMat(newImg);
 					break;
 				case 2:
-					filteredImage = OFC.findContoursRedMat(newImg);
+					filteredImage = pictureProcessingHelper.findContoursRedMat(newImg);
 					break;
 				case 3:
-					filteredImage = OFC.findContoursGreenMat(newImg);
+					filteredImage = pictureProcessingHelper.findContoursGreenMat(newImg);
 					BufferedImage bufferedImageCont = MatToBufferedImage(filteredImage);
 					Image imageCont = SwingFXUtils.toFXImage(bufferedImageCont, null);
 					bufferedframe.setImage(imageCont);
 					break;
 				default:
-					filteredImage = OFC.findContoursBlueMat(newImg);
+					filteredImage = pictureProcessingHelper.findContoursBlueMat(newImg);
 					break;
 				}
 
@@ -166,7 +163,7 @@ public class OFVideo implements Runnable {
 
 	public void showQr(Mat camMat) {
 
-		Mat qrMat = OFC.extractQRImage(camMat);
+		Mat qrMat = pictureProcessingHelper.extractQRImage(camMat);
 		BufferedImage bufferedImageQr = MatToBufferedImage(qrMat);
 		Image imageQr = SwingFXUtils.toFXImage(bufferedImageQr, null);
 		mainFrame.setImage(imageQr);
@@ -185,10 +182,10 @@ public class OFVideo implements Runnable {
 		// }
 		// }
 
-		boolean check = OFC.checkDecodedQR(mat);
+		boolean check = pictureProcessingHelper.checkDecodedQR(mat);
 		if (check) {
 
-			circles = OFC.myCircle(mat);
+			circles = pictureProcessingHelper.findCircle(mat);
 //			for(int i = 0; i < 4; ){
 				if (circles > 0) {
 					aboveLanding = true;
@@ -236,18 +233,11 @@ public class OFVideo implements Runnable {
 	}
 
 	public void showPolygons(Mat camMat, Mat filteredMat) {
-		filteredMat = OFC.erodeAndDilate(filteredMat);
-		Mat polyImage = OFC.findPolygonsMat(camMat, filteredMat, 4);
+		filteredMat = pictureProcessingHelper.erodeAndDilate(filteredMat);
+		Mat polyImage = pictureProcessingHelper.findPolygonsMat(camMat, filteredMat, 4);
 		BufferedImage bufferedImage = MatToBufferedImage(polyImage);
 		Image imagePoly = SwingFXUtils.toFXImage(bufferedImage, null);
 		mainFrame.setImage(imagePoly);
-	}
-
-	public BufferedImage IplImageToBufferedImage(IplImage src) {
-		OpenCVFrameConverter.ToIplImage grabberConverter = new OpenCVFrameConverter.ToIplImage();
-		Java2DFrameConverter paintConverter = new Java2DFrameConverter();
-		Frame frame = grabberConverter.convert(src);
-		return paintConverter.getBufferedImage(frame, 1);
 	}
 
 	public BufferedImage MatToBufferedImage(Mat src) {
