@@ -180,7 +180,6 @@ public class PictureProcessingHelper {
 		findContours(filteredImage, contours, hierarchy, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
 		for (int i = 0; i < contours.size(); i++) {
 //			if(contourArea(contour.get(i)) > 50){
-//				System.out.println(contourArea(contour.get(i)));
 //			}
 			if (contourArea(contours.get(i)) > MAX_CONTOUR_AREA) {
 				Point2f centerPoint = minAreaRect(contours.get(i)).center();
@@ -320,13 +319,6 @@ public class PictureProcessingHelper {
 		MatVector matContour = new MatVector();
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 		
-//		double factor = 3.5;
-//		double xleft = srcImage.arrayWidth() / factor;
-//		double xright = (srcImage.arrayWidth() / factor) * (factor - 1);
-//		line(srcImage, new Point((int) xleft, (int) srcImage.arrayHeight()/4), new Point((int) xleft, (int) (srcImage.arrayHeight()/4)*3), Scalar.GREEN);
-//		line(srcImage, new Point((int) xright, (int) srcImage.arrayHeight()/4), new Point((int) xright, (int) (srcImage.arrayHeight()/4)*3), Scalar.GREEN);
-		
-		
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
 			RotatedRect rect = minAreaRect(matContour.get(i));
@@ -359,9 +351,6 @@ public class PictureProcessingHelper {
 			}
 		}
 		
-//		RotatedRect rectCenter = mostCenteredRect(matsForRects, srcImage);
-//		circle(srcImage, new Point((int) rectCenter.center().x(), (int) rectCenter.center().y()), 22, Scalar.RED);
-
 		return srcImage;
 	}
 
@@ -528,7 +517,6 @@ public class PictureProcessingHelper {
 			Result detectionResult = reader.decode(bitmap);
 			code = detectionResult.getText();
 			if (code.equals(OURQR)) {
-				System.out.println(code);
 				return true;
 			}
 
@@ -579,8 +567,6 @@ public class PictureProcessingHelper {
 		// int xcenter = img.arrayWidth()/2;
 		// int ycenter = img.arrayHeight()/2;
 
-		// System.out.println(img.arrayHeight() + "h");
-		// System.out.println(img.arrayWidth() + "w");
 		// Make center points
 		Point pointTopLeft = new Point(xleft, ytop);
 		Point pointBottomLeft = new Point(xleft, ybot);
@@ -635,18 +621,14 @@ public class PictureProcessingHelper {
 					case 2:
 						line(img, p, p, Scalar.RED, 16, CV_AA, 0);
 						dist = 0;
-						// System.out.println("Center" + dist);
 						break;
 					case 3:
 						line(img, p, p, Scalar.GREEN, 16, CV_AA, 0);
-						// System.out.println("move up" + dist);
 						break;
 					case 4:
 						line(img, p, p, Scalar.BLACK, 16, CV_AA, 0);
-						// System.out.println("move right" + dist);
 					case 5:
 						line(img, p, p, Scalar.BLACK, 16, CV_AA, 0);
-						// System.out.println("Move left" + dist);
 					default:
 						break;
 
@@ -752,7 +734,6 @@ public class PictureProcessingHelper {
 		if (horizontalCondition && verticalCondition && redverticalCondition && redhorizontalCondition) {
 			return true;
 		} else {
-			// System.out.println("not centered");
 			return false;
 		}
 

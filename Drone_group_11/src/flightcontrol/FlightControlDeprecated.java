@@ -17,7 +17,6 @@ import picture.PictureProcessingHelper;
 public class FlightControlDeprecated implements Runnable {
 	public static final int CHUNK_SIZE = 85;
 
-	// TODO Tweak values below this line
 	private static final int STRAFE_UPPER = 200;
 	private static final int STRAFE_LOWER = -200;
 	private static final double CENTER_UPPER = 0.1;
@@ -48,10 +47,8 @@ public class FlightControlDeprecated implements Runnable {
 		commandController.droneInterface.takeOff();
 
 		sleepThread(2000);
-		System.out.println("HOVER");
 		commandController.droneInterface.hover();
 		sleepThread(2000);
-		System.out.println("UP");
 		commandController.addCommand(Command.UP, 2750, 30);
 		sleepThread(3750);
 
@@ -129,8 +126,6 @@ public class FlightControlDeprecated implements Runnable {
 				tempCode = pictureProcessingHelper.scanQrCode(qrImg);
 			}
 		}
-
-		System.out.println("CLOSE");
 	}
 	
 	private boolean checkAspectRatio(RotatedRect rect) {
@@ -138,7 +133,6 @@ public class FlightControlDeprecated implements Runnable {
 		if (center > CENTER_UPPER || center < CENTER_LOWER) {
 			return false;
 		}
-		System.out.println("aspectTrue" + center);
 		return true;
 	}
 
@@ -189,7 +183,6 @@ public class FlightControlDeprecated implements Runnable {
 	private RotatedRect adjustLaneRotate(int lane) {
 		RotatedRect rect = findRect(lane);
 		double position = pictureProcessingHelper.isCenterInImage(camMat, rect);
-		System.out.println(position);
 		while (position != 0) {
 			if (position > 0) {
 				addCommand(Command.SPINRIGHT, SPIN_TIME, SPIN_SPEED);
@@ -255,7 +248,6 @@ public class FlightControlDeprecated implements Runnable {
 					moves.clear();
 				} else if (moves.get(task) > MIN_HIT_COUNT) {
 					commandController.addCommand(task, duration, speed);
-					System.out.println("ADDFORWARDSDASDSD");
 					moves.clear();
 				} else {
 					moves.put(task, moves.get(task) + 1);
@@ -271,7 +263,7 @@ public class FlightControlDeprecated implements Runnable {
 		try {
 			Thread.sleep(duration);
 		} catch (InterruptedException e) {
-			System.out.println("InterruptedEX");
+			System.out.println(e.getStackTrace());
 		}
 	}
 }

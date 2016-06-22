@@ -206,17 +206,14 @@ public class OFVideo implements Runnable {
 					aboveLanding = true;
 					// If false restart landing sequence
 					//Drone skal flyve lidt ned
-					System.out.println("going down");
 //					Thread.sleep(10);
 					commandController.addCommand(Command.DOWN, 100, 20);
 					Thread.sleep(200);
 					counts++;
-					System.out.println(counts);
 					}
 				else {
 						circles = 0;
 						circleCounter++;
-						System.out.println(circleCounter);
 						
 					}
 				if(circleCounter>=120){
@@ -225,7 +222,6 @@ public class OFVideo implements Runnable {
 					counts = 0;
 				}
 				if(counts == 3){
-					System.out.println("landing");
 					
 					commandController.droneInterface.land();
 				}
@@ -234,7 +230,6 @@ public class OFVideo implements Runnable {
 		BufferedImage bufferedImageLanding = MatToBufferedImage(landing);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
 		mainFrame.setImage(imageLanding);
-		// System.out.println(aboveLanding);
 
 	}
 

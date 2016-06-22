@@ -43,10 +43,8 @@ public class FlightControl implements Runnable {
 		commandController.droneInterface.takeOff();
 
 		sleepThread(2000);
-		System.out.println("HOVER");
 		commandController.droneInterface.hover();
 		sleepThread(2000);
-		System.out.println("UP");
 		commandController.addCommand(Command.UP, 400, 100);
 		PictureController.setPlacement(new CustomPoint(847, 50));
 		flyLaneOne();
@@ -62,13 +60,11 @@ public class FlightControl implements Runnable {
 		//TODO LANDING seq
 		boolean backwards = true;
 		for (CustomPoint point : moves.get(1)) {
-			System.out.println("MOVE TO: " + point.toString());
 			moveHelper.moveDroneToPlacement(point, "W02.00");
 //			downScan.scanForCubes();
 			backwards = moveHelper.moveOneChunk(backwards, point.getY(), "W02.02", "W00.02");
 			//TODO LANDING seq
 		}
-		System.out.println("DONE");
 	}
 	
 	private void flyLaneTwo(){
@@ -76,28 +72,24 @@ public class FlightControl implements Runnable {
 		//TODO LANDING seq
 		boolean backwards = true;
 		for (CustomPoint point : moves.get(2)) {
-			System.out.println("MOVE TO: " + point.toString());
 			backwards = moveHelper.moveOneChunk(backwards, point.getY(), "WWW", "LOL");
 //			downScan.scanForCubes();
 			
 			//TODO LANDING seq
 		}
 		moveHelper.backwards = true;
-		System.out.println("DONE");
 	}
 	
 	private void flyLaneThree(){
 //		downScan.scanForCubes();
 		//TODO LANDING seq
 		for (CustomPoint point : moves.get(2)) {
-			System.out.println("MOVE TO: " + point.toString());
 			moveHelper.moveDroneToPlacement(point, "W02.00");
 //			downScan.scanForCubes();
 			
 			//TODO LANDING seq
 		}
 		moveHelper.backwards = true;
-		System.out.println("DONE");
 	}
 	
 	
@@ -107,7 +99,7 @@ public class FlightControl implements Runnable {
 		try {
 			Thread.sleep(duration);
 		} catch (InterruptedException e) {
-			System.out.println("InterruptedEX");
+			System.out.println(e.getStackTrace());
 		}
 	}
 	
