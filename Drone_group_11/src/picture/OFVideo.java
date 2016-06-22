@@ -22,7 +22,6 @@ import javafx.scene.image.ImageView;
 
 public class OFVideo implements Runnable {
 	private Java2DFrameConverter converter1;
-	private OpenCVFrameConverter.ToIplImage converter;
 	private OpenCVFrameConverter.ToMat converterMat;
 	private ImageView mainFrame;
 	private ImageView bufferedframe;
@@ -57,7 +56,6 @@ public class OFVideo implements Runnable {
 		this.qrCode = qrCode;
 		this.movelbl = movelbl;
 		this.coordinatFoundlbl = coordinatFoundlbl;
-		converter = new OpenCVFrameConverter.ToIplImage();
 		converterMat = new ToMat();
 		converter1 = new Java2DFrameConverter();
 		scanSequence = new ScanSequence(cC);
@@ -89,9 +87,6 @@ public class OFVideo implements Runnable {
 					break;
 				case 3:
 					filteredImage = pictureProcessingHelper.findContoursGreenMat(newImg);
-//					BufferedImage bufferedImageCont = MatToBufferedImage(filteredImage);
-//					Image imageCont = SwingFXUtils.toFXImage(bufferedImageCont, null);
-//					bufferedframe.setImage(imageCont);
 					break;
 				default:
 					filteredImage = pictureProcessingHelper.findContoursBlueMat(newImg);
