@@ -404,39 +404,7 @@ public class PictureController {
 	}
 
 	public void showLanding(Mat mat) throws InterruptedException {
-		Mat landing = mat;
-		int circles = 0;
-
-		boolean check = pictureProcessingHelper.checkDecodedQR(mat);
-		if (check) {
-
-			circles = pictureProcessingHelper.findCircles(mat);
-//			for(int i = 0; i < 4; ){
-				if (circles > 0) {
-					aboveLanding = true;
-					// If false restart landing sequence
-					//Drone skal flye lidt ned
-//					Thread.sleep(10);
-//					cC.dC.goDown(6);
-//					Thread.sleep(10);
-					counts++;
-					}
-				else {
-						circles = 0;
-						circleCounter++;
-						
-					}
-				if(circleCounter>=120){
-					aboveLanding = false;
-					circleCounter = 0;
-					counts = 0;
-				}
-				while(counts == 3){
-					commandController.droneInterface.land();
-				}
-//			}
-		}
-		BufferedImage bufferedImageLanding = MatToBufferedImage(landing);
+		BufferedImage bufferedImageLanding = MatToBufferedImage(mat);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
 		mainFrame.setImage(imageLanding);
 

@@ -52,25 +52,17 @@ public class DownScanSeq  {
 	}
 
 	public void run() {
-		// commandController.droneInterface.setBottomCamera();
 		do {
-			System.out.println("Start green scan");
 			long start;
 			long elapsedTime;
 			start = System.currentTimeMillis();
 			scanRedGreen();
-			elapsedTime = System.currentTimeMillis() - start;
-			System.out.println("Time for green and green scan: " + elapsedTime
-					+ " ms");
 		} while (!greenDone && !redDone);
 		greenDone = false;
 		redDone = false;
 		PictureController.setPlacement(new CustomPoint(460, 107));
 		PictureController.addCords(calculateScanResults(redResults), Color.RED);
-		PictureController.addCords(calculateScanResults(greenResults),
-				Color.GREEN);
-
-		// commandController.droneInterface.setFrontCamera();
+		PictureController.addCords(calculateScanResults(greenResults), Color.GREEN);
 
 	}
 
@@ -80,76 +72,19 @@ public class DownScanSeq  {
 			if (OFVideo.imageChanged) {
 				OFVideo.imageChanged = false;
 
-				Mat objectsGreen = pictureProcessingHelper
-						.findContoursGreenMat(camMat.clone());
-				Mat objectsRed = pictureProcessingHelper
-						.findContoursRedMat(camMat.clone());
-				greenResults.add(pictureProcessingHelper
-						.findObjectsMat(objectsGreen));
-				redResults.add(pictureProcessingHelper
-						.findObjectsMat(objectsRed));
+				Mat objectsGreen = pictureProcessingHelper.findContoursGreenMat(camMat.clone());
+				Mat objectsRed = pictureProcessingHelper.findContoursRedMat(camMat.clone());
+				greenResults.add(pictureProcessingHelper.findObjectsMat(objectsGreen));
+				redResults.add(pictureProcessingHelper.findObjectsMat(objectsRed));
 			}
 		}
 		greenDone = true;
 		redDone = true;
 	}
 
-	public void scanGreen() {
-		while (!greenDone) {
-			if (OFVideo.imageChangedGreen) {
-				scanGreenSeq();
-			} else {
-				try {
-					Thread.sleep(50);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}
-
-	private boolean scanGreenSeq() {
-		Mat greenMat = camMat.clone();
-		OFVideo.imageChangedGreen = false;
-		greenMat = pictureProcessingHelper.findContoursGreenMat(camMat);
-		greenResults.add(pictureProcessingHelper.findObjectsMat(greenMat));
-		if (greenResults.size() == 100) {
-			greenDone = true;
-		}
-		return greenDone;
-	}
-
-	public void scanRed() {
-		while (!redDone) {
-			if (OFVideo.imageChangedRed) {
-				scanRedSeq();
-			} else {
-				try {
-					Thread.sleep(50);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}
-
-	private boolean scanRedSeq() {
-		Mat redMat = camMat.clone();
-		OFVideo.imageChangedRed = false;
-		redMat = pictureProcessingHelper.findContoursRedMat(camMat);
-		redResults.add(pictureProcessingHelper.findObjectsMat(redMat));
-
-		if (redResults.size() == 100) {
-			redDone = true;
-		}
-		return redDone;
-	}
-
-	public ArrayList<CustomPoint> calculateScanResults(
-			ArrayList<ArrayList<CustomPoint>> results) {
+	public ArrayList<CustomPoint> calculateScanResults(ArrayList<ArrayList<CustomPoint>> results) {
 		maxSize = 0;
 		HashMap<Integer, Integer> map = new HashMap<Integer, Integer>();
-		// subSetResult.clear();
 		for (ArrayList<CustomPoint> points : results) {
 			Integer value = map.get(points.size());
 			System.out.println(value);
@@ -174,11 +109,6 @@ public class DownScanSeq  {
 				point.setX(CENTER_OF_DRONE_X - point.getX() / PIXELS_PER_CM_X);
 				point.setY(CENTER_OF_DRONE_Y - point.getY() / PIXELS_PER_CM_Y);
 
-				if (flyingEast) {
-					// TODO: flip Vertical
-				} else {
-					// TODO: flip horizontal
-				}
 			}
 
 			return subSetResult.get(subSetResult.size() - 1);
