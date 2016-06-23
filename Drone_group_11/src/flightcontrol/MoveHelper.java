@@ -10,7 +10,7 @@ import java.util.Map;
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_core.RotatedRect;
 
-import app.CommandController;
+import dronecontrol.CommandController;
 import helper.Command;
 import helper.CustomPoint;
 import picture.OFVideo;

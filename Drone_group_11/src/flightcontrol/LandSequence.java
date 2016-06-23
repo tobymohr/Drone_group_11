@@ -5,7 +5,7 @@ import java.util.Map;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
 
-import app.CommandController;
+import dronecontrol.CommandController;
 import helper.Command;
 import picture.PictureProcessingHelper;
 

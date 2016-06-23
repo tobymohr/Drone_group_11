@@ -6,7 +6,7 @@ import java.util.HashMap;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
 
-import app.CommandController;
+import dronecontrol.CommandController;
 import helper.CustomPoint;
 import picture.OFVideo;
 import picture.PictureController;

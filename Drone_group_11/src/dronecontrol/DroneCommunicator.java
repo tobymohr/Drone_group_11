@@ -1,4 +1,4 @@
-package app;
+package dronecontrol;
 
 import de.yadrone.base.IARDrone;
 import de.yadrone.base.command.CommandManager;

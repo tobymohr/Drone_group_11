@@ -1,4 +1,4 @@
-package app;
+package dronecontrol;
 import java.util.concurrent.LinkedBlockingDeque;
 
 import de.yadrone.base.IARDrone;

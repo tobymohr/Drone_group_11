@@ -1,4 +1,4 @@
-package app;
+package dronecontrol;
 
 import de.yadrone.base.command.FlyingMode;
 import de.yadrone.base.command.VideoChannel;

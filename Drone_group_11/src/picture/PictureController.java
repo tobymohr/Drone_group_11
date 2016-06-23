@@ -21,7 +21,6 @@ import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameGrabber;
 import org.bytedeco.javacv.VideoInputFrameGrabber;
 
-import app.CommandController;
 import coordinateSystem.Map;
 import de.yadrone.base.ARDrone;
 import de.yadrone.base.IARDrone;
@@ -32,6 +31,7 @@ import de.yadrone.base.exception.ARDroneException;
 import de.yadrone.base.exception.IExceptionListener;
 import de.yadrone.base.navdata.BatteryListener;
 import de.yadrone.base.video.ImageListener;
+import dronecontrol.CommandController;
 import helper.Command;
 import helper.CustomPoint;
 import javafx.application.Platform;

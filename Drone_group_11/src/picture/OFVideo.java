@@ -8,7 +8,7 @@ import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
 
-import app.CommandController;
+import dronecontrol.CommandController;
 import flightcontrol.DownScanSeq;
 import flightcontrol.FlightControl;
 import flightcontrol.LandSequence;
