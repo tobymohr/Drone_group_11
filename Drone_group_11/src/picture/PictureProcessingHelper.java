@@ -797,14 +797,14 @@ public class PictureProcessingHelper {
 			CvPoint3D32f circle = new CvPoint3D32f(cvGetSeqElem(circles, i));
 			CvPoint center = cvPointFrom32f(new CvPoint2D32f(circle.x(), circle.y()));
 			int radius = Math.round(circle.z());
-			// circle(img, new Point(center.x(), center.y()), radius, new
-			// Scalar(20,255,20,0), 5, CV_AA, 0);
+//			circle(img, new Point(center.x(), center.y()), radius, new Scalar(20,255,20,0), 5, CV_AA, 0);
+			
 		}
 
 		return circles.total();
 	}
 	
 	public boolean isBlueTowerAhead(MatVector contours) {
-		return contours.size() > 200 ? true : false;
+		return contours.size() > 300 ? true : false;
 	}
 }
