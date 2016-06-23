@@ -5,7 +5,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -14,7 +13,6 @@ import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
 
-import org.bytedeco.javacpp.opencv_core.IplImage;
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.FrameGrabber;
@@ -34,7 +32,6 @@ import de.yadrone.base.exception.ARDroneException;
 import de.yadrone.base.exception.IExceptionListener;
 import de.yadrone.base.navdata.BatteryListener;
 import de.yadrone.base.video.ImageListener;
-import flightcontrol.FlightControl2;
 import helper.Command;
 import helper.CustomPoint;
 import javafx.application.Platform;
@@ -53,7 +50,7 @@ import javafx.stage.WindowEvent;
 
 public class PictureController {
 	private PictureProcessingHelper pictureProcessingHelper = new PictureProcessingHelper();
-	private CommandController cC;
+	private CommandController commandController;
 	private IARDrone drone;
 	private OFVideo ofvideo;
 	private ScheduledExecutorService timer;
@@ -114,9 +111,8 @@ public class PictureController {
 		borderpane.getScene().getWindow().setOnCloseRequest(new EventHandler<WindowEvent>() {
 			@Override
 			public void handle(WindowEvent t) {
-				System.out.println("EXIT");
-				if (cC != null) {
-					if (cC.droneInterface.getDroneFlying()) {
+				if (commandController != null) {
+					if (commandController.droneInterface.getDroneFlying()) {
 					land();
 					}
 				}
@@ -131,23 +127,22 @@ public class PictureController {
 				KeyCode note = event.getCode();
 
 				if (!pressedKeys.contains(note)) {
-					System.out.println(note);
 					pressedKeys.add(note);
 					switch (event.getCode()) {
 					case W:
-						cC.addCommand(Command.FORWARD, duration, speed);
+						commandController.addCommand(Command.FORWARD, duration, speed);
 						break;
 					case S:
-						cC.addCommand(Command.BACKWARDS, duration, speed);
+						commandController.addCommand(Command.BACKWARDS, duration, speed);
 						break;
 					case A:
-						cC.addCommand(Command.LEFT, duration, speed);
+						commandController.addCommand(Command.LEFT, duration, speed);
 						break;
 					case D:
-						cC.addCommand(Command.RIGHT, duration, speed);
+						commandController.addCommand(Command.RIGHT, duration, speed);
 						break;
 					case M:
-						cC.droneInterface.land();
+						commandController.droneInterface.land();
 						break;
 					case F:
 						navn++;
@@ -163,31 +158,31 @@ public class PictureController {
 						break;
 					case G:
 					case H:
-						cC.emergencyStop();
+						commandController.emergencyStop();
 						break;
 					case UP:
-						cC.addCommand(Command.UP, duration, speed);
+						commandController.addCommand(Command.UP, duration, speed);
 						break;
 					case DOWN:
-						cC.addCommand(Command.DOWN, duration, speed);
+						commandController.addCommand(Command.DOWN, duration, speed);
 						break;
 					case LEFT:
-						cC.addCommand(Command.SPINLEFT, duration, speed);
+						commandController.addCommand(Command.SPINLEFT, duration, speed);
 						break;
 					case RIGHT:
-						cC.addCommand(Command.SPINRIGHT, duration, speed);
+						commandController.addCommand(Command.SPINRIGHT, duration, speed);
 						break;
 					case ENTER:
-						cC.droneInterface.hover();
+						commandController.droneInterface.hover();
 						break;
 					case O:
 						speed += 5;
-						cC.droneInterface.setSpeed(speed);
+						commandController.droneInterface.setSpeed(speed);
 						qrCode.setText("speed: " + speed);
 						break;
 					case I:
 						speed -= 5;
-						cC.droneInterface.setSpeed(speed);
+						commandController.droneInterface.setSpeed(speed);
 						qrCode.setText("speed: " + speed);
 						break;
 					case L:
@@ -200,22 +195,18 @@ public class PictureController {
 						break;
 					case NUMPAD1:
 						pictureProcessingHelper.blueMin -= 1;
-						System.out.println("Min: " + pictureProcessingHelper.blueMin);
 						break;
 					case NUMPAD2:
 						pictureProcessingHelper.blueMin += 1;
-						System.out.println("Min: " + pictureProcessingHelper.blueMin);
 						break;
 					case NUMPAD4:
 						pictureProcessingHelper.blueMax -= 1;
-						System.out.println("Max: " + pictureProcessingHelper.blueMax);
 						break;
 					case NUMPAD5:
 						pictureProcessingHelper.blueMax += 1;
-						System.out.println("Max: " + pictureProcessingHelper.blueMax);
 						break;
 					case T:
-						cC.droneInterface.setBottomCamera();
+						commandController.droneInterface.setBottomCamera();
 					default:
 					
 
@@ -230,7 +221,6 @@ public class PictureController {
 			@Override
 			public void handle(KeyEvent event) {
 				pressedKeys.remove(event.getCode());
-				System.out.println(event.getCode().toString() + " removed");
 			}
 		});
 	}
@@ -277,11 +267,11 @@ public class PictureController {
 			}
 		});
 		drone.start();
-		cC = new CommandController(drone);
+		commandController = new CommandController(drone);
 		drone.getCommandManager().setVideoCodec(VideoCodec.H264_720P);
-		cC.droneInterface.setFrontCamera();
+		commandController.droneInterface.setFrontCamera();
 //		cC.droneInterface.setBottomCamera();
-		new Thread(cC).start();
+		new Thread(commandController).start();
 		map = Map.init(new ArrayList<>());
 	}
 
@@ -322,7 +312,7 @@ public class PictureController {
 			public void imageUpdated(BufferedImage arg0) {
 				if (isFirst) {
 					new Thread(ofvideo = new OFVideo(mainFrame,coordinatFoundlbl, movelbl, qrCode, qrDist,
-							arg0, cC, bufferedframe)).start();
+							arg0, commandController, bufferedframe)).start();
 					isFirst = false;
 				}
 				ofvideo.setArg0(arg0);
@@ -333,7 +323,6 @@ public class PictureController {
 		drone.getCommandManager().setVideoBitrateControl(VideoBitRateMode.MANUAL);
 		drone.getCommandManager().setVideoBitrate(H264.MAX_BITRATE);
 		drone.getCommandManager().setVideoCodecFps(H264.MAX_FPS);
-		System.out.println("Videocodec Set.");
 	}
 
 	public void grabFromVideo() throws org.bytedeco.javacv.FrameGrabber.Exception {
@@ -427,17 +416,14 @@ public class PictureController {
 					aboveLanding = true;
 					// If false restart landing sequence
 					//Drone skal flye lidt ned
-					System.out.println("going down");
 //					Thread.sleep(10);
 //					cC.dC.goDown(6);
 //					Thread.sleep(10);
 					counts++;
-					System.out.println(counts);
 					}
 				else {
 						circles = 0;
 						circleCounter++;
-						System.out.println(circleCounter);
 						
 					}
 				if(circleCounter>=120){
@@ -446,16 +432,13 @@ public class PictureController {
 					counts = 0;
 				}
 				while(counts == 3){
-					System.out.println("landing");
-					
-					cC.droneInterface.land();
+					commandController.droneInterface.land();
 				}
 //			}
 		}
 		BufferedImage bufferedImageLanding = MatToBufferedImage(landing);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
 		mainFrame.setImage(imageLanding);
-		// System.out.println(aboveLanding);
 
 	}
 
@@ -507,13 +490,6 @@ public class PictureController {
 		colorInt = 3;
 	}
 
-	public BufferedImage IplImageToBufferedImage(IplImage src) {
-		OpenCVFrameConverter.ToIplImage grabberConverter = new OpenCVFrameConverter.ToIplImage();
-		Java2DFrameConverter paintConverter = new Java2DFrameConverter();
-		Frame frame = grabberConverter.convert(src);
-		return paintConverter.getBufferedImage(frame, 1);
-	}
-
 	public BufferedImage MatToBufferedImage(Mat src) {
 		OpenCVFrameConverter.ToMat grabberConverter = new OpenCVFrameConverter.ToMat();
 		Java2DFrameConverter paintConverter = new Java2DFrameConverter();
@@ -522,11 +498,11 @@ public class PictureController {
 	}
 
 	public void emergencyStop() {
-		cC.emergencyStop();
+		commandController.emergencyStop();
 	}
 
 	public void land() {
-		cC.droneInterface.land();
+		commandController.droneInterface.land();
 		shouldScan = false;
 	}
 

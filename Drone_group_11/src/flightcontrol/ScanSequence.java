@@ -3,7 +3,6 @@ package flightcontrol;
 import static org.bytedeco.javacpp.opencv_imgproc.contourArea;
 import static org.bytedeco.javacpp.opencv_imgproc.minAreaRect;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,7 +11,6 @@ import java.util.Map;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_core.RotatedRect;
-import org.bytedeco.javacpp.opencv_imgcodecs;
 
 import app.CommandController;
 import helper.Command;
@@ -102,10 +100,8 @@ public class ScanSequence implements Runnable {
 	public void run() {
 		commandController.droneInterface.takeOff();
 		sleep(2000);
-		System.out.println("HOVER");
 		commandController.droneInterface.hover();
 		sleep(2000);
-		System.out.println("UP");
 		commandController.addCommand(Command.UP, 3500, 12);
 
 		while (runScanSequence) {
@@ -118,12 +114,11 @@ public class ScanSequence implements Runnable {
 		
 		scanCubes();
 		firstAxisToMove();
-		System.out.println("LETS GOOOOOOO MOTHERFUCKER");
 		frameCount = 0;
 
 		while (moveToStart) {
 			if (OFVideo.imageChanged) {
-				moveDroneToPlacement(new CustomPoint(847, FlightControl2.MIN_Y_CORD));
+				moveDroneToPlacement(new CustomPoint(847, FlightControl.MIN_Y_CORD));
 			} else {
 				sleep(50);
 			}
@@ -246,7 +241,6 @@ public class ScanSequence implements Runnable {
 			if (difference > CENTER_DIFFERENCE) {
 				strafeRight = !strafeRight;
 				previousCenter = center;
-				System.out.println("CHANGE STRAFE DIRECTION");
 			}
 		}
 	}
@@ -287,9 +281,7 @@ public class ScanSequence implements Runnable {
 		String tempCode = pictureProcessingHelper.scanQrCode(qrImg);
 		if (tempCode != null) {
 			code = tempCode;
-			System.out.println(tempCode);
 		}
-		System.out.println("CENTERED");
 		if (code != null) {
 			if (contours.size() == 3) {
 				PictureController.setPlacement(calculatePlacement(camMat, contours));
@@ -381,7 +373,6 @@ public class ScanSequence implements Runnable {
 				pictureProcessingHelper.calcDistance(middleQR), pictureProcessingHelper.calcDistance(rightQR), code);
 		CustomPoint scannedPoint = CustomPoint.parseQRText(code);
 		for (CustomPoint e : points) {
-			System.out.println(e.toString());
 			if (Math.round(e.getX()) != scannedPoint.getX() || Math.round(e.getY()) != scannedPoint.getY()) {
 				placement = e;
 			}
@@ -456,20 +447,20 @@ public class ScanSequence implements Runnable {
 
 			
 			if (code.contains("W02")) {
-				tempPlace.setY(FlightControl2.MIN_Y_CORD + distanceFromQr);
+				tempPlace.setY(FlightControl.MIN_Y_CORD + distanceFromQr);
 				PictureController.setPlacement(tempPlace);
 			}
 			if (code.contains("W00")) {
-				tempPlace.setY(FlightControl2.MAX_Y_CORD - distanceFromQr);
+				tempPlace.setY(FlightControl.MAX_Y_CORD - distanceFromQr);
 				PictureController.setPlacement(tempPlace);
 			}
 			
 			if (code.contains("W03")) {
-				tempPlace.setY(FlightControl2.MIN_X_CORD + distanceFromQr);
+				tempPlace.setY(FlightControl.MIN_X_CORD + distanceFromQr);
 				PictureController.setPlacement(tempPlace);
 			}
 			if (code.contains("W01")) {
-				tempPlace.setY(FlightControl2.MAX_X_CORD - distanceFromQr);
+				tempPlace.setY(FlightControl.MAX_X_CORD - distanceFromQr);
 				PictureController.setPlacement(tempPlace);
 			}
 		}
@@ -537,12 +528,10 @@ public class ScanSequence implements Runnable {
 		xDone = endXCondition;
 
 		if (yDone) {
-			System.out.println("Y COORD DONE");
 			moveX = true;
 		}
 
 		if (xDone) {
-			System.out.println("X COORD DONE");
 			moveX = false;
 		}
 		// if (!Double.isInfinite(distanceFromQr)) {
@@ -565,7 +554,6 @@ public class ScanSequence implements Runnable {
 		// }
 		// }
 
-		System.out.println(placement.toString());
 		PictureController.setPlacement(placement);
 		scanCubes();
 	}

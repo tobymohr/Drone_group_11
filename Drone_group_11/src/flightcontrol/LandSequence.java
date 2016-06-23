@@ -7,6 +7,7 @@ import org.bytedeco.javacpp.opencv_core.Mat;
 
 import de.yadrone.base.command.FlyingMode;
 import app.CommandController;
+import de.yadrone.base.command.FlyingMode;
 import helper.Command;
 import picture.PictureProcessingHelper;
 
@@ -39,7 +40,6 @@ public class LandSequence implements Runnable {
 	public void run() {
 
 		//TAKEOFF sequence
-		System.out.println("HOVER");
 		
 		commandController.droneInterface.setFlightMode(FlyingMode.HOVER_ON_TOP_OF_ROUNDEL);
 		commandController.droneInterface.hover();
@@ -47,7 +47,6 @@ public class LandSequence implements Runnable {
 			code = pictureProcessingHelper.scanQrCode(camMat);
 			sleep(10);
 		}
-		System.out.println(code);
 		sleep(20000);
 		sleep(1900);
 		commandController.addCommand(Command.UP, 2600, 15);
@@ -69,8 +68,6 @@ public class LandSequence implements Runnable {
 				commandController.addCommand(Command.UP, 1000, 17);
 				sleep(2100);
 				if (code.equals(checkCode)) {
-					System.out.println("Found");
-					// TODO: Save coordinates
 					break;
 				}
 				break;

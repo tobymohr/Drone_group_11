@@ -10,7 +10,7 @@ import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
 
 import app.CommandController;
 import flightcontrol.DownScanSeq;
-import flightcontrol.FlightControl2;
+import flightcontrol.FlightControl;
 import flightcontrol.LandSequence;
 import flightcontrol.ScanSequence;
 import helper.Command;
@@ -22,7 +22,6 @@ import javafx.scene.image.ImageView;
 
 public class OFVideo implements Runnable {
 	private Java2DFrameConverter converter1;
-	private OpenCVFrameConverter.ToIplImage converter;
 	private OpenCVFrameConverter.ToMat converterMat;
 	private ImageView mainFrame;
 	private ImageView bufferedframe;
@@ -45,7 +44,7 @@ public class OFVideo implements Runnable {
 	private Label movelbl;
 	private Label coordinatFoundlbl;
 	private LandSequence landSeq;
-	private FlightControl2 fc2;
+	private FlightControl fc2;
 	private DownScanSeq down;
 	
 	
@@ -58,15 +57,12 @@ public class OFVideo implements Runnable {
 		this.qrCode = qrCode;
 		this.movelbl = movelbl;
 		this.coordinatFoundlbl = coordinatFoundlbl;
-		converter = new OpenCVFrameConverter.ToIplImage();
 		converterMat = new ToMat();
 		converter1 = new Java2DFrameConverter();
-		
 		landSeq = new LandSequence(cC);
 		down = new DownScanSeq(cC);
 		scanSequence = new ScanSequence(cC, this.down);
-		fc2 = new FlightControl2(cC, down);
-		
+		fc2 = new FlightControl(cC, down);
 
 	}
 
@@ -93,9 +89,6 @@ public class OFVideo implements Runnable {
 					break;
 				case 3:
 					filteredImage = pictureProcessingHelper.findContoursGreenMat(newImg);
-//					BufferedImage bufferedImageCont = MatToBufferedImage(filteredImage);
-//					Image imageCont = SwingFXUtils.toFXImage(bufferedImageCont, null);
-//					bufferedframe.setImage(imageCont);
 					break;
 				default:
 					filteredImage = pictureProcessingHelper.findContoursBlueMat(newImg);
@@ -154,16 +147,14 @@ public class OFVideo implements Runnable {
 						imageChanged = true;
 					
 					}
-//						
-//					}
-//					if (PictureController.shouldLand) {
-//						landSeq.setImage(newImg.clone());
-//						imageChanged = true;
-//						if (isFirst) {
-//							new Thread(landSeq).start();
-//							isFirst = false;
-//						}
-//					}
+					if (PictureController.shouldLand) {
+						landSeq.setImage(newImg.clone());
+						imageChanged = true;
+						if (isFirst) {
+							new Thread(landSeq).start();
+							isFirst = false;
+						}
+					}
 
 				} else {
 					Thread.sleep(50);
@@ -206,17 +197,14 @@ public class OFVideo implements Runnable {
 					aboveLanding = true;
 					// If false restart landing sequence
 					//Drone skal flyve lidt ned
-					System.out.println("going down");
 //					Thread.sleep(10);
 					commandController.addCommand(Command.DOWN, 100, 20);
 					Thread.sleep(200);
 					counts++;
-					System.out.println(counts);
 					}
 				else {
 						circles = 0;
 						circleCounter++;
-						System.out.println(circleCounter);
 						
 					}
 				if(circleCounter>=120){
@@ -225,7 +213,6 @@ public class OFVideo implements Runnable {
 					counts = 0;
 				}
 				if(counts == 3){
-					System.out.println("landing");
 					
 					commandController.droneInterface.land();
 				}
@@ -234,7 +221,6 @@ public class OFVideo implements Runnable {
 		BufferedImage bufferedImageLanding = MatToBufferedImage(landing);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
 		mainFrame.setImage(imageLanding);
-		// System.out.println(aboveLanding);
 
 	}
 

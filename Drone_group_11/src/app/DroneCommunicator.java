@@ -207,7 +207,6 @@ public class DroneCommunicator implements DroneInterface {
 
 	@Override
 	public void setFlightMode(FlyingMode mode) {
-		// TODO Auto-generated method stub
 		commandManager.setFlyingMode(mode);
 	}
 	

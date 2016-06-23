@@ -28,7 +28,6 @@ public class DownScanSeq  {
 	private Mat camMat2;
 	private ArrayList<ArrayList<CustomPoint>> greenResults = new ArrayList<ArrayList<CustomPoint>>();
 	private ArrayList<ArrayList<CustomPoint>> redResults = new ArrayList<ArrayList<CustomPoint>>();
-	// private ArrayList<ArrayList<CustomPoint>> subSetResult;
 	private CommandController commandController;
 	public static boolean flyingEast = true;
 	private int maxSize = 0;
@@ -66,9 +65,7 @@ public class DownScanSeq  {
 		} while (!greenDone && !redDone);
 		greenDone = false;
 		redDone = false;
-
-		System.out.println(redResults.size());
-		System.out.println(greenResults.size());
+		PictureController.setPlacement(new CustomPoint(460, 107));
 		PictureController.addCords(calculateScanResults(redResults), Color.RED);
 		PictureController.addCords(calculateScanResults(greenResults),
 				Color.GREEN);
@@ -116,7 +113,6 @@ public class DownScanSeq  {
 		OFVideo.imageChangedGreen = false;
 		greenMat = pictureProcessingHelper.findContoursGreenMat(camMat);
 		greenResults.add(pictureProcessingHelper.findObjectsMat(greenMat));
-		// todo make done constraints
 		if (greenResults.size() == 100) {
 			greenDone = true;
 		}
@@ -143,7 +139,6 @@ public class DownScanSeq  {
 		redMat = pictureProcessingHelper.findContoursRedMat(camMat);
 		redResults.add(pictureProcessingHelper.findObjectsMat(redMat));
 
-		// todo make done constraints
 		if (redResults.size() == 100) {
 			redDone = true;
 		}
@@ -165,13 +160,10 @@ public class DownScanSeq  {
 			}
 		}
 		for (Integer key : map.keySet()) {
-			System.out.println("number of cubes: " + key + " frames: "
-					+ map.get(key).toString());
 			if (maxSize < key) {
 				maxSize = key;
 			}
 		}
-		System.out.println(maxSize);
 		ArrayList<ArrayList<CustomPoint>> subSetResult = new ArrayList<ArrayList<CustomPoint>>();
 		for (ArrayList<CustomPoint> points : results) {
 			if (points.size() == maxSize)
@@ -179,14 +171,9 @@ public class DownScanSeq  {
 		}
 		if (!subSetResult.isEmpty()) {
 			for (CustomPoint point : subSetResult.get(subSetResult.size() - 1)) {
-				System.out
-						.println("x: " + point.getX() + " y: " + point.getY());
-
 				point.setX(CENTER_OF_DRONE_X - point.getX() / PIXELS_PER_CM_X);
 				point.setY(CENTER_OF_DRONE_Y - point.getY() / PIXELS_PER_CM_Y);
 
-				System.out.println("x_new: " + point.getX() + " y_new: "
-						+ point.getY());
 				if (flyingEast) {
 					// TODO: flip Vertical
 				} else {

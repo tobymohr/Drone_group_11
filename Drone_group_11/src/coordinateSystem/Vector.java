@@ -1,8 +1,5 @@
 package coordinateSystem;
 
-import java.util.ArrayList;
-
-
 public class Vector {
 	public double x, y;
 

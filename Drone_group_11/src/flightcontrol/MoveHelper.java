@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
-import org.bytedeco.javacpp.opencv_core.MatVector;
-import org.bytedeco.javacpp.opencv_core.Point;
 import org.bytedeco.javacpp.opencv_core.RotatedRect;
 
 import app.CommandController;
@@ -74,11 +72,11 @@ public class MoveHelper {
 
 							CustomPoint tempPlace = PictureController.getPlacement();
 							if (code.contains("W02")) {
-								tempPlace.setY(FlightControl2.MIN_Y_CORD + distanceFromQr);
+								tempPlace.setY(FlightControl.MIN_Y_CORD + distanceFromQr);
 								PictureController.setPlacement(tempPlace);
 							}
 							if (code.contains("W00")) {
-								tempPlace.setY(FlightControl2.MAX_Y_CORD - distanceFromQr);
+								tempPlace.setY(FlightControl.MAX_Y_CORD - distanceFromQr);
 								PictureController.setPlacement(tempPlace);
 							}
 							if (distanceFromQr > 490 && backwards) {
@@ -99,7 +97,6 @@ public class MoveHelper {
 				try {
 					Thread.sleep(50);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -299,7 +296,6 @@ public class MoveHelper {
 							try {
 								Thread.sleep(200);
 							} catch (InterruptedException e) {
-								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
 						}
@@ -330,7 +326,7 @@ public class MoveHelper {
 									} else {
 										done = true;
 									}
-									tempPlace.setY(FlightControl2.MAX_Y_CORD - distanceFromQr);
+									tempPlace.setY(FlightControl.MAX_Y_CORD - distanceFromQr);
 								}
 								PictureController.setPlacement(tempPlace);
 							}
