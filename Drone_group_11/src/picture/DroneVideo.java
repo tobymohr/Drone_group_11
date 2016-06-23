@@ -20,7 +20,7 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
-public class OFVideo implements Runnable {
+public class DroneVideo implements Runnable {
 	private Java2DFrameConverter converter1;
 	private OpenCVFrameConverter.ToMat converterMat;
 	private ImageView mainFrame;
@@ -41,7 +41,7 @@ public class OFVideo implements Runnable {
 	private FlightControl fc2;
 	private DownScanSeq down;
 
-	public OFVideo(ImageView mainFrame, Label movelbl, BufferedImage arg0, CommandController cC,
+	public DroneVideo(ImageView mainFrame, Label movelbl, BufferedImage arg0, CommandController cC,
 			ImageView bufferedframe) {
 		this.arg0 = arg0;
 		this.mainFrame = mainFrame;

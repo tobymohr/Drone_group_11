@@ -52,7 +52,7 @@ public class PictureController {
 	private PictureProcessingHelper pictureProcessingHelper = new PictureProcessingHelper();
 	private CommandController commandController;
 	private IARDrone drone;
-	private OFVideo ofvideo;
+	private DroneVideo ofvideo;
 	private ScheduledExecutorService timer;
 	public static String qrCodeText = "";
 	private Set<KeyCode> pressedKeys = new HashSet<KeyCode>();
@@ -305,7 +305,7 @@ public class PictureController {
 			@Override
 			public void imageUpdated(BufferedImage arg0) {
 				if (isFirst) {
-					new Thread(ofvideo = new OFVideo(mainFrame, movelbl, arg0, commandController, bufferedframe))
+					new Thread(ofvideo = new DroneVideo(mainFrame, movelbl, arg0, commandController, bufferedframe))
 							.start();
 					isFirst = false;
 				}

@@ -8,7 +8,7 @@ import org.bytedeco.javacpp.opencv_core.Mat;
 
 import dronecontrol.CommandController;
 import helper.CustomPoint;
-import picture.OFVideo;
+import picture.DroneVideo;
 import picture.PictureController;
 import picture.PictureProcessingHelper;
 
@@ -60,8 +60,8 @@ public class DownScanSeq {
 	private void scanRedGreen() {
 
 		while (!(redResults.size() == 100 && greenResults.size() == 100)) {
-			if (OFVideo.imageChanged) {
-				OFVideo.imageChanged = false;
+			if (DroneVideo.imageChanged) {
+				DroneVideo.imageChanged = false;
 
 				Mat objectsGreen = pictureProcessingHelper.findContoursGreenMat(camMat.clone());
 				Mat objectsRed = pictureProcessingHelper.findContoursRedMat(camMat.clone());

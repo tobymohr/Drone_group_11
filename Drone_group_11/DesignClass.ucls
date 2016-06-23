@@ -3,26 +3,26 @@
   associations="true" dependencies="false" nesting-relationships="true" router="FAN">  
   <package id="1" language="java" name="flightcontrol" project="Drone_group_11" file="/Drone_group_11/src/flightcontrol" 
     binary="false" corner="BOTTOM_RIGHT">    
-    <position height="314" width="641" x="682" y="35"/>    
+    <position height="268" width="651" x="587" y="3"/>    
     <display autosize="false" stereotype="true" sort-features="false" accessors="true"/>  
   </package>  
   <package id="2" language="java" name="picture" project="Drone_group_11" file="/Drone_group_11/src/picture" 
     binary="false" corner="BOTTOM_RIGHT">    
-    <position height="337" width="545" x="43" y="11"/>    
+    <position height="251" width="443" x="19" y="7"/>    
     <display autosize="false" stereotype="true" sort-features="false" accessors="true"/>  
   </package>  
   <class id="3" language="java" name="picture.PictureController" project="Drone_group_11" 
     file="/Drone_group_11/src/picture/PictureController.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="55" width="198" x="160" y="68"/>    
+    <position height="55" width="198" x="35" y="67"/>    
     <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="4" language="java" name="picture.OFVideo" project="Drone_group_11" 
-    file="/Drone_group_11/src/picture/OFVideo.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="53" width="150" x="412" y="188"/>    
+  <class id="4" language="java" name="picture.DroneVideo" project="Drone_group_11" 
+    file="/Drone_group_11/src/picture/DroneVideo.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="53" width="150" x="285" y="66"/>    
     <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -31,7 +31,7 @@
   </class>  
   <class id="5" language="java" name="picture.PictureProcessingHelper" project="Drone_group_11" 
     file="/Drone_group_11/src/picture/PictureProcessingHelper.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="57" width="248" x="53" y="266"/>    
+    <position height="57" width="248" x="26" y="192"/>    
     <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -40,12 +40,12 @@
   </class>  
   <package id="6" language="java" name="helper" project="Drone_group_11" file="/Drone_group_11/src/helper" 
     binary="false" corner="BOTTOM_RIGHT">    
-    <position height="260" width="429" x="44" y="366"/>    
+    <position height="189" width="458" x="607" y="320"/>    
     <display autosize="false" stereotype="true" sort-features="false" accessors="true"/>  
   </package>  
   <class id="7" language="java" name="helper.Circle" project="Drone_group_11" 
     file="/Drone_group_11/src/helper/Circle.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="53" width="201" x="113" y="416"/>    
+    <position height="53" width="201" x="624" y="367"/>    
     <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -54,7 +54,7 @@
   </class>  
   <class id="8" language="java" name="helper.Command" project="Drone_group_11" 
     file="/Drone_group_11/src/helper/Command.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="53" width="199" x="62" y="550"/>    
+    <position height="53" width="199" x="628" y="433"/>    
     <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -63,7 +63,7 @@
   </class>  
   <class id="9" language="java" name="helper.CustomPoint" project="Drone_group_11" 
     file="/Drone_group_11/src/helper/CustomPoint.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="53" width="277" x="181" y="482"/>    
+    <position height="53" width="189" x="841" y="369"/>    
     <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -72,7 +72,7 @@
   </class>  
   <class id="10" language="java" name="flightcontrol.DownScanSeq" project="Drone_group_11" 
     file="/Drone_group_11/src/flightcontrol/DownScanSeq.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="53" width="288" x="706" y="92"/>    
+    <position height="53" width="288" x="611" y="60"/>    
     <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -81,7 +81,7 @@
   </class>  
   <class id="11" language="java" name="flightcontrol.FlightControl" project="Drone_group_11" 
     file="/Drone_group_11/src/flightcontrol/FlightControl.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="53" width="290" x="704" y="187"/>    
+    <position height="53" width="290" x="607" y="140"/>    
     <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -90,7 +90,7 @@
   </class>  
   <class id="12" language="java" name="flightcontrol.LandSequence" project="Drone_group_11" 
     file="/Drone_group_11/src/flightcontrol/LandSequence.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="53" width="293" x="706" y="282"/>    
+    <position height="53" width="293" x="606" y="206"/>    
     <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -99,7 +99,7 @@
   </class>  
   <class id="13" language="java" name="flightcontrol.MoveHelper" project="Drone_group_11" 
     file="/Drone_group_11/src/flightcontrol/MoveHelper.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="58" width="298" x="1023" y="182"/>    
+    <position height="58" width="282" x="927" y="134"/>    
     <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -108,7 +108,7 @@
   </class>  
   <class id="14" language="java" name="flightcontrol.ScanSequence" project="Drone_group_11" 
     file="/Drone_group_11/src/flightcontrol/ScanSequence.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="53" width="265" x="1042" y="94"/>    
+    <position height="53" width="265" x="930" y="58"/>    
     <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -117,12 +117,12 @@
   </class>  
   <package id="15" language="java" name="coordinateSystem" project="Drone_group_11" 
     file="/Drone_group_11/src/coordinateSystem" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="203" width="621" x="531" y="388"/>    
+    <position height="203" width="621" x="256" y="556"/>    
     <display autosize="false" stereotype="true" sort-features="false" accessors="true"/>  
   </package>  
   <class id="16" language="java" name="coordinateSystem.CoordinateSystem" project="Drone_group_11" 
     file="/Drone_group_11/src/coordinateSystem/CoordinateSystem.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="54" width="261" x="539" y="438"/>    
+    <position height="54" width="261" x="264" y="606"/>    
     <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -131,7 +131,7 @@
   </class>  
   <class id="17" language="java" name="coordinateSystem.Map" project="Drone_group_11" 
     file="/Drone_group_11/src/coordinateSystem/Map.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="53" width="244" x="540" y="504"/>    
+    <position height="53" width="244" x="265" y="672"/>    
     <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -140,7 +140,7 @@
   </class>  
   <class id="18" language="java" name="coordinateSystem.Matrix" project="Drone_group_11" 
     file="/Drone_group_11/src/coordinateSystem/Matrix.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="57" width="199" x="929" y="444"/>    
+    <position height="57" width="199" x="654" y="612"/>    
     <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -149,7 +149,7 @@
   </class>  
   <class id="19" language="java" name="coordinateSystem.Vector" project="Drone_group_11" 
     file="/Drone_group_11/src/coordinateSystem/Vector.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="59" width="192" x="828" y="517"/>    
+    <position height="59" width="192" x="553" y="685"/>    
     <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -158,12 +158,12 @@
   </class>  
   <package id="20" language="java" name="dronecontrol" project="Drone_group_11" file="/Drone_group_11/src/dronecontrol" 
     binary="false" corner="BOTTOM_RIGHT">    
-    <position height="202" width="559" x="557" y="652"/>    
+    <position height="202" width="483" x="21" y="303"/>    
     <display autosize="false" stereotype="true" sort-features="false" accessors="true"/>  
   </package>  
   <class id="21" language="java" name="dronecontrol.CommandController.Task" project="Drone_group_11" 
     file="/Drone_group_11/src/dronecontrol/CommandController.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="53" width="92" x="769" y="702"/>    
+    <position height="53" width="92" x="290" y="355"/>    
     <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -172,7 +172,7 @@
   </class>  
   <class id="22" language="java" name="dronecontrol.CommandController" project="Drone_group_11" 
     file="/Drone_group_11/src/dronecontrol/CommandController.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="53" width="177" x="567" y="705"/>    
+    <position height="53" width="177" x="31" y="356"/>    
     <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -181,7 +181,7 @@
   </class>  
   <class id="23" language="java" name="dronecontrol.DroneCommunicator" project="Drone_group_11" 
     file="/Drone_group_11/src/dronecontrol/DroneCommunicator.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="55" width="217" x="872" y="703"/>    
+    <position height="55" width="217" x="267" y="433"/>    
     <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -190,7 +190,7 @@
   </class>  
   <interface id="24" language="java" name="dronecontrol.DroneInterface" project="Drone_group_11" 
     file="/Drone_group_11/src/dronecontrol/DroneInterface.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="53" width="187" x="647" y="789"/>    
+    <position height="53" width="187" x="37" y="439"/>    
     <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -206,118 +206,156 @@
     <display labels="true" multiplicity="true"/>  
   </association>  
   <association id="28">    
-    <end type="SOURCE" refId="11" navigable="false" variant="ASSOCIATION">      
-      <attribute id="29" name="downScan"/>      
+    <end type="SOURCE" refId="16" navigable="false" variant="ASSOCIATION">      
+      <attribute id="29" name="F"/>      
       <multiplicity id="30" minimum="0" maximum="1"/>    
-    </end>    
-    <end type="TARGET" refId="10" navigable="true" variant="ASSOCIATION"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="31">    
-    <end type="SOURCE" refId="16" navigable="false" variant="ASSOCIATION">      
-      <attribute id="32" name="o"/>      
-      <multiplicity id="33" minimum="0" maximum="1"/>    
-    </end>    
-    <end type="TARGET" refId="19" navigable="true" variant="ASSOCIATION"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="34">    
-    <end type="SOURCE" refId="16" navigable="false" variant="ASSOCIATION">      
-      <attribute id="35" name="F"/>      
-      <multiplicity id="36" minimum="0" maximum="1"/>    
     </end>    
     <end type="TARGET" refId="18" navigable="true" variant="ASSOCIATION"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
-  <association id="37">    
+  <association id="31">    
     <end type="SOURCE" refId="3" navigable="false" variant="ASSOCIATION">      
-      <attribute id="38" name="pictureProcessingHelper"/>      
-      <multiplicity id="39" minimum="0" maximum="1"/>    
+      <attribute id="32" name="pictureProcessingHelper"/>      
+      <multiplicity id="33" minimum="0" maximum="1"/>    
     </end>    
     <end type="TARGET" refId="5" navigable="true" variant="ASSOCIATION"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
-  <association id="40">    
+  <dependency id="34">    
+    <end type="SOURCE" refId="1"/>    
+    <end type="TARGET" refId="2"/>  
+  </dependency>  
+  <association id="35">    
     <end type="SOURCE" refId="11" navigable="false" variant="ASSOCIATION">      
-      <attribute id="41" name="moveHelper"/>      
-      <multiplicity id="42" minimum="0" maximum="1"/>    
+      <attribute id="36" name="moveHelper"/>      
+      <multiplicity id="37" minimum="0" maximum="1"/>    
     </end>    
     <end type="TARGET" refId="13" navigable="true" variant="ASSOCIATION"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
-  <association id="43">    
+  <association id="38">    
     <end type="SOURCE" refId="16" navigable="false" variant="ASSOCIATION">      
-      <attribute id="44" name="T"/>      
-      <multiplicity id="45" minimum="0" maximum="1"/>    
+      <attribute id="39" name="T"/>      
+      <multiplicity id="40" minimum="0" maximum="1"/>    
     </end>    
     <end type="TARGET" refId="18" navigable="true" variant="ASSOCIATION"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
-  <association id="46">    
-    <end type="SOURCE" refId="14" navigable="false" variant="ASSOCIATION">      
-      <attribute id="47" name="down"/>      
-      <multiplicity id="48" minimum="0" maximum="1"/>    
-    </end>    
-    <end type="TARGET" refId="10" navigable="true" variant="ASSOCIATION"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="49">    
-    <end type="SOURCE" refId="22" navigable="false" variant="ASSOCIATION">      
-      <attribute id="50" name="q"/>      
-      <multiplicity id="51" minimum="0" maximum="2147483647"/>    
-    </end>    
-    <end type="TARGET" refId="21" navigable="true" variant="ASSOCIATION"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="52">    
-    <end type="SOURCE" refId="3" navigable="false" variant="ASSOCIATION">      
-      <attribute id="53" name="ofvideo"/>      
-      <multiplicity id="54" minimum="0" maximum="1"/>    
-    </end>    
-    <end type="TARGET" refId="4" navigable="true" variant="ASSOCIATION"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <realization id="55">    
+  <dependency id="41">    
+    <end type="SOURCE" refId="2"/>    
+    <end type="TARGET" refId="1"/>  
+  </dependency>  
+  <realization id="42">    
     <end type="SOURCE" refId="23"/>    
     <end type="TARGET" refId="24"/>  
   </realization>  
-  <association id="56">    
+  <dependency id="43">    
+    <end type="SOURCE" refId="15"/>    
+    <end type="TARGET" refId="6"/>  
+  </dependency>  
+  <association id="44">    
     <end type="SOURCE" refId="22" navigable="false" variant="ASSOCIATION">      
-      <attribute id="57" name="droneInterface"/>      
-      <multiplicity id="58" minimum="0" maximum="1"/>    
+      <attribute id="45" name="droneInterface"/>      
+      <multiplicity id="46" minimum="0" maximum="1"/>    
     </end>    
     <end type="TARGET" refId="24" navigable="true" variant="ASSOCIATION"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
-  <nesting id="59">    
+  <nesting id="47">    
     <end type="SOURCE" refId="22"/>    
     <end type="TARGET" refId="21"/>  
   </nesting>  
-  <association id="60">    
-    <bendpoint x="509" y="299"/>    
+  <association id="48">    
+    <bendpoint x="388" y="230"/>    
     <end type="SOURCE" refId="4" navigable="false" variant="ASSOCIATION">      
-      <attribute id="61" name="pictureProcessingHelper"/>      
-      <multiplicity id="62" minimum="0" maximum="1"/>    
+      <attribute id="49" name="pictureProcessingHelper"/>      
+      <multiplicity id="50" minimum="0" maximum="1"/>    
     </end>    
     <end type="TARGET" refId="5" navigable="true" variant="ASSOCIATION"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
-  <association id="63">    
-    <end type="SOURCE" refId="22" navigable="false" variant="ASSOCIATION">      
-      <attribute id="64" name="task"/>      
-      <multiplicity id="65" minimum="0" maximum="1"/>    
-    </end>    
-    <end type="TARGET" refId="21" navigable="true" variant="ASSOCIATION"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="66">    
+  <association id="51">    
     <end type="SOURCE" refId="16" navigable="false" variant="ASSOCIATION">      
-      <attribute id="67" name="S"/>      
-      <multiplicity id="68" minimum="0" maximum="1"/>    
+      <attribute id="52" name="S"/>      
+      <multiplicity id="53" minimum="0" maximum="1"/>    
     </end>    
     <end type="TARGET" refId="18" navigable="true" variant="ASSOCIATION"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
+  <association id="54">    
+    <end type="SOURCE" refId="11" navigable="false" variant="ASSOCIATION">      
+      <attribute id="55" name="downScan"/>      
+      <multiplicity id="56" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="10" navigable="true" variant="ASSOCIATION"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <dependency id="57">    
+    <bendpoint x="547" y="330"/>    
+    <end type="SOURCE" refId="2"/>    
+    <end type="TARGET" refId="15"/>  
+  </dependency>  
+  <association id="58">    
+    <end type="SOURCE" refId="16" navigable="false" variant="ASSOCIATION">      
+      <attribute id="59" name="o"/>      
+      <multiplicity id="60" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="19" navigable="true" variant="ASSOCIATION"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <dependency id="61">    
+    <end type="SOURCE" refId="2"/>    
+    <end type="TARGET" refId="20"/>  
+  </dependency>  
+  <association id="62">    
+    <end type="SOURCE" refId="14" navigable="false" variant="ASSOCIATION">      
+      <attribute id="63" name="down"/>      
+      <multiplicity id="64" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="10" navigable="true" variant="ASSOCIATION"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="65">    
+    <end type="SOURCE" refId="22" navigable="false" variant="ASSOCIATION">      
+      <attribute id="66" name="q"/>      
+      <multiplicity id="67" minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" refId="21" navigable="true" variant="ASSOCIATION"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <dependency id="68">    
+    <end type="SOURCE" refId="1"/>    
+    <end type="TARGET" refId="6"/>  
+  </dependency>  
+  <dependency id="69">    
+    <end type="SOURCE" refId="2"/>    
+    <end type="TARGET" refId="6"/>  
+  </dependency>  
+  <association id="70">    
+    <end type="SOURCE" refId="3" navigable="false" variant="ASSOCIATION">      
+      <attribute id="71" name="ofvideo"/>      
+      <multiplicity id="72" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="4" navigable="true" variant="ASSOCIATION"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <dependency id="73">    
+    <end type="SOURCE" refId="20"/>    
+    <end type="TARGET" refId="6"/>  
+  </dependency>  
+  <association id="74">    
+    <end type="SOURCE" refId="22" navigable="false" variant="ASSOCIATION">      
+      <attribute id="75" name="task"/>      
+      <multiplicity id="76" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="21" navigable="true" variant="ASSOCIATION"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <dependency id="77">    
+    <bendpoint x="424" y="296"/>    
+    <end type="SOURCE" refId="1"/>    
+    <end type="TARGET" refId="20"/>  
+  </dependency>  
   <classifier-display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
     sort-features="false" accessors="true" visibility="true">    
     <attributes public="true" package="true" protected="true" private="true" static="true"/>    

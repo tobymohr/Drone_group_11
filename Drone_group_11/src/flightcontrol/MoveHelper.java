@@ -13,7 +13,7 @@ import org.bytedeco.javacpp.opencv_core.RotatedRect;
 import dronecontrol.CommandController;
 import helper.Command;
 import helper.CustomPoint;
-import picture.OFVideo;
+import picture.DroneVideo;
 import picture.PictureController;
 import picture.PictureProcessingHelper;
 
@@ -60,8 +60,8 @@ public class MoveHelper {
 		chunkSize = 65;
 
 		while (!done) {
-			if (OFVideo.imageChanged) {
-				OFVideo.imageChanged = false;
+			if (DroneVideo.imageChanged) {
+				DroneVideo.imageChanged = false;
 
 				List<Mat> contours = pictureProcessingHelper.findQrContours(camMat);
 				if (frameCount >= MAX_FRAME_COUNT) {
@@ -223,8 +223,8 @@ public class MoveHelper {
 		boolean done = false;
 		double difference = 0;
 		while (!done) {
-			if (OFVideo.imageChanged) {
-				OFVideo.imageChanged = false;
+			if (DroneVideo.imageChanged) {
+				DroneVideo.imageChanged = false;
 				if (frameCount >= MAX_FRAME_COUNT) {
 					List<Mat> contours = pictureProcessingHelper.findQrContours(camMat);
 					if (contours.size() > 0) {

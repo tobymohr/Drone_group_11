@@ -15,7 +15,7 @@ import org.bytedeco.javacpp.opencv_core.RotatedRect;
 import dronecontrol.CommandController;
 import helper.Command;
 import helper.CustomPoint;
-import picture.OFVideo;
+import picture.DroneVideo;
 import picture.PictureController;
 import picture.PictureProcessingHelper;
 
@@ -84,7 +84,7 @@ public class ScanSequence implements Runnable {
 		commandController.addCommand(Command.UP, 3500, 12);
 
 		while (runScanSequence) {
-			if (OFVideo.imageChanged) {
+			if (DroneVideo.imageChanged) {
 				scanSequence();
 			} else {
 				sleep(50);
@@ -96,7 +96,7 @@ public class ScanSequence implements Runnable {
 		frameCount = 0;
 
 		while (moveToStart) {
-			if (OFVideo.imageChanged) {
+			if (DroneVideo.imageChanged) {
 				moveDroneToPlacement(new CustomPoint(847, FlightControl.MIN_Y_CORD));
 			} else {
 				sleep(50);
@@ -105,7 +105,7 @@ public class ScanSequence implements Runnable {
 		}
 
 		PictureController.shouldFlyControl = true;
-		OFVideo.isFirst = true;
+		DroneVideo.isFirst = true;
 		PictureController.shouldScan = false;
 		System.out.println("START THE CUDE SEQUENCE");
 
@@ -233,7 +233,7 @@ public class ScanSequence implements Runnable {
 	}
 
 	private void scanSequence() {
-		OFVideo.imageChanged = false;
+		DroneVideo.imageChanged = false;
 		List<Mat> contours = pictureProcessingHelper.findQrContours(camMat);
 		if (contours.size() == 0) {
 			rotateCheck();
@@ -383,7 +383,7 @@ public class ScanSequence implements Runnable {
 
 	private void moveDroneToPlacement(CustomPoint placement) {
 		endPlacement = placement;
-		OFVideo.imageChanged = false;
+		DroneVideo.imageChanged = false;
 		List<Mat> contours = pictureProcessingHelper.findQrContours(camMat);
 		// find mostcenteredrect
 		RotatedRect rect = mostCenteredRect(contours);
