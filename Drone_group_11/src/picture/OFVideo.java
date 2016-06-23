@@ -9,14 +9,11 @@ import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
 
 import app.CommandController;
-import de.yadrone.base.IARDrone;
 import flightcontrol.DownScanSeq;
-import flightcontrol.FlightControl;
 import flightcontrol.FlightControl2;
 import flightcontrol.LandSequence;
 import flightcontrol.ScanSequence;
 import helper.Command;
-import helper.CustomPoint;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.control.Label;
@@ -40,7 +37,7 @@ public class OFVideo implements Runnable {
 	// Scansequence fields
 	private ScanSequence scanSequence;
 	private DownScanSeq downScanSeq;
-	private boolean isFirst = true;
+	public static boolean isFirst = true;
 	public boolean wallClose = false;
 	public static volatile boolean imageChanged;
 	public static volatile boolean imageChangedRed;
@@ -49,6 +46,7 @@ public class OFVideo implements Runnable {
 	private Label coordinatFoundlbl;
 	private LandSequence landSeq;
 	private FlightControl2 fc2;
+	private DownScanSeq down;
 	
 	
 	public OFVideo(ImageView mainFrame, Label coordinatFoundlbl, Label movelbl, Label qrCode,
@@ -63,9 +61,12 @@ public class OFVideo implements Runnable {
 		converter = new OpenCVFrameConverter.ToIplImage();
 		converterMat = new ToMat();
 		converter1 = new Java2DFrameConverter();
-		scanSequence = new ScanSequence(cC);
+		
 		landSeq = new LandSequence(cC);
-		fc2 = new FlightControl2(cC);
+		down = new DownScanSeq(cC);
+		scanSequence = new ScanSequence(cC, this.down);
+		fc2 = new FlightControl2(cC, down);
+		
 
 	}
 
@@ -145,6 +146,7 @@ public class OFVideo implements Runnable {
 					
 					if (PictureController.shouldScan) {
 						scanSequence.setImage(newImg);
+						down.setImage(newImg.clone());
 						if (isFirst) {
 							new Thread(scanSequence).start();
 							isFirst = false;
@@ -152,16 +154,6 @@ public class OFVideo implements Runnable {
 						imageChanged = true;
 					
 					}
-//					if (PictureController.shouldFlyControl) {
-//						if (isFirst) {
-//							downScanSeq = new DownScanSeq(commandController, newImg.clone());
-//							new Thread(downScanSeq).start();
-//							isFirst = false;
-//						}
-//						downScanSeq.setImage(newImg.clone());
-//						imageChanged = true;
-//						imageChangedGreen = true;
-//						imageChangedRed = true;
 //						
 //					}
 //					if (PictureController.shouldLand) {

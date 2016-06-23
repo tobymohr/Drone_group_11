@@ -26,7 +26,8 @@ public class FlightControl2 implements Runnable {
 	private HashMap<Integer, ArrayList<CustomPoint>> moves;
 	
 	
-	public FlightControl2(CommandController commandController) {
+	public FlightControl2(CommandController commandController, DownScanSeq down) {
+		this.downScan = down;
 		this.commandController = commandController;
 		this.moveHelper = new MoveHelper(commandController);
 		moves = new HashMap<Integer, ArrayList<CustomPoint>>();
@@ -39,17 +40,12 @@ public class FlightControl2 implements Runnable {
 
 	@Override
 	public void run() {
-		PictureController.setPlacement(new CustomPoint(0, 0));
 		populateMoves();
-		commandController.droneInterface.takeOff();
-
-		sleepThread(2000);
 		System.out.println("HOVER");
 		commandController.droneInterface.hover();
 		sleepThread(2000);
 		System.out.println("UP");
 		commandController.addCommand(Command.UP, 400, 100);
-		PictureController.setPlacement(new CustomPoint(847, 50));
 		flyLaneOne();
 //		commandController.addCommand(Command.LEFT, MoveHelper.FIELD_DURATION , MoveHelper.FIELD_SPEED);
 //		flyLaneTwo();
@@ -67,7 +63,10 @@ public class FlightControl2 implements Runnable {
 			System.out.println("MOVE TO: " + point.toString());
 //			moveHelper.moveDroneToPlacement(point, "W02.00");
 //			downScan.scanForCubes();
-			backwards = moveHelper.moveOneChunk(backwards, point.getY(), "W02.02", "W00.02");
+			backwards = moveHelper.moveOneChunk(backwards, point.getY(), "W02.00", "W00.04");
+			commandController.addCommand(Command.HOVER, 5000, 5);
+			
+			
 			//TODO LANDING FIS
 		}
 		System.out.println("DONE");

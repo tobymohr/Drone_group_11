@@ -86,10 +86,12 @@ public class ScanSequence implements Runnable {
 	private boolean runScanSequence = true;
 	private boolean xDone = false;
 	private boolean yDone = false;
+	private DownScanSeq down;
 	boolean stopUsingSpin = xDone == true || yDone == true;
 
-	public ScanSequence(CommandController commandController) {
+	public ScanSequence(CommandController commandController, DownScanSeq down) {
 		this.commandController = commandController;
+		this.down = down;
 	}
 
 	public void setImage(Mat camMat) {
@@ -104,7 +106,7 @@ public class ScanSequence implements Runnable {
 		commandController.droneInterface.hover();
 		sleep(2000);
 		System.out.println("UP");
-		commandController.addCommand(Command.UP, 2500, 12);
+		commandController.addCommand(Command.UP, 3500, 12);
 
 		while (runScanSequence) {
 			if (OFVideo.imageChanged) {
@@ -113,7 +115,8 @@ public class ScanSequence implements Runnable {
 				sleep(50);
 			}
 		}
-
+		
+		scanCubes();
 		firstAxisToMove();
 		System.out.println("LETS GOOOOOOO MOTHERFUCKER");
 		frameCount = 0;
@@ -126,8 +129,33 @@ public class ScanSequence implements Runnable {
 			}
 			
 		}
+		
+		PictureController.shouldFlyControl = true;
+		OFVideo.isFirst =  true;
+		PictureController.shouldScan = false;
 		System.out.println("START THE CUDE SEQUENCE");
 
+	}
+	
+	private void scanCubes() {
+		commandController.droneInterface.hover();
+		commandController.droneInterface.setBottomCamera();
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		down.run();
+		
+		commandController.droneInterface.setFrontCamera();
+		
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private void firstAxisToMove() {
@@ -539,6 +567,7 @@ public class ScanSequence implements Runnable {
 
 		System.out.println(placement.toString());
 		PictureController.setPlacement(placement);
+		scanCubes();
 	}
 
 	private void decideMove(int move) {
