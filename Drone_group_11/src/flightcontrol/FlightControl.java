@@ -42,14 +42,12 @@ public class FlightControl implements Runnable {
 		System.out.println("UP");
 		commandController.addCommand(Command.UP, 400, 100);
 		flyLaneOne();
-		// commandController.addCommand(Command.LEFT, MoveHelper.FIELD_DURATION
-		// , MoveHelper.FIELD_SPEED);
-		// flyLaneTwo();
-		// commandController.addCommand(Command.RIGHT, MoveHelper.FIELD_DURATION
-		// , MoveHelper.FIELD_SPEED);
-		// flyLaneThree();
-		// System.out.println("WON THE CHALLENGE. SO GUT SO NICE, FUCK
-		// RØVKJÆR");
+		 commandController.addCommand(Command.LEFT, MoveHelper.FIELD_DURATION
+		 , MoveHelper.FIELD_SPEED);
+		 flyLaneTwo();
+		 commandController.addCommand(Command.RIGHT, MoveHelper.FIELD_DURATION
+		 , MoveHelper.FIELD_SPEED);
+		 flyLaneThree();
 
 	}
 
@@ -59,10 +57,9 @@ public class FlightControl implements Runnable {
 		boolean backwards = true;
 		for (CustomPoint point : moves.get(1)) {
 			System.out.println("MOVE TO: " + point.toString());
-			// moveHelper.moveDroneToPlacement(point, "W02.00");
-			// downScan.scanForCubes();
 			backwards = moveHelper.moveOneChunk(backwards, point.getY(), "W02.00", "W00.04");
 			commandController.addCommand(Command.HOVER, 5000, 5);
+			downScan.run();
 
 			// TODO LANDING FIS
 		}
@@ -70,29 +67,24 @@ public class FlightControl implements Runnable {
 	}
 
 	private void flyLaneTwo() {
-		// downScan.scanForCubes();
-		// TODO LANDING FIS
 		boolean backwards = true;
 		for (CustomPoint point : moves.get(2)) {
 			System.out.println("MOVE TO: " + point.toString());
-			backwards = moveHelper.moveOneChunk(backwards, point.getY(), "WWW", "LOL");
-			// downScan.scanForCubes();
-
-			// TODO LANDING FIS
+			backwards = moveHelper.moveOneChunk(backwards, point.getY(), "W00.03", "W02.01");
+			commandController.addCommand(Command.HOVER, 5000, 5);
+			downScan.run();
 		}
 		moveHelper.backwards = true;
 		System.out.println("DONE");
 	}
 
 	private void flyLaneThree() {
-		// downScan.scanForCubes();
-		// TODO LANDING FIS
+		boolean backwards = true;
 		for (CustomPoint point : moves.get(2)) {
 			System.out.println("MOVE TO: " + point.toString());
-			moveHelper.moveDroneToPlacement(point, "W02.00");
-			// downScan.scanForCubes();
-
-			// TODO LANDING FIS
+			backwards = moveHelper.moveOneChunk(backwards,point.getY(), "W02.02", "W00.02");
+			commandController.addCommand(Command.HOVER, 5000, 5);
+			downScan.run();
 		}
 		moveHelper.backwards = true;
 		System.out.println("DONE");
@@ -143,6 +135,9 @@ public class FlightControl implements Runnable {
 			tempList6.add(new CustomPoint(MAX_X_CORD - CHUNK_SIZE_X * 5, j));
 		}
 		moves.put(6, tempList6);
+		for(CustomPoint p : tempList){
+			System.out.println(p.getX());
+		}
 		PictureController.addCords(tempList);
 		PictureController.addCords(tempList2);
 		PictureController.addCords(tempList3);

@@ -12,7 +12,7 @@
   </class>  
   <class id="2" language="java" name="picture.PictureProcessingHelper" project="Drone_group_11" 
     file="/Drone_group_11/src/picture/PictureProcessingHelper.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="569" y="150"/>    
+    <position height="-1" width="-1" x="558" y="162"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -21,7 +21,7 @@
   </class>  
   <class id="3" language="java" name="picture.OFVideo" project="Drone_group_11" 
     file="/Drone_group_11/src/picture/OFVideo.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="1022" y="-95"/>    
+    <position height="-1" width="-1" x="1010" y="-137"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -30,7 +30,7 @@
   </class>  
   <class id="4" language="java" name="flightcontrol.ScanSequence" project="Drone_group_11" 
     file="/Drone_group_11/src/flightcontrol/ScanSequence.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="1544" y="404"/>    
+    <position height="-1" width="-1" x="1404" y="218"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
