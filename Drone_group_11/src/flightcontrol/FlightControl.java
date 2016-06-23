@@ -8,7 +8,6 @@ import helper.CustomPoint;
 import app.CommandController;
 import helper.Command;
 import picture.PictureController;
-import picture.PictureProcessingHelper;
 
 public class FlightControl implements Runnable {
 	private static final int CHUNK_SIZE_Y = 80;
@@ -17,15 +16,12 @@ public class FlightControl implements Runnable {
 	public static final int MAX_X_CORD = 847;
 	public static final int MIN_X_CORD = 80;
 	public static final int CHUNK_SIZE_X = MAX_X_CORD / 6;
-	
+
 	private MoveHelper moveHelper;
-	private PictureProcessingHelper pictureProcessingHelper = new PictureProcessingHelper();
 	private CommandController commandController;
-	private Mat camMat;
 	private DownScanSeq downScan = new DownScanSeq(commandController);
 	private HashMap<Integer, ArrayList<CustomPoint>> moves;
-	
-	
+
 	public FlightControl(CommandController commandController, DownScanSeq down) {
 		this.downScan = down;
 		this.commandController = commandController;
@@ -34,7 +30,6 @@ public class FlightControl implements Runnable {
 	}
 
 	public void setImage(Mat img) {
-		camMat = img;
 		moveHelper.camMat = img.clone();
 	}
 
@@ -47,63 +42,62 @@ public class FlightControl implements Runnable {
 		System.out.println("UP");
 		commandController.addCommand(Command.UP, 400, 100);
 		flyLaneOne();
-//		commandController.addCommand(Command.LEFT, MoveHelper.FIELD_DURATION , MoveHelper.FIELD_SPEED);
-//		flyLaneTwo();
-//		commandController.addCommand(Command.RIGHT, MoveHelper.FIELD_DURATION , MoveHelper.FIELD_SPEED);
-//		flyLaneThree();
-//		System.out.println("WON THE CHALLENGE. SO GUT SO NICE, FUCK RØVKJÆR");
-		
+		// commandController.addCommand(Command.LEFT, MoveHelper.FIELD_DURATION
+		// , MoveHelper.FIELD_SPEED);
+		// flyLaneTwo();
+		// commandController.addCommand(Command.RIGHT, MoveHelper.FIELD_DURATION
+		// , MoveHelper.FIELD_SPEED);
+		// flyLaneThree();
+		// System.out.println("WON THE CHALLENGE. SO GUT SO NICE, FUCK
+		// RØVKJÆR");
+
 	}
-	
-	private void flyLaneOne(){
-//		downScan.scanForCubes();
-		//TODO LANDING FIS
+
+	private void flyLaneOne() {
+		// downScan.scanForCubes();
+		// TODO LANDING FIS
 		boolean backwards = true;
 		for (CustomPoint point : moves.get(1)) {
 			System.out.println("MOVE TO: " + point.toString());
-//			moveHelper.moveDroneToPlacement(point, "W02.00");
-//			downScan.scanForCubes();
+			// moveHelper.moveDroneToPlacement(point, "W02.00");
+			// downScan.scanForCubes();
 			backwards = moveHelper.moveOneChunk(backwards, point.getY(), "W02.00", "W00.04");
 			commandController.addCommand(Command.HOVER, 5000, 5);
-			
-			
-			//TODO LANDING FIS
+
+			// TODO LANDING FIS
 		}
 		System.out.println("DONE");
 	}
-	
-	private void flyLaneTwo(){
-//		downScan.scanForCubes();
-		//TODO LANDING FIS
+
+	private void flyLaneTwo() {
+		// downScan.scanForCubes();
+		// TODO LANDING FIS
 		boolean backwards = true;
 		for (CustomPoint point : moves.get(2)) {
 			System.out.println("MOVE TO: " + point.toString());
 			backwards = moveHelper.moveOneChunk(backwards, point.getY(), "WWW", "LOL");
-//			downScan.scanForCubes();
-			
-			//TODO LANDING FIS
+			// downScan.scanForCubes();
+
+			// TODO LANDING FIS
 		}
 		moveHelper.backwards = true;
 		System.out.println("DONE");
 	}
-	
-	private void flyLaneThree(){
-//		downScan.scanForCubes();
-		//TODO LANDING FIS
+
+	private void flyLaneThree() {
+		// downScan.scanForCubes();
+		// TODO LANDING FIS
 		for (CustomPoint point : moves.get(2)) {
 			System.out.println("MOVE TO: " + point.toString());
 			moveHelper.moveDroneToPlacement(point, "W02.00");
-//			downScan.scanForCubes();
-			
-			//TODO LANDING FIS
+			// downScan.scanForCubes();
+
+			// TODO LANDING FIS
 		}
 		moveHelper.backwards = true;
 		System.out.println("DONE");
 	}
-	
-	
 
-	
 	private void sleepThread(int duration) {
 		try {
 			Thread.sleep(duration);
@@ -111,27 +105,27 @@ public class FlightControl implements Runnable {
 			System.out.println("InterruptedEX");
 		}
 	}
-	
+
 	public void populateMoves() {
 		ArrayList<CustomPoint> tempList = new ArrayList<CustomPoint>();
-		
+
 		for (int j = MIN_Y_CORD; j < MAX_Y_CORD; j = j + CHUNK_SIZE_Y) {
-			tempList.add(new CustomPoint(MAX_X_CORD, j));			
+			tempList.add(new CustomPoint(MAX_X_CORD, j));
 		}
 		moves.put(1, tempList);
-		
+
 		ArrayList<CustomPoint> tempList2 = new ArrayList<CustomPoint>();
 		for (int j = MAX_Y_CORD; j > MIN_Y_CORD; j = j - CHUNK_SIZE_Y) {
 			tempList2.add(new CustomPoint(MAX_X_CORD - CHUNK_SIZE_X, j));
 		}
 		moves.put(2, tempList2);
-		
+
 		ArrayList<CustomPoint> tempList3 = new ArrayList<CustomPoint>();
 		for (int j = MIN_Y_CORD; j < MAX_Y_CORD; j = j + CHUNK_SIZE_Y) {
-			tempList3.add(new CustomPoint(MAX_X_CORD - CHUNK_SIZE_X * 2, j));			
+			tempList3.add(new CustomPoint(MAX_X_CORD - CHUNK_SIZE_X * 2, j));
 		}
 		moves.put(3, tempList3);
-		
+
 		ArrayList<CustomPoint> tempList4 = new ArrayList<CustomPoint>();
 		for (int j = MAX_Y_CORD; j > MIN_Y_CORD; j = j - CHUNK_SIZE_Y) {
 			tempList.add(new CustomPoint(MAX_X_CORD - CHUNK_SIZE_X * 3, j));
@@ -140,7 +134,7 @@ public class FlightControl implements Runnable {
 
 		ArrayList<CustomPoint> tempList5 = new ArrayList<CustomPoint>();
 		for (int j = MIN_Y_CORD; j < MAX_Y_CORD; j = j + CHUNK_SIZE_Y) {
-			tempList5.add(new CustomPoint(MAX_X_CORD - CHUNK_SIZE_X * 4, j));			
+			tempList5.add(new CustomPoint(MAX_X_CORD - CHUNK_SIZE_X * 4, j));
 		}
 		moves.put(5, tempList5);
 

@@ -13,7 +13,7 @@ import picture.OFVideo;
 import picture.PictureController;
 import picture.PictureProcessingHelper;
 
-public class DownScanSeq  {
+public class DownScanSeq {
 
 	private static final double MAX_RES_X = 1280.0;
 	private static final double MAX_RES_Y = 720.0;
@@ -25,10 +25,8 @@ public class DownScanSeq  {
 	public boolean redDone;
 	private PictureProcessingHelper pictureProcessingHelper;
 	private Mat camMat;
-	private Mat camMat2;
 	private ArrayList<ArrayList<CustomPoint>> greenResults = new ArrayList<ArrayList<CustomPoint>>();
 	private ArrayList<ArrayList<CustomPoint>> redResults = new ArrayList<ArrayList<CustomPoint>>();
-	private CommandController commandController;
 	public static boolean flyingEast = true;
 	private int maxSize = 0;
 
@@ -37,14 +35,12 @@ public class DownScanSeq  {
 		redDone = false;
 		pictureProcessingHelper = new PictureProcessingHelper();
 		camMat = mat;
-		this.commandController = commandController;
 	}
 
 	public DownScanSeq(CommandController commandController) {
 		greenDone = false;
 		redDone = false;
 		pictureProcessingHelper = new PictureProcessingHelper();
-		this.commandController = commandController;
 	}
 
 	public void setImage(Mat camMat) {
@@ -53,9 +49,6 @@ public class DownScanSeq  {
 
 	public void run() {
 		do {
-			long start;
-			long elapsedTime;
-			start = System.currentTimeMillis();
 			scanRedGreen();
 		} while (!greenDone && !redDone);
 		greenDone = false;

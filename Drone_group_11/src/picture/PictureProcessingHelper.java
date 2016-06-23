@@ -87,7 +87,7 @@ public class PictureProcessingHelper {
 	int blueMin = 110;
 	int blueMax = 130;
 	public String code = "";
-	private int xleft, xright, ytop, ybot, yCenterTop, yCenterBottom, dist;
+	private int xleft, xright, ytop, ybot, yCenterTop, yCenterBottom;
 	private QRCodeReader reader = new QRCodeReader();
 	private LuminanceSource source;
 	private BinaryBitmap bitmap;
@@ -172,15 +172,16 @@ public class PictureProcessingHelper {
 		}
 		return results;
 	}
-	
+
 	public ArrayList<CustomPoint> findObjectsMatNew(Mat filteredImage) {
-		ArrayList<CustomPoint> results = new ArrayList<>();;
+		ArrayList<CustomPoint> results = new ArrayList<>();
+		;
 		MatVector contours = new MatVector();
 		Mat hierarchy = new Mat();
 		findContours(filteredImage, contours, hierarchy, RETR_LIST, CV_LINK_RUNS, new opencv_core.Point());
 		for (int i = 0; i < contours.size(); i++) {
-//			if(contourArea(contour.get(i)) > 50){
-//			}
+			// if(contourArea(contour.get(i)) > 50){
+			// }
 			if (contourArea(contours.get(i)) > MAX_CONTOUR_AREA) {
 				Point2f centerPoint = minAreaRect(contours.get(i)).center();
 				opencv_core.Point p = new opencv_core.Point((int) centerPoint.x(), (int) centerPoint.y());
@@ -283,12 +284,11 @@ public class PictureProcessingHelper {
 		return 0;
 	}
 
-	
 	private RotatedRect mostCenteredRect(List<Mat> contours, Mat srcImage) {
 		double distanceFomCenter = Double.MAX_VALUE;
 		RotatedRect rect = new RotatedRect();
 		for (int i = 0; i < contours.size(); i++) {
-			if ( contourArea(contours.get(i)) > 1000) {
+			if (contourArea(contours.get(i)) > 1000) {
 				RotatedRect rect2 = minAreaRect(contours.get(i));
 				int angle = Math.abs((int) rect.angle());
 				float height;
@@ -318,22 +318,21 @@ public class PictureProcessingHelper {
 		Canny(img1, img1, 75, 200);
 		MatVector matContour = new MatVector();
 		findContours(img1, matContour, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
-		
+
 		for (int i = 0; i < matContour.size(); i++) {
 			approxPolyDP(matContour.get(i), matContour.get(i), 0.02 * arcLength(matContour.get(i), true), true);
 			RotatedRect rect = minAreaRect(matContour.get(i));
 
-			if (matContour.get(i).total() == 4
-					&& contourArea(matContour.get(i)) > MIN_AREA && checkAngles(matContour.get(i), rect)) {
+			if (matContour.get(i).total() == 4 && contourArea(matContour.get(i)) > MIN_AREA
+					&& checkAngles(matContour.get(i), rect)) {
 				matsForRects.add(matContour.get(i));
-				
-				
+
 				drawContours(srcImage, matContour, i, Scalar.WHITE, 3, 8, null, 1, null);
 				img1 = warpImage(srcImage, rect);
 				String qrCode = scanQrCode(img1);
 				if (qrCode != null && !qrCode.equals("")) {
-					putText(srcImage, qrCode, new Point((int) rect.center().x() - 25, (int) rect.center().y() + 80), 1, 2,
-							Scalar.GREEN, 2, 8, false);
+					putText(srcImage, qrCode, new Point((int) rect.center().x() - 25, (int) rect.center().y() + 80), 1,
+							2, Scalar.GREEN, 2, 8, false);
 				}
 				distance = calcDistance(rect);
 				putText(srcImage, "" + distance, new Point((int) rect.center().x() - 25, (int) rect.center().y() + 60),
@@ -350,7 +349,7 @@ public class PictureProcessingHelper {
 				}
 			}
 		}
-		
+
 		return srcImage;
 	}
 
@@ -620,7 +619,6 @@ public class PictureProcessingHelper {
 						break;
 					case 2:
 						line(img, p, p, Scalar.RED, 16, CV_AA, 0);
-						dist = 0;
 						break;
 					case 3:
 						line(img, p, p, Scalar.GREEN, 16, CV_AA, 0);
@@ -803,7 +801,7 @@ public class PictureProcessingHelper {
 
 		return circles.total();
 	}
-	
+
 	public boolean isBlueTowerAhead(MatVector contours) {
 		return contours.size() > 200 ? true : false;
 	}

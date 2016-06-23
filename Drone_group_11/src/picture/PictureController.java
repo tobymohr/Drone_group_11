@@ -55,16 +55,13 @@ public class PictureController {
 	private OFVideo ofvideo;
 	private ScheduledExecutorService timer;
 	public static String qrCodeText = "";
-	private FrameGrabber grabber = new OpenCVFrameGrabber(0);
 	private Set<KeyCode> pressedKeys = new HashSet<KeyCode>();
 	private Mat camMat = null;
 	public static boolean shouldScan = false;
 	public static boolean shouldTestWall = false;
 	public static boolean shouldLand = false;
 	public static boolean shouldFlyControl = false;
-	private static boolean aboveLanding = false;
-	
-	private static int circleCounter = 0;
+
 	public BufferedImage billede;
 	public int navn = 0;
 	public int speed = 10;
@@ -76,7 +73,6 @@ public class PictureController {
 	public static final int SHOW_POLYGON = 2;
 	public static final int SHOW_LANDING = 3;
 	public static int imageInt = SHOW_POLYGON;
-	private static int counts = 0;
 	private int prevBattery = 0;
 	public static volatile boolean imageChanged;
 	private static Map map;
@@ -102,9 +98,9 @@ public class PictureController {
 	private ImageView bufferedframe;
 	@FXML
 	private Label lowBatteryLbl;
-	@FXML 
+	@FXML
 	private Label movelbl;
-	@FXML 
+	@FXML
 	private Label coordinatFoundlbl;
 
 	public void setUpKeys() {
@@ -113,7 +109,7 @@ public class PictureController {
 			public void handle(WindowEvent t) {
 				if (commandController != null) {
 					if (commandController.droneInterface.getDroneFlying()) {
-					land();
+						land();
 					}
 				}
 				Platform.exit();
@@ -208,7 +204,6 @@ public class PictureController {
 					case T:
 						commandController.droneInterface.setBottomCamera();
 					default:
-					
 
 						break;
 					}
@@ -270,7 +265,7 @@ public class PictureController {
 		commandController = new CommandController(drone);
 		drone.getCommandManager().setVideoCodec(VideoCodec.H264_720P);
 		commandController.droneInterface.setFrontCamera();
-//		cC.droneInterface.setBottomCamera();
+		// cC.droneInterface.setBottomCamera();
 		new Thread(commandController).start();
 		map = Map.init(new ArrayList<>());
 	}
@@ -294,7 +289,7 @@ public class PictureController {
 						@Override
 						public void run() {
 							lowBatteryLbl.setText("Battery: " + arg0 + "%");
-							if(arg0 < 24){
+							if (arg0 < 24) {
 								lowBatteryLbl.setText("Battery level is low: " + arg0 + "%");
 							}
 						}
@@ -311,8 +306,8 @@ public class PictureController {
 			@Override
 			public void imageUpdated(BufferedImage arg0) {
 				if (isFirst) {
-					new Thread(ofvideo = new OFVideo(mainFrame,coordinatFoundlbl, movelbl, qrCode, qrDist,
-							arg0, commandController, bufferedframe)).start();
+					new Thread(ofvideo = new OFVideo(mainFrame, movelbl, arg0, commandController, bufferedframe))
+							.start();
 					isFirst = false;
 				}
 				ofvideo.setArg0(arg0);
@@ -475,9 +470,9 @@ public class PictureController {
 	}
 
 	public void takeOff() throws InterruptedException {
-//		cC.droneInterface.takeOff();
-//		shouldFlyControl = true;
-//		shouldLand = true;
+		// cC.droneInterface.takeOff();
+		// shouldFlyControl = true;
+		// shouldLand = true;
 		shouldScan = true;
 	}
 
@@ -496,7 +491,7 @@ public class PictureController {
 	public void showFilter() {
 		imageInt = SHOW_FILTER;
 	}
-	
+
 	public static void addCord(CustomPoint point) {
 		map.addCord(point);
 	}
@@ -508,6 +503,7 @@ public class PictureController {
 	public static void addCords(ArrayList<CustomPoint> tempList) {
 		map.addCords(tempList);
 	}
+
 	public static void addCords(ArrayList<CustomPoint> tempList, Color color) {
 		map.addCords(tempList, color);
 	}
@@ -515,12 +511,11 @@ public class PictureController {
 	public static void addCords(ArrayList<CustomPoint> tempList, CustomPoint placement) {
 		map.addCords(tempList, placement);
 	}
-	
-	
+
 	public static CustomPoint getPlacement() {
 		return map.getPlacement();
 	}
-	
+
 	public static void setPlacement(CustomPoint placement) {
 		map.setPlacement(placement);
 	}

@@ -44,7 +44,6 @@ public class MoveHelper {
 	private CustomPoint endPlacement;
 	private PictureProcessingHelper pictureProcessingHelper = new PictureProcessingHelper();
 	private Map<Integer, Integer> moves = new HashMap<>();
-	private boolean moveX = false;
 	private boolean xDone = false;
 	private boolean yDone = false;
 	boolean stopUsingSpin = xDone == true || yDone == true;
@@ -93,7 +92,7 @@ public class MoveHelper {
 				} else {
 					frameCount++;
 				}
-			}else {
+			} else {
 				try {
 					Thread.sleep(50);
 				} catch (InterruptedException e) {
@@ -128,7 +127,7 @@ public class MoveHelper {
 		double distanceFomCenter = Double.MAX_VALUE;
 		RotatedRect rect = new RotatedRect();
 		for (int i = 0; i < contours.size(); i++) {
-			if ( contourArea(contours.get(i)) > 1000) {
+			if (contourArea(contours.get(i)) > 1000) {
 				RotatedRect rect2 = minAreaRect(contours.get(i));
 				int angle = Math.abs((int) rect.angle());
 				float height;
@@ -162,9 +161,9 @@ public class MoveHelper {
 				}
 			} else {
 				if (pictureProcessingHelper.getSpinSpeed(contourSize) > 0) {
-					addCommand(Command.LEFT,  250, 85);
+					addCommand(Command.LEFT, 250, 85);
 				} else {
-					addCommand(Command.LEFT,  250, 85);
+					addCommand(Command.LEFT, 250, 85);
 				}
 
 			}
@@ -182,14 +181,14 @@ public class MoveHelper {
 	}
 
 	private int calcMovesYAxis(double y, CustomPoint placement) {
-			return getCorrectYMove();
-//		if (y > placement.getY()) {
-//			if (backwards) {
-//				return Command.FORWARD;
-//			} else {
-//				return Command.BACKWARDS;
-//			}
-//		}
+		return getCorrectYMove();
+		// if (y > placement.getY()) {
+		// if (backwards) {
+		// return Command.FORWARD;
+		// } else {
+		// return Command.BACKWARDS;
+		// }
+		// }
 	}
 
 	private void addCommandForPlacement(int task, int duration, int speed) {
@@ -220,58 +219,6 @@ public class MoveHelper {
 		return Command.NONE;
 	}
 
-	private void updateRelativeCord(int move) {
-		CustomPoint placement = PictureController.getPlacement();
-		if (move == Command.BACKWARDS) {
-			if (code.contains("W00")) {
-				placement.setY(placement.getY() - chunkSize);
-			} else if (code.contains("W01")) {
-				placement.setX(placement.getX() - chunkSize);
-			} else if (code.contains("W02")) {
-				placement.setY(placement.getY() + chunkSize);
-			} else {
-				placement.setX(placement.getX() + chunkSize);
-			}
-		} else if (move == Command.FORWARD) {
-			if (code.contains("W00")) {
-				placement.setY(placement.getY() + chunkSize);
-			} else if (code.contains("W01")) {
-				placement.setX(placement.getX() + chunkSize);
-			} else if (code.contains("W02")) {
-				placement.setY(placement.getY() - chunkSize);
-			} else {
-				placement.setX(placement.getX() - chunkSize);
-			}
-		} else if (move == Command.RIGHT) {
-			if (code.contains("W00")) {
-				placement.setX(placement.getX() + smallChunkSize);
-			} else if (code.contains("W01")) {
-				placement.setY(placement.getY() - smallChunkSize);
-			} else if (code.contains("W02")) {
-				placement.setX(placement.getX() - smallChunkSize);
-			} else {
-				placement.setY(placement.getY() + smallChunkSize);
-			}
-		} else if (move == Command.LEFT) {
-			if (code.contains("W00")) {
-				placement.setX(placement.getX() - smallChunkSize);
-			} else if (code.contains("W01")) {
-				placement.setY(placement.getY() + smallChunkSize);
-			} else if (code.contains("W02")) {
-				placement.setX(placement.getX() + smallChunkSize);
-			} else {
-				placement.setY(placement.getY() - smallChunkSize);
-			}
-		}
-		PictureController.setPlacement(placement);
-		double differenceY = Math.abs((placement.getY() - endPlacement.getY()));
-//		boolean endYCondition = 10< differenceY && differenceY < 40;
-//		if(endYCondition){
-			done = true;
-//		}
-		
-	}
-	
 	public boolean moveOneChunk(boolean backwards, double goalY, String backwardsCode, String forwardsCode) {
 		boolean done = false;
 		double difference = 0;
@@ -283,12 +230,12 @@ public class MoveHelper {
 					if (contours.size() > 0) {
 						RotatedRect rect = null;
 						if (backwards) {
-							rect = checkForQRScan(camMat, contours, backwardsCode);							
+							rect = checkForQRScan(camMat, contours, backwardsCode);
 						} else {
 							rect = checkForQRScan(camMat, contours, forwardsCode);
 						}
 						if (rect == null) {
-							rect = mostCenteredRect(contours, camMat);							
+							rect = mostCenteredRect(contours, camMat);
 						}
 						while (!canMoveWithoutSpinCheck(rect)) {
 							contours = pictureProcessingHelper.findQrContours(camMat);
@@ -304,7 +251,8 @@ public class MoveHelper {
 							CustomPoint tempPlace = PictureController.getPlacement();
 							if (distanceFromQr > 490 && backwards) {
 								commandController.addCommand(Command.ROTATELEFT, 2200, 90);
-//								commandController.addCommand(Command.ROTATERIGHT, 200, 90);
+								// commandController.addCommand(Command.ROTATERIGHT,
+								// 200, 90);
 								backwards = false;
 							} else {
 								if (backwards) {
@@ -357,7 +305,7 @@ public class MoveHelper {
 		}
 		return backwards;
 	}
-	
+
 	private RotatedRect checkForQRScan(Mat image, List<Mat> contours, String code) {
 		for (Mat contour : contours) {
 			RotatedRect rect = minAreaRect(contour);
@@ -369,7 +317,7 @@ public class MoveHelper {
 		}
 		return null;
 	}
-	
+
 	private int calculateDuration(double difference) {
 		double absDifference = Math.abs(difference);
 		if (absDifference > 70) {

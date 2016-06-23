@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
 
-import de.yadrone.base.command.FlyingMode;
 import app.CommandController;
 import helper.Command;
 import picture.PictureProcessingHelper;
@@ -16,9 +15,6 @@ public class LandSequence implements Runnable {
 	private CommandController commandController;
 	public boolean wallClose = false;
 	private Map<Integer, Integer> moveSet = new HashMap<>();
-	private static boolean aboveLanding = false;
-	private static int circleCounter = 0;
-	private static int counts = 0;
 	private Mat camMat;
 	int circles = 0;
 	String code = null;

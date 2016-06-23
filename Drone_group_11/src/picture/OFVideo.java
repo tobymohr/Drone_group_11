@@ -24,39 +24,28 @@ public class OFVideo implements Runnable {
 	private Java2DFrameConverter converter1;
 	private OpenCVFrameConverter.ToMat converterMat;
 	private ImageView mainFrame;
-	private ImageView bufferedframe;
-	private Label qrCode;
-	private Label qrDist;
 	private BufferedImage arg0;
 	private PictureProcessingHelper pictureProcessingHelper = new PictureProcessingHelper();
 	private CommandController commandController;
-	private static boolean aboveLanding = false;
 	private static int circleCounter = 0;
 	private static int counts = 0;
 	// Scansequence fields
 	private ScanSequence scanSequence;
-	private DownScanSeq downScanSeq;
 	public static boolean isFirst = true;
 	public boolean wallClose = false;
 	public static volatile boolean imageChanged;
 	public static volatile boolean imageChangedRed;
 	public static volatile boolean imageChangedGreen;
 	private Label movelbl;
-	private Label coordinatFoundlbl;
 	private LandSequence landSeq;
 	private FlightControl fc2;
 	private DownScanSeq down;
-	
-	
-	public OFVideo(ImageView mainFrame, Label coordinatFoundlbl, Label movelbl, Label qrCode,
-			Label qrDist, BufferedImage arg0, CommandController cC, ImageView bufferedframe) {
+
+	public OFVideo(ImageView mainFrame, Label movelbl, BufferedImage arg0, CommandController cC,
+			ImageView bufferedframe) {
 		this.arg0 = arg0;
 		this.mainFrame = mainFrame;
-		this.bufferedframe = bufferedframe;
-		this.qrDist = qrDist;
-		this.qrCode = qrCode;
 		this.movelbl = movelbl;
-		this.coordinatFoundlbl = coordinatFoundlbl;
 		converterMat = new ToMat();
 		converter1 = new Java2DFrameConverter();
 		landSeq = new LandSequence(cC);
@@ -80,54 +69,49 @@ public class OFVideo implements Runnable {
 					newImg = converterMat.convert(converter1.convert(arg0));
 					Mat filteredImage = null;
 
-				switch (PictureController.colorInt) {
-				case 1:
-					filteredImage = pictureProcessingHelper.findContoursBlackMat(newImg);
-					break;
-				case 2:
-					filteredImage = pictureProcessingHelper.findContoursRedMat(newImg);
-					break;
-				case 3:
-					filteredImage = pictureProcessingHelper.findContoursGreenMat(newImg);
-					break;
-				default:
-					filteredImage = pictureProcessingHelper.findContoursBlueMat(newImg);
-					break;
-				}
+					switch (PictureController.colorInt) {
+					case 1:
+						filteredImage = pictureProcessingHelper.findContoursBlackMat(newImg);
+						break;
+					case 2:
+						filteredImage = pictureProcessingHelper.findContoursRedMat(newImg);
+						break;
+					case 3:
+						filteredImage = pictureProcessingHelper.findContoursGreenMat(newImg);
+						break;
+					default:
+						filteredImage = pictureProcessingHelper.findContoursBlueMat(newImg);
+						break;
+					}
 
-				switch (PictureController.imageInt) {
-				case PictureController.SHOW_QR:
-					showQr(newImg.clone());
-					break;
-				case PictureController.SHOW_FILTER:
-					showFilter(filteredImage.clone());
-					break;
-				case PictureController.SHOW_POLYGON:
-					showPolygons(newImg.clone(), filteredImage.clone());
-					break;
-				case PictureController.SHOW_LANDING:
-					showLanding(newImg.clone(), filteredImage.clone());
-					break;
-				default:
-					showPolygons(newImg.clone(), filteredImage.clone());
-					break;
-				}
+					switch (PictureController.imageInt) {
+					case PictureController.SHOW_QR:
+						showQr(newImg.clone());
+						break;
+					case PictureController.SHOW_FILTER:
+						showFilter(filteredImage.clone());
+						break;
+					case PictureController.SHOW_POLYGON:
+						showPolygons(newImg.clone(), filteredImage.clone());
+						break;
+					case PictureController.SHOW_LANDING:
+						showLanding(newImg.clone(), filteredImage.clone());
+						break;
+					default:
+						showPolygons(newImg.clone(), filteredImage.clone());
+						break;
+					}
 
-					
 					Platform.runLater(new Runnable() {
 						@Override
 						public void run() {
-							if(CommandController.moveString != null){
+							if (CommandController.moveString != null) {
 								movelbl.setText("Move : " + CommandController.moveString);
 							}
-							
-							if(PictureController.getPlacement().getX() != 0){
-//								 coordinatFoundlbl.setVisible(true);
-							}
-							
+
 						}
 					});
-					//TODO: sæt fc2 op
+					// TODO: sæt fc2 op
 					if (PictureController.shouldFlyControl) {
 						fc2.setImage(newImg.clone());
 						if (isFirst) {
@@ -136,7 +120,7 @@ public class OFVideo implements Runnable {
 						}
 						imageChanged = true;
 					}
-					
+
 					if (PictureController.shouldScan) {
 						scanSequence.setImage(newImg);
 						down.setImage(newImg.clone());
@@ -145,7 +129,7 @@ public class OFVideo implements Runnable {
 							isFirst = false;
 						}
 						imageChanged = true;
-					
+
 					}
 					if (PictureController.shouldLand) {
 						landSeq.setImage(newImg.clone());
@@ -175,8 +159,7 @@ public class OFVideo implements Runnable {
 		mainFrame.setImage(imageQr);
 	}
 
-	public void showLanding(Mat mat, Mat filteredMat)
-			throws InterruptedException {
+	public void showLanding(Mat mat, Mat filteredMat) throws InterruptedException {
 		Mat landing = mat;
 		int circles = 0;
 
@@ -192,31 +175,28 @@ public class OFVideo implements Runnable {
 		if (check) {
 
 			circles = pictureProcessingHelper.findCircles(mat);
-//			for(int i = 0; i < 4; ){
-				if (circles > 0) {
-					aboveLanding = true;
-					// If false restart landing sequence
-					//Drone skal flyve lidt ned
-//					Thread.sleep(10);
-					commandController.addCommand(Command.DOWN, 100, 20);
-					Thread.sleep(200);
-					counts++;
-					}
-				else {
-						circles = 0;
-						circleCounter++;
-						
-					}
-				if(circleCounter>=120){
-					aboveLanding = false;
-					circleCounter = 0;
-					counts = 0;
-				}
-				if(counts == 3){
-					
-					commandController.droneInterface.land();
-				}
-//			}
+			// for(int i = 0; i < 4; ){
+			if (circles > 0) {
+				// If false restart landing sequence
+				// Drone skal flyve lidt ned
+				// Thread.sleep(10);
+				commandController.addCommand(Command.DOWN, 100, 20);
+				Thread.sleep(200);
+				counts++;
+			} else {
+				circles = 0;
+				circleCounter++;
+
+			}
+			if (circleCounter >= 120) {
+				circleCounter = 0;
+				counts = 0;
+			}
+			if (counts == 3) {
+
+				commandController.droneInterface.land();
+			}
+			// }
 		}
 		BufferedImage bufferedImageLanding = MatToBufferedImage(landing);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);

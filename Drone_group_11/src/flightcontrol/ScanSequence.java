@@ -20,29 +20,18 @@ import picture.PictureController;
 import picture.PictureProcessingHelper;
 
 public class ScanSequence implements Runnable {
-	
+
 	private static final int MIN_HIT_COUNT = 6;
-	private static final int FORWARD_TIME_2 = 800;
 	private static final int BACKWARD_TIME = 1500;
 	private static final int BACKWARD_SPEED = 9;
 	private static final int STRAFE_TIME = 800;
 	private static final int STRAFE_SPEED = 7;
 	private static final int SPIN_TIME = 500;
 	private static final int SPIN_SPEED = 20;
-	private static final int FORWARD_TIME = 800;
-	private static final int FORWARD_SPEED = 7;
 	private static final int ROTATE_TIME = 300;
 	private static final int ROTATE_SPEED = 90;
 	private static final int FIELD_DURATION = 1500;
 	private static final int FIELD_SPEED = 12;
-	private static final int FIELD_SMALL_DURATION = 800;
-	private static final int FIELD_SMALL_SPEED = 6;
-	private static final int MAX_Y_CORD = 1060;
-	private static final int MIN_Y_CORD = -10;
-	private static final int MAX_X_CORD = 926;
-	private static final int MIN_X_CORD = 80;
-	private static int noDistFound = 0;
-	private static final int noDistFoundLimit = 200;
 	private static final int MAX_FRAME_COUNT = 8;
 	private static final int MAX_ROTATE_COUNT = 15;
 	private double contourSize = 0;
@@ -52,7 +41,6 @@ public class ScanSequence implements Runnable {
 	public static final double CENTER_LOWER = -0.15;
 	public static final double CENTER_DIFFERENCE = 0.05;
 	public static final double SMALL_MOVE_LIMIT = 100;
-
 
 	private CommandController commandController;
 	private double chunkSize = 0;
@@ -66,21 +54,12 @@ public class ScanSequence implements Runnable {
 	private Mat camMat;
 	private int foundFrameCount = 0;
 	private boolean moveToStart = false;
-	private int endX = 847;
-	private int endY = -10;
 	private CustomPoint endPlacement;
 	private PictureProcessingHelper pictureProcessingHelper = new PictureProcessingHelper();
 	private Map<Integer, Integer> moves = new HashMap<>();
-	private boolean isFirst = false;
-	private boolean manualUpdateX = true;
 	private final static int CHUNK_SIZE = 70;
 	private double distanceFromQr = 0;
 	private boolean moveX;
-	private boolean doCommand = false;
-	private boolean startSmallMove = false;
-	private boolean canGetDist = true;
-	private boolean noMove = false;
-	private double prevDistance = 0;
 	private boolean runScanSequence = true;
 	private boolean xDone = false;
 	private boolean yDone = false;
@@ -111,7 +90,7 @@ public class ScanSequence implements Runnable {
 				sleep(50);
 			}
 		}
-		
+
 		scanCubes();
 		firstAxisToMove();
 		frameCount = 0;
@@ -122,16 +101,16 @@ public class ScanSequence implements Runnable {
 			} else {
 				sleep(50);
 			}
-			
+
 		}
-		
+
 		PictureController.shouldFlyControl = true;
-		OFVideo.isFirst =  true;
+		OFVideo.isFirst = true;
 		PictureController.shouldScan = false;
 		System.out.println("START THE CUDE SEQUENCE");
 
 	}
-	
+
 	private void scanCubes() {
 		commandController.droneInterface.hover();
 		commandController.droneInterface.setBottomCamera();
@@ -142,9 +121,9 @@ public class ScanSequence implements Runnable {
 			e.printStackTrace();
 		}
 		down.run();
-		
+
 		commandController.droneInterface.setFrontCamera();
-		
+
 		try {
 			Thread.sleep(2000);
 		} catch (InterruptedException e) {
@@ -222,7 +201,7 @@ public class ScanSequence implements Runnable {
 			if (distanceFomCenter > distance) {
 				distanceFomCenter = Math.abs(distance);
 				rect = rect2;
-				contourSize =  contourArea(contours.get(i));
+				contourSize = contourArea(contours.get(i));
 			}
 		}
 		return rect;
@@ -252,7 +231,6 @@ public class ScanSequence implements Runnable {
 			addCommand(Command.SPINLEFT, SPIN_TIME, SPIN_SPEED);
 		}
 	}
-
 
 	private void scanSequence() {
 		OFVideo.imageChanged = false;
@@ -380,23 +358,23 @@ public class ScanSequence implements Runnable {
 
 		return placement;
 	}
-	
-	public boolean canMoveWithoutSpinCheck(RotatedRect rect){
+
+	public boolean canMoveWithoutSpinCheck(RotatedRect rect) {
 		double positionFromCenter = pictureProcessingHelper.isCenterInImageBigger(camMat.clone(), rect);
 		if (positionFromCenter != 0) {
 			if (positionFromCenter > 0) {
-				if(pictureProcessingHelper.getSpinSpeed(contourSize)> 0){
-					addCommand(Command.SPINRIGHT, SPIN_TIME,pictureProcessingHelper.getSpinSpeed(contourSize));
-				}else {
-					addCommand(Command.SPINRIGHT, SPIN_TIME,SPIN_SPEED);
+				if (pictureProcessingHelper.getSpinSpeed(contourSize) > 0) {
+					addCommand(Command.SPINRIGHT, SPIN_TIME, pictureProcessingHelper.getSpinSpeed(contourSize));
+				} else {
+					addCommand(Command.SPINRIGHT, SPIN_TIME, SPIN_SPEED);
 				}
 			} else {
-				if(pictureProcessingHelper.getSpinSpeed(contourSize)>0){
+				if (pictureProcessingHelper.getSpinSpeed(contourSize) > 0) {
 					addCommand(Command.SPINLEFT, SPIN_TIME, pictureProcessingHelper.getSpinSpeed(contourSize));
-				}else {
+				} else {
 					addCommand(Command.SPINLEFT, SPIN_TIME, SPIN_SPEED);
 				}
-				
+
 			}
 			return false;
 		}
@@ -406,7 +384,6 @@ public class ScanSequence implements Runnable {
 	private void moveDroneToPlacement(CustomPoint placement) {
 		endPlacement = placement;
 		OFVideo.imageChanged = false;
-		doCommand = false;
 		List<Mat> contours = pictureProcessingHelper.findQrContours(camMat);
 		// find mostcenteredrect
 		RotatedRect rect = mostCenteredRect(contours);
@@ -414,7 +391,7 @@ public class ScanSequence implements Runnable {
 			frameCount = 0;
 			distanceFromQr = pictureProcessingHelper.calcDistance(rect);
 			chunkSize = 55;
-			
+
 			// Start moving
 			if (moveX && !xDone) {
 				if (contours.size() > 0 && !stopUsingSpin) {
@@ -433,19 +410,18 @@ public class ScanSequence implements Runnable {
 					}
 					int move = calcMovesYAxis(PictureController.getPlacement().getY(), placement);
 					decideMove(move);
-					
+
 				}
 			}
 		} else {
 			frameCount++;
 		}
 	}
-	
-	private CustomPoint dynamicCheck(double distanceFromQr){
+
+	private CustomPoint dynamicCheck(double distanceFromQr) {
 		CustomPoint tempPlace = PictureController.getPlacement();
 		if (!Double.isInfinite(distanceFromQr)) {
 
-			
 			if (code.contains("W02")) {
 				tempPlace.setY(FlightControl.MIN_Y_CORD + distanceFromQr);
 				PictureController.setPlacement(tempPlace);
@@ -454,7 +430,7 @@ public class ScanSequence implements Runnable {
 				tempPlace.setY(FlightControl.MAX_Y_CORD - distanceFromQr);
 				PictureController.setPlacement(tempPlace);
 			}
-			
+
 			if (code.contains("W03")) {
 				tempPlace.setY(FlightControl.MIN_X_CORD + distanceFromQr);
 				PictureController.setPlacement(tempPlace);
@@ -509,11 +485,10 @@ public class ScanSequence implements Runnable {
 			} else {
 				placement.setY(placement.getY() - smallChunkSize);
 			}
-			
-			
+
 		}
 		placement = dynamicCheck(distanceFromQr);
-		
+
 		double differenceY = Math.abs((placement.getY() - endPlacement.getY()));
 		boolean endYCondition = differenceY > 0 && differenceY < 60;
 
