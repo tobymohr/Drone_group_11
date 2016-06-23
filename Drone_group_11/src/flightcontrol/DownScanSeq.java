@@ -77,57 +77,6 @@ public class DownScanSeq implements Runnable {
 		redDone = true;
 	}
 
-	public void scanGreen() {
-		while (!greenDone) {
-			if (OFVideo.imageChangedGreen) {
-				scanGreenSeq();
-			} else {
-				try {
-					Thread.sleep(50);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}
-
-	private boolean scanGreenSeq() {
-		Mat greenMat = camMat.clone();
-		OFVideo.imageChangedGreen = false;
-		greenMat = pictureProcessingHelper.findContoursGreenMat(camMat);
-		greenResults.add(pictureProcessingHelper.findObjectsMat(greenMat));
-		if (greenResults.size() == 100) {
-			greenDone = true;
-		}
-		return greenDone;
-	}
-
-	public void scanRed() {
-		while (!redDone) {
-			if (OFVideo.imageChangedRed) {
-				scanRedSeq();
-			} else {
-				try {
-					Thread.sleep(50);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}
-
-	private boolean scanRedSeq() {
-		Mat redMat = camMat.clone();
-		OFVideo.imageChangedRed = false;
-		redMat = pictureProcessingHelper.findContoursRedMat(camMat);
-		redResults.add(pictureProcessingHelper.findObjectsMat(redMat));
-
-		if (redResults.size() == 100) {
-			redDone = true;
-		}
-		return redDone;
-	}
-
 	public ArrayList<CustomPoint> calculateScanResults(ArrayList<ArrayList<CustomPoint>> results) {
 		maxSize = 0;
 		HashMap<Integer, Integer> map = new HashMap<Integer, Integer>();
