@@ -3,7 +3,6 @@ package flightcontrol;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Timer;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
 
@@ -53,7 +52,6 @@ public class DownScanSeq {
 		} while (!greenDone && !redDone);
 		greenDone = false;
 		redDone = false;
-		PictureController.setPlacement(new CustomPoint(460, 107));
 		PictureController.addCords(calculateScanResults(redResults), Color.RED);
 		PictureController.addCords(calculateScanResults(greenResults), Color.GREEN);
 

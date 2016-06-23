@@ -61,7 +61,6 @@ public class PictureController {
 	public static boolean shouldTestWall = false;
 	public static boolean shouldLand = false;
 	public static boolean shouldFlyControl = false;
-
 	public BufferedImage billede;
 	public int navn = 0;
 	public int speed = 10;
