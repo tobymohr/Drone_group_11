@@ -332,9 +332,7 @@ public class PictureController {
 			public void run() {
 
 				camMat = grabMatFromCam(converterMat, grabber);
-
 				Mat filteredMat = null;
-
 				switch (colorInt) {
 				case 1:
 					filteredMat = pictureProcessingHelper.findContoursBlackMat(camMat);
