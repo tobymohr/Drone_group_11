@@ -95,7 +95,7 @@ public class DroneVideo implements Runnable {
 						showPolygons(newImg.clone(), filteredImage.clone());
 						break;
 					case PictureController.SHOW_LANDING:
-						showLanding(newImg.clone(), filteredImage.clone());
+						showLanding(newImg.clone());
 						break;
 					default:
 						showPolygons(newImg.clone(), filteredImage.clone());
@@ -159,51 +159,12 @@ public class DroneVideo implements Runnable {
 		mainFrame.setImage(imageQr);
 	}
 
-	public void showLanding(Mat mat, Mat filteredMat) throws InterruptedException {
-		Mat landing = mat;
-		int circles = 0;
-
-		// if (PictureController.shouldScan) {
-		// scanSequence.setImage(mat.clone());
-		// if (isFirst) {
-		// new Thread(scanSequence).start();
-		// isFirst = false;
-		// }
-		// }
-
-		boolean check = pictureProcessingHelper.checkDecodedQR(mat);
-		if (check) {
-
-			circles = pictureProcessingHelper.findCircles(mat);
-			// for(int i = 0; i < 4; ){
-			if (circles > 0) {
-				// If false restart landing sequence
-				// Drone skal flyve lidt ned
-				// Thread.sleep(10);
-				commandController.addCommand(Command.DOWN, 100, 20);
-				Thread.sleep(200);
-				counts++;
-			} else {
-				circles = 0;
-				circleCounter++;
-
-			}
-			if (circleCounter >= 120) {
-				circleCounter = 0;
-				counts = 0;
-			}
-			if (counts == 3) {
-
-				commandController.droneInterface.land();
-			}
-			// }
-		}
-		BufferedImage bufferedImageLanding = MatToBufferedImage(landing);
+	public void showLanding(Mat mat) throws InterruptedException {
+		BufferedImage bufferedImageLanding = MatToBufferedImage(mat);
 		Image imageLanding = SwingFXUtils.toFXImage(bufferedImageLanding, null);
 		mainFrame.setImage(imageLanding);
 
 	}
-
 	public void showFilter(Mat filteredMat)
 
 	{
