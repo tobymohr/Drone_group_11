@@ -131,6 +131,7 @@ public class Map extends JFrame {
 		}
 
 		public void drawQR(Graphics g, CoordinateSystem coordinateSystem) {
+			System.out.println("Hello");
 			String csvFile = "WallCoordinates.csv";
 			BufferedReader br = null;
 			String line = "";
