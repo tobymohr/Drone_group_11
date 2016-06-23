@@ -50,23 +50,14 @@ public class DownScanSeq implements Runnable {
 	}
 
 	public void run() {
-		// commandController.droneInterface.setBottomCamera();
 		do {
-			long start;
-			long elapsedTime;
-			start = System.currentTimeMillis();
 			scanRedGreen();
-			elapsedTime = System.currentTimeMillis() - start;
 		} while (!greenDone && !redDone);
 		greenDone = false;
 		redDone = false;
 
-		PictureController.setPlacement(new CustomPoint(460, 107));
 		PictureController.addCords(calculateScanResults(redResults), Color.RED);
-		PictureController.addCords(calculateScanResults(greenResults),
-				Color.GREEN);
-
-		// commandController.droneInterface.setFrontCamera();
+		PictureController.addCords(calculateScanResults(greenResults), Color.GREEN);
 
 	}
 
@@ -76,14 +67,10 @@ public class DownScanSeq implements Runnable {
 			if (OFVideo.imageChanged) {
 				OFVideo.imageChanged = false;
 
-				Mat objectsGreen = pictureProcessingHelper
-						.findContoursGreenMat(camMat.clone());
-				Mat objectsRed = pictureProcessingHelper
-						.findContoursRedMat(camMat.clone());
-				greenResults.add(pictureProcessingHelper
-						.findObjectsMat(objectsGreen));
-				redResults.add(pictureProcessingHelper
-						.findObjectsMat(objectsRed));
+				Mat objectsGreen = pictureProcessingHelper.findContoursGreenMat(camMat.clone());
+				Mat objectsRed = pictureProcessingHelper.findContoursRedMat(camMat.clone());
+				greenResults.add(pictureProcessingHelper.findObjectsMat(objectsGreen));
+				redResults.add(pictureProcessingHelper.findObjectsMat(objectsRed));
 			}
 		}
 		greenDone = true;
@@ -141,11 +128,9 @@ public class DownScanSeq implements Runnable {
 		return redDone;
 	}
 
-	public ArrayList<CustomPoint> calculateScanResults(
-			ArrayList<ArrayList<CustomPoint>> results) {
+	public ArrayList<CustomPoint> calculateScanResults(ArrayList<ArrayList<CustomPoint>> results) {
 		maxSize = 0;
 		HashMap<Integer, Integer> map = new HashMap<Integer, Integer>();
-		// subSetResult.clear();
 		for (ArrayList<CustomPoint> points : results) {
 			Integer value = map.get(points.size());
 			if (value != null) {
@@ -169,11 +154,6 @@ public class DownScanSeq implements Runnable {
 				point.setX(CENTER_OF_DRONE_X - point.getX() / PIXELS_PER_CM_X);
 				point.setY(CENTER_OF_DRONE_Y - point.getY() / PIXELS_PER_CM_Y);
 
-				if (flyingEast) {
-					// TODO: flip Vertical
-				} else {
-					// TODO: flip horizontal
-				}
 			}
 
 			return subSetResult.get(subSetResult.size() - 1);

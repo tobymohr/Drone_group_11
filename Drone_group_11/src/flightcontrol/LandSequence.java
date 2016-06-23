@@ -6,7 +6,6 @@ import java.util.Map;
 import org.bytedeco.javacpp.opencv_core.Mat;
 
 import app.CommandController;
-import de.yadrone.base.command.FlyingMode;
 import helper.Command;
 import picture.PictureProcessingHelper;
 
@@ -38,9 +37,7 @@ public class LandSequence implements Runnable {
 
 	public void run() {
 
-		//TAKEOFF sequence
-		
-		commandController.droneInterface.setFlightMode(FlyingMode.HOVER_ON_TOP_OF_ROUNDEL);
+		// TAKEOFF sequence
 		commandController.droneInterface.hover();
 		while (code == null) {
 			code = pictureProcessingHelper.scanQrCode(camMat);
@@ -51,19 +48,18 @@ public class LandSequence implements Runnable {
 		commandController.addCommand(Command.UP, 2600, 15);
 		sleep(2600);
 		commandController.droneInterface.hover();
-		//TAKEOFF sequence END
-		
-		
-		//check during flight sequence
+		// TAKEOFF sequence END
+
+		// check during flight sequence
 		while (true) {
 			circles = pictureProcessingHelper.findCircles(camMat);
 			if (circles > 0) {
 				commandController.addCommand(Command.DOWN, 1000, 20);
 				sleep(2000);
-				 while (checkCode == null) {
-				 checkCode = pictureProcessingHelper.scanQrCode(camMat);
-				 sleep(10);
-				 }
+				while (checkCode == null) {
+					checkCode = pictureProcessingHelper.scanQrCode(camMat);
+					sleep(10);
+				}
 				commandController.addCommand(Command.UP, 1000, 17);
 				sleep(2100);
 				if (code.equals(checkCode)) {
@@ -72,10 +68,10 @@ public class LandSequence implements Runnable {
 				break;
 			}
 		}
-		//check during flight sequence END
+		// check during flight sequence END
 		commandController.droneInterface.land();
 
-		//LANDING sequence
+		// LANDING sequence
 		while (true) {
 
 			circles = pictureProcessingHelper.findCircles(camMat);
@@ -90,7 +86,7 @@ public class LandSequence implements Runnable {
 				commandController.droneInterface.land();
 			}
 		}
-		//LANDING sequence END
+		// LANDING sequence END
 	}
 
 	private void sleep(int duration) {
